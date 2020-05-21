@@ -192,6 +192,30 @@ int MPIR_pmi_init(void)
     size = pvalue->data.uint32;
     PMIX_VALUE_RELEASE(pvalue);
 
+    pmix_value_t value;
+    pmix_value_t *val = &value;
+
+    for (int i = 0; i < size; i++) {
+        pmix_proc.rank = i;
+        mpi_errno = PMIx_Get(&pmix_proc, PMIX_FABRIC_COORDINATES, NULL, 0, &val);
+        MPIR_ERR_CHKANDJUMP1(pmi_errno != PMIX_SUCCESS, mpi_errno, MPI_ERR_OTHER,
+                             "**pmix_get", "**pmix_get %d", pmi_errno);
+        MPIR_Assert(val->data.coord->dims <= INT_MAX);
+        MPIR_Process.coords_dims = (int) val->data.coord->dims;
+
+        if (i == 0) {
+            MPIR_Process.coords =
+                MPL_malloc(sizeof(int) * MPIR_Process.coords_dims * size, MPL_MEM_BUFFER);
+            MPIR_ERR_CHKANDJUMP(!MPIR_Process.coords, mpi_errno, MPI_ERR_OTHER, "**nomem");
+        }
+
+        if (PMIX_COORD == val->type) {
+            for (int n = 0; n < MPIR_Process.coords_dims; n++) {
+                MPIR_Process.coords[i * MPIR_Process.coords_dims + n] = val->data.coord->coord[n];
+            }
+        }
+    }
+
     /* appnum, has_parent is not set for now */
   singleton_out:
     appnum = 0;
@@ -237,6 +261,7 @@ void MPIR_pmi_finalize(void)
     MPL_free(MPIR_Process.node_local_map);
 
     MPL_free(hwloc_topology_xmlfile);
+    MPL_free(MPIR_Process.coords);
 }
 
 void MPIR_pmi_abort(int exit_code, const char *error_msg)
