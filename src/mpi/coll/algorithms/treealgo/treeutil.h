@@ -16,9 +16,26 @@ struct coord_t {
 struct hierarchy_t {
     struct coord_t coord;
     int relative_idx;
+    int child_idx;
     int root_idx, myrank_idx;
     UT_array ranks;
 };
+
+typedef struct {
+    int num_rank;
+    int reach_time;
+} pair;
+
+typedef struct minHeap {
+    int size;
+    pair *elem;
+} minHeap;
+
+typedef struct {
+    minHeap *heap;
+    int capacity;
+    int total;
+} heap_vector;
 
 
 /* Common tree building content*/
@@ -31,6 +48,7 @@ static void tree_ut_hierarchy_init(void *elt)
 {
     ((struct hierarchy_t *) elt)->coord.id = -1;
     ((struct hierarchy_t *) elt)->coord.parent_idx = -1;
+    ((struct hierarchy_t *) elt)->child_idx = -1;
     ((struct hierarchy_t *) elt)->relative_idx = -1;
     ((struct hierarchy_t *) elt)->root_idx = -1;
     ((struct hierarchy_t *) elt)->myrank_idx = -1;
@@ -56,11 +74,19 @@ static const UT_icd tree_ut_hierarchy_icd =
 #define tree_ut_coord_init(a) utarray_init((a), &tree_ut_coord_icd)
 #define tree_ut_coord_elt(a, i) ((struct coord_t *)(utarray_eltptr((a), (i))))
 
-/* For herarchy operations maintenance */
+/* For hierarchy operations maintenance */
 #define tree_ut_hierarchy_back(a) ((struct hierarchy_t *)(utarray_back((a))))
 #define tree_ut_hierarchy_eltptr(a, i) ((struct hierarchy_t *)(utarray_eltptr((a), (i))))
 #define tree_ut_hierarchy_init(a) utarray_init((a), &tree_ut_hierarchy_icd)
 
+/* For pair operations maintenance */
+#define pair_elt(a, i) ((pair *)(utarray_eltptr((a), (i))))
+
+/* For MIN-HEAP operations maintenance */
+#define LCHILD(x) 2 * x + 1
+#define RCHILD(x) 2 * x + 2
+#define PARENT(x) (x - 1) / 2
+#define VECTOR_INIT_CAPACITY 4
 
 /* Declarations for functions which provide the base implementations of tree buildings */
 /* Generate kary tree information for rank 'rank' */

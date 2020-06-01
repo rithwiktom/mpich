@@ -53,6 +53,48 @@ cvars:
       description : >-
         Defines the location of tuning file.
 
+    - name        : MPIR_CVAR_NETWORK_TOPO_OVERHEAD
+      category    : COLLECTIVE
+      type        : int
+      default     : 200
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar controls the size of the overhead.
+
+    - name        : MPIR_CVAR_NETWORK_TOPO_DIFF_GROUPS
+      category    : COLLECTIVE
+      type        : int
+      default     : 2800
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar controls the latency between different groups.
+
+    - name        : MPIR_CVAR_NETWORK_TOPO_DIFF_SWITCHES
+      category    : COLLECTIVE
+      type        : int
+      default     : 1900
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar controls the latency between different switches
+        in the same groups.
+
+    - name        : MPIR_CVAR_NETWORK_TOPO_SAME_SWITCHES
+      category    : COLLECTIVE
+      type        : int
+      default     : 1600
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar controls the latency between the same switches
+        in the same groups.
+
 === END_MPI_T_CVAR_INFO_BLOCK ===
 */
 
