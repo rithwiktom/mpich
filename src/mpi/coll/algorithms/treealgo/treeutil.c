@@ -287,8 +287,8 @@ static inline void set_level_rank_indices(struct hierarchy_t *level, int r, int 
 /*Toplogy tree helpers*/
 
 /* tree init function is for building hierarchy of MPIR_Process::coords_dims */
-static int MPII_Treeutil_tree_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
-                                   UT_array * hierarchy)
+static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
+                                            UT_array * hierarchy)
 {
     int mpi_errno = MPI_SUCCESS;
     int fallback = 0;
@@ -305,12 +305,7 @@ static int MPII_Treeutil_tree_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * pa
 
     /* Initialization for world level */
     int dim = MPIR_Process.coords_dims;
-    tree_ut_hierarchy_init(&hierarchy[dim]);
     utarray_extend_back(&hierarchy[dim], MPL_MEM_COLL);
-
-    /* Initialization for the rest levels */
-    for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim)
-        tree_ut_hierarchy_init(&hierarchy[dim]);
 
     for (int r = 0; r < params->nranks; ++r) {
         struct hierarchy_t *upper_level =
@@ -409,8 +404,10 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
 
     UT_array hierarchy[MAX_HIERARCHY_DEPTH];
     int dim = MPIR_Process.coords_dims;
+    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
+        tree_ut_hierarchy_init(&hierarchy[dim]);
 
-    if (MPII_Treeutil_tree_init(comm, params, hierarchy))
+    if (0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
         goto fn_fallback;
 
     ct->rank = comm->rank;
@@ -456,10 +453,6 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
         utarray_done(&hierarchy[dim]);
 
   fn_exit:
-    for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
-        utarray_done(&hierarchy[dim]);
-
-  fn_fallback_exit:
     return mpi_errno;
 
   fn_fail:
@@ -471,7 +464,7 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
                      "it falls back on the kary tree building"));
     mpi_errno = MPII_Treeutil_tree_kary_init(myrank, nranks, 1, root, ct);
     MPIR_ERR_CHECK(mpi_errno);
-    goto fn_fallback_exit;
+    goto fn_exit;
 }
 
 /* Implementation of 'Topology wave' algorithm */
@@ -740,7 +733,7 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     heap_vector_init(&minHeaps);
 
     /* To build hierarchy of ranks, swiches and groups */
-    if (MPII_Treeutil_tree_init(comm, params, hierarchy))
+    if (MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
         goto fn_fallback;
 
     UT_icd intpair_icd = { sizeof(pair), NULL, NULL, NULL };
