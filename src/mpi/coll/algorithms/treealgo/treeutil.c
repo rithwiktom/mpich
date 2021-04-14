@@ -10,7 +10,8 @@
 #include "mpiimpl.h"
 
 /* Required declaration*/
-static void tree_topology_print_hierarchy(UT_array hierarchy[], int myrank) ATTRIBUTE((unused));
+static void tree_topology_dump_hierarchy(UT_array hierarchy[], int myrank,
+                                         FILE * outfile) ATTRIBUTE((unused));
 static void tree_topology_print_heaps_built(heap_vector * minHeaps) ATTRIBUTE((unused));
 
 static int tree_add_child(MPIR_Treealgo_tree_t * t, int rank)
@@ -290,12 +291,12 @@ static int MPII_Treeutil_tree_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * pa
                                    UT_array * hierarchy)
 {
     int mpi_errno = MPI_SUCCESS;
-    int fallback_flag = 0;
+    int fallback = 0;
 
     /* MPI_Spawn's fallback: If COMM_WORLD's new nranks number
      * is greater than it used to be, it falls back. */
     if (params->nranks > MPIR_Process.size) {
-        fallback_flag = 1;
+        fallback = 1;
         goto fn_fail;
     }
 
@@ -355,7 +356,7 @@ static int MPII_Treeutil_tree_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * pa
     }
 
   fn_exit:
-    if (!fallback_flag) {
+    if (fallback) {
         for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
             utarray_done(&hierarchy[dim]);
     }
@@ -405,7 +406,6 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     int nranks = params->nranks;
     int root = params->root;
     int myrank = params->rank;
-    int fallback_flag = 0;
 
     UT_array hierarchy[MAX_HIERARCHY_DEPTH];
     int dim = MPIR_Process.coords_dims;
@@ -456,10 +456,10 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
         utarray_done(&hierarchy[dim]);
 
   fn_exit:
-    if (!fallback_flag) {
-        for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
-            utarray_done(&hierarchy[dim]);
-    }
+    for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
+        utarray_done(&hierarchy[dim]);
+
+  fn_fallback_exit:
     return mpi_errno;
 
   fn_fail:
@@ -471,7 +471,7 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
                      "it falls back on the kary tree building"));
     mpi_errno = MPII_Treeutil_tree_kary_init(myrank, nranks, 1, root, ct);
     MPIR_ERR_CHECK(mpi_errno);
-    goto fn_exit;
+    goto fn_fallback_exit;
 }
 
 /* Implementation of 'Topology wave' algorithm */
@@ -838,27 +838,34 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
 
 }
 
-static void tree_topology_print_hierarchy(UT_array hierarchy[], int myrank)
+static void tree_topology_dump_hierarchy(UT_array hierarchy[], int myrank, FILE * outfile)
 {
+    fprintf(outfile, "{\"rank\": %d, \"hierarchy\": [\n", myrank);
     for (int dim = MPIR_Process.coords_dims; dim >= 0; --dim) {
-        printf("[%d] hierarchy[%d] = [", myrank, dim);
+        fprintf(outfile, "    {\"dim\": %d, \"levels\": [\n", dim);
         for (int level_idx = 0; level_idx < utarray_len(&hierarchy[dim]); ++level_idx) {
             if (level_idx > 0)
-                printf(",");
+                fprintf(outfile, ",\n");
             struct hierarchy_t *cur_level = tree_ut_hierarchy_eltptr(&hierarchy[dim], level_idx);
-            printf("{{%d,%d}", cur_level->coord.id, cur_level->coord.parent_idx);
-            printf(",%d,%d,%d,%d,[", cur_level->child_idx, cur_level->relative_idx,
-                   cur_level->root_idx, cur_level->myrank_idx);
+            fprintf(outfile, "        {\"coord\": {\"id\": %d, \"parent_idx\": %d}, ",
+                    cur_level->coord.id, cur_level->coord.parent_idx);
+            fprintf(outfile,
+                    "\"child_idx\": %d, \"relative_idx\": %d, \"root_idx\": %d, \"myrank_idx\": %d, \"ranks\": [",
+                    cur_level->child_idx, cur_level->relative_idx,
+                    cur_level->root_idx, cur_level->myrank_idx);
             for (int i = 0; i < utarray_len(&cur_level->ranks); ++i) {
                 if (i > 0)
-                    printf(",");
-                printf("%d", tree_ut_int_elt(&cur_level->ranks, i));
+                    fprintf(outfile, ", ");
+                fprintf(outfile, "%d", tree_ut_int_elt(&cur_level->ranks, i));
             }
-            printf("]}");
+            fprintf(outfile, "]}");
         }
-        printf("]\n");
-        fflush(stdout);
+        fprintf(outfile, "\n     ]}");
+        if (dim > 0)
+            fprintf(outfile, ",");
+        fprintf(outfile, "\n");
     }
+    fprintf(outfile, "]}\n");
 }
 
 static void tree_topology_print_heaps_built(heap_vector * minHeaps)
