@@ -91,6 +91,7 @@ cvars:
 
 static int build_nodemap(int *nodemap, int sz, int *p_max_node_id);
 static int build_locality(void);
+static int parse_coord_file(const char *file);
 
 static int pmi_version = 1;
 static int pmi_subversion = 1;
@@ -233,6 +234,10 @@ int MPIR_pmi_init(void)
     mpi_errno = build_nodemap(MPIR_Process.node_map, size, &g_max_node_id);
     MPIR_ERR_CHECK(mpi_errno);
     MPIR_Process.num_nodes = g_max_node_id + 1;
+    if (strcmp(MPIR_CVAR_COORDINATES_FILE, "")) {
+        mpi_errno = parse_coord_file(MPIR_CVAR_COORDINATES_FILE);
+        MPIR_ERR_CHECK(mpi_errno);
+    }
 
     /* allocate and populate MPIR_Process.node_local_map and MPIR_Process.node_root_map */
     mpi_errno = build_locality();
@@ -1561,3 +1566,60 @@ static void free_pmi_keyvals(INFO_TYPE ** kv, int size, int *counts)
     MPIR_FUNC_EXIT;
 }
 #endif /* USE_PMI1_API or USE_PMI2_API */
+
+
+static int parse_coord_file(const char *filename)
+{
+    int mpi_errno = MPI_SUCCESS;
+    int i, j, rank;
+    FILE *coords_file;
+
+    coords_file = fopen(filename, "r");
+    MPIR_ERR_CHKANDJUMP1(NULL == coords_file, mpi_errno, MPI_ERR_FILE,
+                         "**filenoexist", "**filenoexist %s", filename);
+
+    MPIR_Process.coords_dims = 0;
+    fscanf(coords_file, "%d:", &rank);
+    while (!feof(coords_file)) {
+        if (fscanf(coords_file, "%d", &rank) == 1)
+            ++MPIR_Process.coords_dims;
+        else
+            break;
+        if (fgetc(coords_file) == '\n')
+            break;
+    }
+
+    MPIR_Assert(MPIR_Process.coords_dims > 0);
+    rewind(coords_file);
+
+    MPIR_Process.coords =
+        MPL_malloc(MPIR_Process.coords_dims * sizeof(int) * MPIR_Process.size, MPL_MEM_COLL);
+    memset(MPIR_Process.coords, -1, MPIR_Process.coords_dims * sizeof(int) * MPIR_Process.size);
+
+    for (i = 0; i < MPIR_Process.size; ++i) {
+        int fields_scanned = fscanf(coords_file, "%d:\n", &rank);
+        MPIR_ERR_CHKANDSTMT2(1 != fields_scanned, mpi_errno, MPI_ERR_FILE, goto fn_fail_read,
+                             "**read_file", "**read_file %s %s", filename, strerror(errno));
+        if (rank >= MPIR_Process.size) {
+            if (MPIR_Process.rank == 0)
+                fprintf(stderr, "Warning: rank=%d is outside commsize=%d\n",
+                        rank, MPIR_Process.size);
+            continue;
+        }
+        for (j = 0; j < MPIR_Process.coords_dims; ++j) {
+            fields_scanned =
+                fscanf(coords_file, "%d:\n",
+                       &MPIR_Process.coords[rank * MPIR_Process.coords_dims + j]);
+            MPIR_ERR_CHKANDSTMT2(1 != fields_scanned, mpi_errno, MPI_ERR_FILE, goto fn_fail_read,
+                                 "**read_file", "**read_file %s %s", filename, strerror(errno));
+        }
+    }
+    fclose(coords_file);
+
+  fn_fail:
+  fn_exit:
+    return mpi_errno;
+  fn_fail_read:
+    fclose(coords_file);
+    goto fn_fail;
+}

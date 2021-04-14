@@ -95,6 +95,26 @@ cvars:
         This cvar controls the latency between the same switches
         in the same groups.
 
+    - name        : MPIR_CVAR_COORDINATES_FILE
+      category    : COLLECTIVE
+      type        : string
+      default     : ""
+      class       : device
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        Defines the location of coordinates file.
+
+    - name        : MPIR_CVAR_ENABLE_YAKSA_REDUCTION
+      category    : COLLECTIVE
+      type        : int
+      default     : 1
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar enables yaksa based reduction for local reduce.
+
 === END_MPI_T_CVAR_INFO_BLOCK ===
 */
 
