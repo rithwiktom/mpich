@@ -190,7 +190,7 @@ if [ "${flavor}" == "nogpu" ]; then
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
-    config_extra+="--enable-psm3"
+    config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
 fi
@@ -202,13 +202,13 @@ if [ "${flavor}" == "gen9" -o "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; th
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
     # JLSE builds where we provide embedded libfabric
-    config_extra+="--enable-psm3"
+    config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
 fi
 
 if [ "${flavor}" == "dg1" -o "${flavor}" == "gen9" ]; then
-    config_extra+="--disable-ze-double"
+    config_extra+=" --disable-ze-double"
 fi
 
 if [ "${provider}" != "sockets" ]; then
