@@ -306,18 +306,6 @@ stage('Build') {
     parallel branches
 }
 
-stage('Setup RPM Build') {
-    node('anfedclx8') {
-        unstash name: "$stash_name"
-        sh(script: """
-#!/bin/bash -xe
-
-cd \$HOME/rpmbuild
-
-""")
-    }
-}
-
 def rpms = [:]
 
 for (a in providers) {
