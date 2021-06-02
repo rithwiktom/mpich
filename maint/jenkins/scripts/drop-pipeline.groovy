@@ -545,6 +545,9 @@ stage('Test RPMs') {
     parallel rpm_tests
 }
 
+// Tag update and RPM upload stems are broken at the moment. They should be done manually until fixed.
+return
+
 stage('Update Drop Tag') {
     node('anfedclx8') {
         // Get some code from a GitHub repository
