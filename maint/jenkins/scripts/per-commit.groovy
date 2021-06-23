@@ -190,7 +190,7 @@ if ("${jenkins_node}" == "") {
 }
 
 /* Check if the link should be for per-commit-github or per-commit-github-main */
-if (env['GITHUB_PR_TARGET_BRANCH'].equals("main") || env['GITHUB_PR_TARGET_BRANCH'].equals("integration_main")) {
+if (env['GITHUB_PR_TARGET_BRANCH'].equals("main")) {
     BLUEOCEAN_URL = "https://ancoral001.an.intel.com/blue/organizations/jenkins/per-commit-github-main/detail/per-commit-github-main"
 }
 print BLUEOCEAN_URL
