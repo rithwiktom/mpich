@@ -929,14 +929,10 @@ SetConfigOpt() {
         config_opt+=( -with-file-system=ufs+nfs )
     fi
     config_opt+=( -enable-timer-type=linux86_cycle )
-    config_opt+=( -enable-romio )
-    config_opt+=( -with-mpe=no )
-    config_opt+=( -with-smpcoll=yes )
     config_opt+=( -with-assert-level=0 )
     config_opt+=( -enable-shared )
     config_opt+=( -enable-static )
     config_opt+=( -enable-error-messages=yes )
-    config_opt+=( -enable-visibility )
     config_opt+=( -enable-large-tests )
     config_opt+=( -enable-strict )
     config_opt+=( -enable-collalgo-tests )
@@ -1144,7 +1140,9 @@ SetConfigOpt() {
         config_opt+=("--enable-ch4-mt=${mt_model}")
     fi
 
-        config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
+        if [ "${netmod_opt[@]}" != "" ]; then
+            config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
+        fi
     else
 	# CH3
 	if [ "${thread_cs}" = "" ]; then
@@ -1155,7 +1153,7 @@ SetConfigOpt() {
 
     config_opt+=( --enable-thread-cs=${thread_cs})
     # --with-libfabric: CH4, --with-ofi: CH3
-    config_opt+=( --with-libfabric=$ofi_dir --with-ofi=$ofi_dir )
+    config_opt+=( --with-libfabric=$ofi_dir )
 
     # pmix option
     if [ "$use_pmix" = "pmix" ]; then
