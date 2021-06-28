@@ -91,6 +91,9 @@ def skip_config(netmod, provider, compiler, am, direct, config, gpu, test, threa
     skip |= ("${thread}" != "runtime" && "${provider}" == "verbs") // Only test psm2 and sockets with threading
     skip |= ("${thread}" == "runtime" && "${async}" != "async-single") // Only test async-single with runtime mode
 
+    // Provider
+    skip |= ("${provider}" == "verbs" && "${gpu}" == "nogpu") // TODO: Skip because of anccskl6 cluster issues
+
     return skip
 }
 
