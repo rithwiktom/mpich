@@ -1,0 +1,1476 @@
+{
+  "collective=bcast": {
+    "comm_type=intra": {
+      "comm_avg_ppn<=8": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+            "avg_msg_size<=0": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=8": {},
+                "num_buffers=2": {},
+                "topology=0": {},
+                "tree_type=kary": {}
+              }
+	    },  
+            "avg_msg_size<=1": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=16": {},
+                "num_buffers=4": {},
+                "topology=1": {},
+                "tree_type=kary": {}
+              }
+            },
+            "avg_msg_size<=2": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=36": {},
+                "num_buffers=8": {},
+                "topology=1": {},
+                "tree_type=knomial_1": {}
+              }
+            },
+            "avg_msg_size<=4": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=8": {},
+                "num_buffers=2": {},
+                "topology=0": {},
+                "tree_type=kary": {}
+              }
+            },
+            "avg_msg_size<=8": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=16": {},
+                "num_buffers=4": {},
+                "topology=0": {},
+                "tree_type=knomial_1": {}
+              }
+            },
+            "avg_msg_size<=16": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=8": {},
+                "num_buffers=2": {},
+                "topology=0": {},
+                "tree_type=kary": {}
+              }
+            },
+            "avg_msg_size<=64": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=16": {},
+                "num_buffers=4": {},
+                "topology=0": {},
+                "tree_type=knomial_1": {}
+              }
+            },
+            "avg_msg_size<=128": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=8": {},
+                "num_buffers=2": {},
+                "topology=0": {},
+                "tree_type=kary": {}
+              }
+            },
+            "avg_msg_size<=256": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=16": {},
+                "num_buffers=4": {},
+                "topology=0": {},
+                "tree_type=knomial_1": {}
+              }
+            },
+            "avg_msg_size<=2048": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=8": {},
+                "num_buffers=2": {},
+                "topology=0": {},
+                "tree_type=kary": {}
+              }
+            },
+            "avg_msg_size<=4096": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=16384": {},
+                "k=36": {},
+                "num_buffers=2": {},
+                "topology=0": {},
+                "tree_type=knomial_2": {}
+              }
+            },
+            "avg_msg_size<=8192": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=32768": {},
+                "k=36": {},
+                "num_buffers=8": {},
+                "topology=1": {},
+                "tree_type=knomial_2": {}
+              }
+            },
+            "avg_msg_size<=16384": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=32768": {},
+                "k=16": {},
+                "num_buffers=8": {},
+                "topology=0": {},
+                "tree_type=kary": {}
+              }
+            },
+            "avg_msg_size<=32768": {
+              "algorithm=BCAST_INTRA_release_gather": {
+                "buffer_size=32768": {},
+                "k=16": {},
+                "num_buffers=8": {},
+                "topology=0": {},
+                "tree_type=knomial_1": {}
+              }
+            },
+          "avg_msg_size<=131072": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=524288": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=2097152": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          }
+        }
+	}
+      },
+      "comm_avg_ppn<=18": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=16": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=512": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=2048": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=65536": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=131072": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=262144": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=2097152": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          }
+        }
+	}
+      },
+      "comm_avg_ppn=any": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=4": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=8": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=BCAST_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          }
+        }
+	}
+      }
+    }
+  },
+  "collective=allreduce": {
+    "comm_type=intra": {
+      "comm_avg_ppn<=8": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=16": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=32": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=512": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2048": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=65536": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=131072": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=262144": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=524288": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=2097152": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          }
+	}
+        }
+      },
+      "comm_avg_ppn<=18": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=16": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=512": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2048": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=65536": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=131072": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=262144": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=524288": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=2097152": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          }
+        }
+	}
+      },
+      "comm_avg_ppn=any": {
+  	"buffer_type=any":{      
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=8": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=16": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=512": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=65536": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=131072": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=262144": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=524288": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2097152": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=ALLREDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          }
+        }
+	}
+      }
+    }
+  },
+  "collective=barrier": {
+    "comm_type=intra": {
+      "comm_avg_ppn=any": {
+	"buffer_type=any": {
+        "comm_size=any": {
+          "avg_msg_size=any": {
+            "algorithm=BARRIER_INTRA_release_gather": {}
+          }
+        }
+	}
+      }
+    }
+  },
+  "collective=reduce": {
+    "comm_type=intra": {
+      "comm_avg_ppn<=8": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=32": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=512": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=2048": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=131072": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=262144": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=524288": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1048576": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=2097152": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          }
+        }
+       }
+      },
+      "comm_avg_ppn<=18": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=16": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=32": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=512": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2048": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=knomial_1": {}
+            }
+          }
+        }
+	}
+      },
+      "comm_avg_ppn=any": {
+  	"buffer_type=any":{
+        "comm_size=any": {
+          "avg_msg_size<=0": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=0": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=8": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=32": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=36": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=64": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=36": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=128": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=16": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=256": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=16": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=1024": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=2048": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=kary": {}
+            }
+          },
+          "avg_msg_size<=4096": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=8192": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=8": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=16384": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=16384": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=32768": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size<=65536": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=4": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          },
+          "avg_msg_size<=262144": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_2": {}
+            }
+          },
+          "avg_msg_size=any": {
+            "algorithm=REDUCE_INTRA_release_gather": {
+              "buffer_size=32768": {},
+              "k=8": {},
+              "num_buffers=2": {},
+              "topology=1": {},
+              "tree_type=knomial_1": {}
+            }
+          }
+	}
+	}
+      }
+    }
+  }
+}
