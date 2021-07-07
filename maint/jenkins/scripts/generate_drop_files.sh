@@ -42,6 +42,9 @@ function generate_lua_script {
     cat > $filename << EOF
 help([[
    This module loads MPICH with $compiler compiler ($configs build)${deterministic_text}
+
+   Documentation for tuning parameters is located at: /usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/share/doc/mpich/TUNING_PARAMETERS
+   RELEASE_NOTES for this release is located at: /usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/share/doc/mpich/RELEASE_NOTES
 EOF
 
     if [ "$compiler" == "icc" ]; then
@@ -144,6 +147,8 @@ function generate_tcl_script {
 proc ModulesHelp { } {
    puts stderr "    MPICH library for $compiler compiler ($configs build${deterministic_results})"
    puts stderr "    This module loads MPICH with $compiler compiler ($configs build)${deterministic_text}"
+   puts stderr "    Documentation for tuning parameters is located at: /usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/share/doc/mpich/TUNING_PARAMETERS"
+   puts stderr "    RELEASE_NOTES for this release is located at: /usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/share/doc/mpich/RELEASE_NOTES"
 EOF
 
     if [ "$compiler" == "icc" ]; then

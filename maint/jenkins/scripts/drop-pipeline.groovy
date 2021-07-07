@@ -190,7 +190,7 @@ if [ "${flavor}" == "nogpu" ]; then
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
-    config_extra+="--enable-psm3"
+    config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
 fi
@@ -202,13 +202,13 @@ if [ "${flavor}" == "gen9" -o "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; th
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
     # JLSE builds where we provide embedded libfabric
-    config_extra+="--enable-psm3"
+    config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
 fi
 
 if [ "${flavor}" == "dg1" -o "${flavor}" == "gen9" ]; then
-    config_extra+="--disable-ze-double"
+    config_extra+=" --disable-ze-double"
 fi
 
 if [ "${provider}" != "sockets" ]; then
@@ -304,18 +304,6 @@ salloc -J drop:${provider}:${compiler}:${config}:${pmix} -N 1 -t 360 ./drop-test
 
 stage('Build') {
     parallel branches
-}
-
-stage('Setup RPM Build') {
-    node('anfedclx8') {
-        unstash name: "$stash_name"
-        sh(script: """
-#!/bin/bash -xe
-
-cd \$HOME/rpmbuild
-
-""")
-    }
 }
 
 def rpms = [:]
@@ -544,6 +532,9 @@ salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${node
 stage('Test RPMs') {
     parallel rpm_tests
 }
+
+// Tag update and RPM upload stems are broken at the moment. They should be done manually until fixed.
+return
 
 stage('Update Drop Tag') {
     node('anfedclx8') {
