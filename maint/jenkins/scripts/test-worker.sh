@@ -1430,7 +1430,7 @@ if [ "$run_tests" == "yes" ]; then
         export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
         export MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
     fi
-    export MPIR_CVAR_OFI_USE_PROVIDER="$ofi_prov"
+    export FI_PROVIDER="$ofi_prov"
 
     echo $PATH
     echo $LD_LIBRARY_PATH
