@@ -141,7 +141,7 @@ elif [ ${compiler} == "icc" ]; then
 fi
 
 if [ ${provider} == "sockets" ]; then
-    export MPIR_CVAR_OFI_USE_PROVIDER=sockets
+    export FI_PROVIDER=sockets
 fi
 
 
