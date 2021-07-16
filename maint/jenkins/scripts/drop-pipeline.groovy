@@ -133,6 +133,9 @@ for (a in providers) {
 cat > drop-test-job.sh << "EOF"
 #!/bin/bash -x
 
+# Set overlap as default
+export SLURM_OVERLAP=1
+
 srun -N 1 hostname
 
 set +e
@@ -365,6 +368,9 @@ for (a in providers) {
                             sh(script: """
 #!/bin/bash -xe
 
+# Set overlap as default
+export SLURM_OVERLAP=1
+
 pushd \$HOME/rpmbuild
 
 version=\$(<drop_version)
@@ -500,6 +506,9 @@ for (a in providers) {
                             unstash name: "$stash_name"
                             sh(script: """
 #!/bin/bash -x
+
+# Set overlap as default
+export SLURM_OVERLAP=1
 
 export version=\$(<drop_version)
 export release=\$(<release_version)
