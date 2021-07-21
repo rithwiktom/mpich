@@ -281,6 +281,9 @@ hostname
 cat > nightly-test-job.sh << "EOF"
 #!/bin/bash -x
 
+# Set overlap as default
+export SLURM_OVERLAP=1
+
 srun -N 1 hostname
 
 set +e
