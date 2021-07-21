@@ -98,10 +98,6 @@ def invalid_config(netmod, provider, compiler, am, direct, config, gpu, test, th
 
     // AM filters
     invalid |= ("${am}" == "am" && "${gpu}" != "nogpu")
-    invalid |= ("${am}" == "am" && "${thread}" != "runtime")
-
-    // Threading filters
-    invalid |= ("${thread}" == "runtime" && "${vci}" != "vci1")
 
     if (invalid) {
         invalid_configs.add("""
