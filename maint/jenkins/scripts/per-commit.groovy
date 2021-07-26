@@ -455,7 +455,6 @@ fi
 # Force configurations if merging with main due to some incompatibilities
 if [ "\${GITHUB_PR_TARGET_BRANCH}" == "main" -o "\${GITHUB_PR_TARGET_BRANCH}" == "integration_main" ]; then
     gpudirect="no"
-    mt_model="main"
     json="no"
 fi
 

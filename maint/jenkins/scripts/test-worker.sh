@@ -1135,10 +1135,7 @@ SetConfigOpt() {
 	    # which is the only supported model with global CS
 	    mt_model="direct"
 	fi
-    # hack to remove --enable-ch4-mt for per-commit with main branch
-    if [ "${mt_model}" != "main" ]; then
         config_opt+=("--enable-ch4-mt=${mt_model}")
-    fi
 
         if [ "${netmod_opt[@]}" != "" ]; then
             config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
