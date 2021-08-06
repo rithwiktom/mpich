@@ -27,9 +27,6 @@ if [ "$flavor" == "dg1" ]; then
     module load neo/2020.10.05
 elif [ "$flavor" == "ats" ]; then
     ze_dir="/usr"
-else
-    # This is run on the anfedclx8 cluster
-    ze_dir="/opt/neo/release/2020.10.05"
 fi
 
 pmix_string=""

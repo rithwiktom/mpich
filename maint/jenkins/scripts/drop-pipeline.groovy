@@ -187,7 +187,7 @@ fi
 neo_dir=/opt/neo/release/2020.10.05
 
 #Set ze path for all the builds
-ze_dir=/opt/neo/release/2020.10.05
+ze_dir=/usr
 # Build with native support for GPU-specific RPMs
 if [ "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
     ze_native="${flavor}"
