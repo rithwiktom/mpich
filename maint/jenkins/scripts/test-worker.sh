@@ -39,6 +39,7 @@ install_dir="$WORKSPACE/_inst"
 src_dir="."
 embed_ofi="no"
 build_mpich="yes"
+warnings_checker="no"
 device_caps=""
 cpu=""
 thread_cs="" # Default will be set later depending on the device
@@ -90,7 +91,7 @@ done
 ## Initialization
 #####################################################################
 
-while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:x:X:y:Y:z:Z:" opt; do
+while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
     case "$opt" in
         a)
             cpu=$OPTARG ;;
@@ -160,6 +161,8 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:
             shm_eager=$OPTARG ;;
         w)
             xfail_file=$OPTARG ;;
+        W)
+            warnings_checker=$OPTARG ;;
         x)
             run_tests=$OPTARG ;;
         X)
@@ -934,7 +937,11 @@ SetConfigOpt() {
     config_opt+=( -enable-static )
     config_opt+=( -enable-error-messages=yes )
     config_opt+=( -enable-large-tests )
-    config_opt+=( -enable-strict )
+    if [ "$warnings_checker" = "yes" ]; then
+        config_opt+=( -enable-strict=error )
+    else
+        config_opt+=( -enable-strict )
+    fi
     config_opt+=( -enable-collalgo-tests )
     config_opt+=( -enable-izem-queue )
     config_opt+=( -with-zm-prefix=yes )
@@ -1267,7 +1274,7 @@ if [ "$build_mpich" == "yes" ]; then
 
     #Show libraries linked dynamically
     ldd "$install_dir"/lib/libmpi.so
-    cat m.txt mi.txt | $src_dir/maint/clmake > filtered-make.txt 2>&1
+    cat m.txt | $src_dir/maint/clmake > filtered-make.txt 2>&1
 fi
 
 #####################################################################
