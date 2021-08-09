@@ -80,6 +80,9 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
@@ -329,6 +332,9 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
@@ -450,6 +456,9 @@ for (a in providers) {
                     def pmix = d
                     def flavor = e
                     def testgpu = 0
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     /* The gen9 machine only uses sockets */
                     if (("${provider}" == "psm2" || "${provider}" == "verbs") && "${flavor}" == "gen9") {
                         continue
@@ -603,6 +612,9 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
