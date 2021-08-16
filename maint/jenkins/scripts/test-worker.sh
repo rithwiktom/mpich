@@ -1469,6 +1469,35 @@ if [ "$run_tests" == "yes" ]; then
         fi
     fi
 
+    if test -z "`cat filtered-make.txt`" ; then
+        failures=0
+    else
+        failures=1
+    fi
+
+    # Delete the last line of the test file and add the warning tests
+    sed -i '$ d' test/mpi/summary.junit.xml
+
+    echo "    <testsuite" >> test/mpi/summary.junit.xml
+    echo "        failures=\"$failures\"" >> test/mpi/summary.junit.xml
+    echo "        errors=\"0\"" >> test/mpi/summary.junit.xml
+    echo "        skipped=\"0\"" >> test/mpi/summary.junit.xml
+    echo "        tests=\"1\"" >> test/mpi/summary.junit.xml
+    echo "        date=\"`date +%Y-%m-%d-%H-%M`\"" >> test/mpi/summary.junit.xml
+    echo "        name=\"summary_junit_xml\">" >> test/mpi/summary.junit.xml
+
+    echo "        <testcase name=\"compilation\" time=\"0\">" >> test/mpi/summary.junit.xml
+
+    if [ "$failures" != "0" ] ; then
+      echo "            <failure><![CDATA[" >> test/mpi/summary.junit.xml
+      cat filtered-make.txt >> test/mpi/summary.junit.xml
+      echo "            ]]></failure>" >> test/mpi/summary.junit.xml
+    fi
+
+    echo "        </testcase>" >> test/mpi/summary.junit.xml
+    echo "    </testsuite>" >> test/mpi/summary.junit.xml
+    echo "</testsuites>" >> test/mpi/summary.junit.xml
+
     # Cleanup
     if killall -9 hydra_pmi_proxy; then
         echo "leftover hydra_pmi_proxy processes killed"
