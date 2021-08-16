@@ -63,6 +63,7 @@ use_json="yes"
 xpmem_dir="/usr/local"
 USE_GCC_9=0
 USE_ICX="yes"
+fast="none"
 
 MPICHLIB_CFLAGS=
 MPICHLIB_CXXFLAGS=
@@ -91,7 +92,7 @@ done
 ## Initialization
 #####################################################################
 
-while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
+while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
     case "$opt" in
         a)
             cpu=$OPTARG ;;
@@ -113,6 +114,8 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:
             use_xpmem=$OPTARG ;;
         f)
             install_dir=$OPTARG ;;
+        F)
+            fast=$OPTARG ;;
         g)
             device=$OPTARG ;;
         G)
@@ -967,12 +970,24 @@ SetConfigOpt() {
         channel=":nemesis"
         device_caps=""
     fi
+
+    case "$fast" in
+        "none")
+            config_opt+=( -enable-fast=none )
+            ;;
+        "O3")
+            config_opt+=( -enable-fast=all,O3 )
+            ;;
+        *)
+            echo "Bad fast option: $fast"
+            exit 1
+    esac
+
     case "$jenkins_configure" in
         "debug")
             config_opt+=( -enable-g=all )
             config_opt+=( -enable-timing=runtime )
             config_opt+=( -enable-error-checking=all )
-            config_opt+=( -enable-fast=none )
             config_opt+=( -enable-debuginfo )
             config_opt+=( -with-device=${device}${channel}:${netmod} )
             config_opt+=( -enable-handle-allocation=default )
@@ -994,7 +1009,6 @@ SetConfigOpt() {
             config_opt+=( -enable-g=none )
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
-            config_opt+=( -enable-fast=all,O3 )
             config_opt+=( -disable-debuginfo )
             config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
@@ -1006,16 +1020,15 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
             MPICHLIB_F77FLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
-                MPICHLIB_LDFLAGS="-O0 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
             ;;
         "opt")
             config_opt+=( -enable-g=none )
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
-            config_opt+=( -enable-fast=all,O3 )
             config_opt+=( -disable-debuginfo )
             config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
@@ -1031,9 +1044,9 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
             MPICHLIB_F77FLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
-                MPICHLIB_LDFLAGS="-O0 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
 
             ;;

@@ -156,6 +156,8 @@ disable_psm2="no"
 thread_cs="per-vci"
 mt_model="runtime"
 
+fast="none"
+
 # Set common multi-threading environment (if enabled)
 if [ "${thread}" != "runtime" ]; then
     mt_model="${thread}"
@@ -245,6 +247,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -i \${OFI_DIR} \
     -c ${compiler} \
     -o ${config} \
+    -F \${fast} \
     -d ${am} \
     -b ${build_mode} \
     -s ${direct} \

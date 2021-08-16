@@ -235,11 +235,18 @@ ze_native=""
 neo_dir=""
 ze_dir=""
 xpmem_dir="/usr/local"
+fast=""
 
 disable_psm2="no"
 
 thread_cs="per-vci"
 mt_model="runtime"
+
+if [ "${config}" = "debug" ]; then
+    fast="none"
+else
+    fast="O3"
+fi
 
 # Set common multi-threading environment (if enabled)
 if [ "${thread}" != "runtime" ]; then
@@ -324,6 +331,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -i \${OFI_DIR} \
     -c ${compiler} \
     -o ${config} \
+    -F \${fast} \
     -d ${am} \
     -b ${build_mode} \
     -s ${direct} \

@@ -166,6 +166,13 @@ ze_dir=""
 ze_native=""
 config_extra=""
 
+fast=""
+if [ "${config}" = "debug" ]; then
+    fast="none"
+else
+    fast="O3"
+fi
+
 pmix_string=""
 if [ "${pmix}" == "pmix" ]; then
     pmix_string="-pmix"
@@ -247,6 +254,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -i \${OFI_DIR} \
     -c ${compiler} \
     -o ${config} \
+    -F \${fast} \
     -d noam \
     -b drop \
     -s auto \
