@@ -497,12 +497,6 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -E \$xpmem \
     -j "\$CONFIG_EXTRA"
 
-srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    \${NAME} \
-    \${REL_WORKSPACE}/\${NAME} \
-    \${REL_WORKSPACE}/\${NAME}/test/mpi/summary.junit.xml \
-    ${username}
-
 EOF
 
 chmod +x per-commit-test-job.sh

@@ -89,9 +89,3 @@ srun --chdir="$REMOTE_WS" /bin/bash ${BUILD_SCRIPT} \
     -k $embedded \
     -M ${mt_model} \
     -j "$CONFIG_EXTRA"
-
-${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    ${provider}-${compiler}-${am}-${direct}-${config} \
-    ${REL_WORKSPACE} \
-    ${REL_WORKSPACE}/test/mpi/summary.junit.xml \
-    "sys_csr1"

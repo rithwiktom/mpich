@@ -61,9 +61,3 @@ cd $REMOTE_WS
     -M ${mt_model} \
     -P pmix \
     -j "$CONFIG_EXTRA"
-
-${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    ${provider}-${compiler}-${am}-${direct}-${config} \
-    ${REL_WORKSPACE} \
-    ${REL_WORKSPACE}/test/mpi/summary.junit.xml \
-    "sys_csr1"
