@@ -559,9 +559,6 @@ stage('Test RPMs') {
     parallel rpm_tests
 }
 
-// Tag update and RPM upload stems are broken at the moment. They should be done manually until fixed.
-return
-
 stage('Update Drop Tag') {
     node('anfedclx8') {
         // Get some code from a GitHub repository
@@ -657,36 +654,35 @@ for (a in providers) {
                     }
                     rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                         node('anfedclx8') {
-                            def version = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/drop_version')
-                            def release = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/release_version')
                             withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
-                                sh(script: """
+                            sh(script: """
 #!/bin/bash
 
-version=\$(<drop_version)
-release=\$(<release_version)
+version=`cat \${HOME}/rpmbuild/drop_version`
+release=`cat \${HOME}/rpmbuild/release_version`
 
 pmix_string=""
-dir="drop"$version"."$release
+dir="drop\${version}.\${release}"
 subdir=""
 
-if [ "${pmix}" == "pmix" ]; then
-    pmix_string="-pmix"
-    subdir="pmix"
-fi
 flavor_string=""
 if [ "${flavor}" != "regular" ]; then
     flavor_string="-${flavor}"
     subdir="${flavor}"
 fi
 if [ "${flavor}" == "regular" ]; then
-    subdir="regular"
+    subdir="regular/${pmix}"
+    if [ "${pmix}" == "pmix" ]; then
+        pmix_string="-pmix"
+    fi
 fi
 
-NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-drop\$version"
-RPM_NAME="\$NAME-\$version-\$release.x86_64.rpm"
+NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-drop\${version}"
+RPM_NAME="\${NAME}-\${version}-\${release}.x86_64.rpm"
 
-curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$subdir -T \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME 
+curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
+https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$subdir/\${RPM_NAME} \
+-T \${HOME}/rpmbuild/RPMS/x86_64/\${RPM_NAME}
 
 """)
                             }
