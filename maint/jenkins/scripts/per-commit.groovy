@@ -367,7 +367,6 @@ CONFIG_EXTRA="${jenkins_config_extras}"
 embedded_ofi="no"
 xpmem="yes"
 gpudirect="yes"
-json="yes"
 n_jobs=32
 ze_native=""
 neo_dir=""
@@ -455,7 +454,6 @@ fi
 # Force configurations if merging with main due to some incompatibilities
 if [ "\${GITHUB_PR_TARGET_BRANCH}" == "main" -o "\${GITHUB_PR_TARGET_BRANCH}" == "integration_main" ]; then
     gpudirect="no"
-    json="no"
 fi
 
 NAME="${config_name}"
@@ -481,7 +479,6 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -r \$REL_WORKSPACE/\${NAME} \
     -t 2.0 \
     -k "\${embedded_ofi}" \
-    -J "\${json}" \
     -M "\${mt_model}" \
     -X "\${xpmem_dir}" \
     -H "\${gpudirect}" \
