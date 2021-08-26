@@ -379,6 +379,8 @@ elif [ "$gpu" = "ats" ]; then
     ze_dir=/usr
     ze_native="$gpu"
     disable_psm2="yes"
+elif [ "$gpu" = "nogpu" ]; then
+    CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
 fi
 
 # AM builds force direct mode with global locking
