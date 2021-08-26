@@ -452,7 +452,7 @@ if [ "${am}" = "am" ]; then
 fi
 
 # Force configurations if merging with main due to some incompatibilities
-if [ "\${GITHUB_PR_TARGET_BRANCH}" == "main" -o "\${GITHUB_PR_TARGET_BRANCH}" == "integration_main" ]; then
+if [ "\${GITHUB_PR_TARGET_BRANCH}" == "main" ]; then
     gpudirect="no"
 fi
 
