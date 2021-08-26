@@ -115,81 +115,6 @@ def check_node_offline(name) {
 /* Get the nodes from the "tester_pool" label */
 def tester_pool_nodes = "" + get_nodes("tester_pool").join(" || ")
 
-node(tester_pool_nodes) {
-    if (continue_pipeline) {
-        try {
-            /* Checkout the repository */
-            stage('Checkout') {
-                cleanWs()
-
-                // Get some code from a GitHub repository
-                checkout([$class: 'GitSCM',
-                          branches: [[name: '*/integration']],
-                          doGenerateSubmoduleConfigurations: false,
-                          extensions: [
-                              [$class: 'SubmoduleOption',
-                                  disableSubmodules: false,
-                                  recursiveSubmodules: true
-                              ]],
-                          submoduleCfg: [],
-                          userRemoteConfigs: [[
-                              credentialsId: 'password-sys_csr1_github',
-                              url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git'
-                          ]]
-                         ])
-                    sh(script: """
-git submodule sync
-git submodule update --init --recursive
-""")
-            }
-        } catch (FlowInterruptedException err) {
-            print err.toString()
-            currentBuild.result = "ABORTED"
-            continue_pipeline = false
-        } catch (Exception err) {
-            print err.toString()
-            currentBuild.result = "FAILURE"
-            continue_pipeline = false
-        }
-    }
-    if (continue_pipeline) {
-        try {
-            /* Run autogen */
-            stage('Autogen') {
-                sh(script: """
-#!/bin/bash
-
-set -ex
-
-AUTOTOOLS_DIR="\$HOME/software/autotools/bin"
-
-if [ ! -d \$HOME/software ] ; then
-    exit 1;
-fi
-
-./autogen.sh --with-autotools=\$AUTOTOOLS_DIR --without-ucx | tee a.txt
-
-if [ ! -f ./configure ]; then
-    exit 1;
-fi
-
-tar --exclude=${tarball_name} -cjf ${tarball_name} *
-""")
-                stash includes: 'mpich-nightly.tar.bz2', name: 'nightly-tarball'
-                cleanWs()
-            }
-        } catch (FlowInterruptedException err) {
-            print err.toString()
-            currentBuild.result = "ABORTED"
-            continue_pipeline = false
-        } catch (Exception err) {
-            print err.toString()
-            currentBuild.result = "FAILURE"
-            continue_pipeline = false
-        }
-    }
-}
-
 def branches = [:]
 
 for (a in all_netmods) {
@@ -467,6 +392,81 @@ fi
                     }
                 }
             }
+        }
+    }
+}
+
+node(tester_pool_nodes) {
+    if (continue_pipeline) {
+        try {
+            /* Checkout the repository */
+            stage('Checkout') {
+                cleanWs()
+
+                // Get some code from a GitHub repository
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/integration']],
+                          doGenerateSubmoduleConfigurations: false,
+                          extensions: [
+                              [$class: 'SubmoduleOption',
+                                  disableSubmodules: false,
+                                  recursiveSubmodules: true
+                              ]],
+                          submoduleCfg: [],
+                          userRemoteConfigs: [[
+                              credentialsId: 'password-sys_csr1_github',
+                              url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git'
+                          ]]
+                         ])
+                    sh(script: """
+git submodule sync
+git submodule update --init --recursive
+""")
+            }
+        } catch (FlowInterruptedException err) {
+            print err.toString()
+            currentBuild.result = "ABORTED"
+            continue_pipeline = false
+        } catch (Exception err) {
+            print err.toString()
+            currentBuild.result = "FAILURE"
+            continue_pipeline = false
+        }
+    }
+    if (continue_pipeline) {
+        try {
+            /* Run autogen */
+            stage('Autogen') {
+                sh(script: """
+#!/bin/bash
+
+set -ex
+
+AUTOTOOLS_DIR="\$HOME/software/autotools/bin"
+
+if [ ! -d \$HOME/software ] ; then
+    exit 1;
+fi
+
+./autogen.sh --with-autotools=\$AUTOTOOLS_DIR --without-ucx | tee a.txt
+
+if [ ! -f ./configure ]; then
+    exit 1;
+fi
+
+tar --exclude=${tarball_name} -cjf ${tarball_name} *
+""")
+                stash includes: 'mpich-nightly.tar.bz2', name: 'nightly-tarball'
+                cleanWs()
+            }
+        } catch (FlowInterruptedException err) {
+            print err.toString()
+            currentBuild.result = "ABORTED"
+            continue_pipeline = false
+        } catch (Exception err) {
+            print err.toString()
+            currentBuild.result = "FAILURE"
+            continue_pipeline = false
         }
     }
 }
