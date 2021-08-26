@@ -304,6 +304,7 @@ srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}
 CONFIG_EXTRA=""
 embedded_ofi="no"
 xpmem="yes"
+gpudirect="yes"
 n_jobs=32
 ze_native=""
 neo_dir=""
@@ -360,6 +361,8 @@ fi
 
 # Set the environment for GPU systems
 if [ "$gpu" = "dg1" ]; then
+    # TODO: enable when IPC support is enabled
+    gpudirect=no
     embedded_ofi="yes"
     CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
     neo_dir=/home/puser03/neo/libraries/intel-level-zero/compute-runtime/ea6e298-Release-2021.01.05
@@ -368,6 +371,8 @@ if [ "$gpu" = "dg1" ]; then
     ze_native="$gpu"
     disable_psm2="yes"
 elif [ "$gpu" = "ats" ]; then
+    # TODO: enable when IPC support is enabled
+    gpudirect=no
     embedded_ofi="yes"
     xpmem="no"
     neo_dir=/usr
@@ -410,6 +415,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -k "\${embedded_ofi}" \
     -M "\${mt_model}" \
     -X "\${xpmem_dir}" \
+    -H "\${gpudirect}" \
     -Y "\${ze_native}" \
     -Z "\${ze_dir}" \
     -G ${test} \
@@ -466,6 +472,7 @@ fi
 if (continue_pipeline) {
     stage ('Run Tests') {
         try {
+            /* Run tests */
             parallel branches
         } catch (FlowInterruptedException err) {
             print err.toString()
