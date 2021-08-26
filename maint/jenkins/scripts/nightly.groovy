@@ -115,81 +115,6 @@ def check_node_offline(name) {
 /* Get the nodes from the "tester_pool" label */
 def tester_pool_nodes = "" + get_nodes("tester_pool").join(" || ")
 
-node(tester_pool_nodes) {
-    if (continue_pipeline) {
-        try {
-            /* Checkout the repository */
-            stage('Checkout') {
-                cleanWs()
-
-                // Get some code from a GitHub repository
-                checkout([$class: 'GitSCM',
-                          branches: [[name: '*/integration']],
-                          doGenerateSubmoduleConfigurations: false,
-                          extensions: [
-                              [$class: 'SubmoduleOption',
-                                  disableSubmodules: false,
-                                  recursiveSubmodules: true
-                              ]],
-                          submoduleCfg: [],
-                          userRemoteConfigs: [[
-                              credentialsId: 'password-sys_csr1_github',
-                              url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git'
-                          ]]
-                         ])
-                    sh(script: """
-git submodule sync
-git submodule update --init --recursive
-""")
-            }
-        } catch (FlowInterruptedException err) {
-            print err.toString()
-            currentBuild.result = "ABORTED"
-            continue_pipeline = false
-        } catch (Exception err) {
-            print err.toString()
-            currentBuild.result = "FAILURE"
-            continue_pipeline = false
-        }
-    }
-    if (continue_pipeline) {
-        try {
-            /* Run autogen */
-            stage('Autogen') {
-                sh(script: """
-#!/bin/bash
-
-set -ex
-
-AUTOTOOLS_DIR="\$HOME/software/autotools/bin"
-
-if [ ! -d \$HOME/software ] ; then
-    exit 1;
-fi
-
-./autogen.sh --with-autotools=\$AUTOTOOLS_DIR --without-ucx | tee a.txt
-
-if [ ! -f ./configure ]; then
-    exit 1;
-fi
-
-tar --exclude=${tarball_name} -cjf ${tarball_name} *
-""")
-                stash includes: 'mpich-nightly.tar.bz2', name: 'nightly-tarball'
-                cleanWs()
-            }
-        } catch (FlowInterruptedException err) {
-            print err.toString()
-            currentBuild.result = "ABORTED"
-            continue_pipeline = false
-        } catch (Exception err) {
-            print err.toString()
-            currentBuild.result = "FAILURE"
-            continue_pipeline = false
-        }
-    }
-}
-
 def branches = [:]
 
 for (a in all_netmods) {
@@ -304,6 +229,7 @@ srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}
 CONFIG_EXTRA=""
 embedded_ofi="no"
 xpmem="yes"
+gpudirect="yes"
 n_jobs=32
 ze_native=""
 neo_dir=""
@@ -360,6 +286,8 @@ fi
 
 # Set the environment for GPU systems
 if [ "$gpu" = "dg1" ]; then
+    # TODO: enable when IPC support is enabled
+    gpudirect=no
     embedded_ofi="yes"
     CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
     neo_dir=/home/puser03/neo/libraries/intel-level-zero/compute-runtime/ea6e298-Release-2021.01.05
@@ -368,12 +296,16 @@ if [ "$gpu" = "dg1" ]; then
     ze_native="$gpu"
     disable_psm2="yes"
 elif [ "$gpu" = "ats" ]; then
+    # TODO: enable when IPC support is enabled
+    gpudirect=no
     embedded_ofi="yes"
     xpmem="no"
     neo_dir=/usr
     ze_dir=/usr
     ze_native="$gpu"
     disable_psm2="yes"
+elif [ "$gpu" = "nogpu" ]; then
+    CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
 fi
 
 # AM builds force direct mode with global locking
@@ -383,11 +315,6 @@ if [ "${am}" = "am" ]; then
 fi
 
 NAME="${config_name}"
-
-# set json files paths
-export MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/CH4_coll_tuning.json"
-export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
-export MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
 
 export LD_LIBRARY_PATH=\$OFI_DIR/lib/:\$LD_LIBRARY_PATH
 
@@ -410,6 +337,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -k "\${embedded_ofi}" \
     -M "\${mt_model}" \
     -X "\${xpmem_dir}" \
+    -H "\${gpudirect}" \
     -Y "\${ze_native}" \
     -Z "\${ze_dir}" \
     -G ${test} \
@@ -463,9 +391,85 @@ fi
     }
 }
 
+node(tester_pool_nodes) {
+    if (continue_pipeline) {
+        try {
+            /* Checkout the repository */
+            stage('Checkout') {
+                cleanWs()
+
+                // Get some code from a GitHub repository
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/integration']],
+                          doGenerateSubmoduleConfigurations: false,
+                          extensions: [
+                              [$class: 'SubmoduleOption',
+                                  disableSubmodules: false,
+                                  recursiveSubmodules: true
+                              ]],
+                          submoduleCfg: [],
+                          userRemoteConfigs: [[
+                              credentialsId: 'password-sys_csr1_github',
+                              url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git'
+                          ]]
+                         ])
+                    sh(script: """
+git submodule sync
+git submodule update --init --recursive
+""")
+            }
+        } catch (FlowInterruptedException err) {
+            print err.toString()
+            currentBuild.result = "ABORTED"
+            continue_pipeline = false
+        } catch (Exception err) {
+            print err.toString()
+            currentBuild.result = "FAILURE"
+            continue_pipeline = false
+        }
+    }
+    if (continue_pipeline) {
+        try {
+            /* Run autogen */
+            stage('Autogen') {
+                sh(script: """
+#!/bin/bash
+
+set -ex
+
+AUTOTOOLS_DIR="\$HOME/software/autotools/bin"
+
+if [ ! -d \$HOME/software ] ; then
+    exit 1;
+fi
+
+./autogen.sh --with-autotools=\$AUTOTOOLS_DIR --without-ucx | tee a.txt
+
+if [ ! -f ./configure ]; then
+    exit 1;
+fi
+
+tar --exclude=${tarball_name} -cjf ${tarball_name} *
+""")
+                stash includes: 'mpich-nightly.tar.bz2', name: 'nightly-tarball'
+                cleanWs()
+            }
+        } catch (FlowInterruptedException err) {
+            print err.toString()
+            currentBuild.result = "ABORTED"
+            continue_pipeline = false
+        } catch (Exception err) {
+            print err.toString()
+            currentBuild.result = "FAILURE"
+            continue_pipeline = false
+        }
+    }
+}
+
 if (continue_pipeline) {
     stage ('Run Tests') {
         try {
+            /* Run tests */
             parallel branches
         } catch (FlowInterruptedException err) {
             print err.toString()

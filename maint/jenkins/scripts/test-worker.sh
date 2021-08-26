@@ -1203,11 +1203,6 @@ if [ "$build_mpich" == "yes" ]; then
 
         # Disable OpenCL support for hwloc
         config_opt+=( --disable-opencl)
-    else
-        # TODO: This check is a hack to disable ze for main until the same support for --with-ze=no is in integration
-        if [ "$mt_model" == "main" ]; then
-            config_opt+=( --with-ze=no )
-        fi
     fi
 
     if [ "$ze_native" != "" ]; then
