@@ -106,9 +106,3 @@ srun --chdir="$REMOTE_WS" /bin/bash ${BUILD_SCRIPT} \
     -G $test \
     -z "-L$neo_dir/lib64" \
     -j "$CONFIG_EXTRA"
-
-${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    ${provider}-${compiler}-${am}-${direct}-${config} \
-    ${REL_WORKSPACE} \
-    ${REL_WORKSPACE}/test/mpi/summary.junit.xml \
-    "nuser07"

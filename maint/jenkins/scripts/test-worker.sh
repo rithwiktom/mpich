@@ -39,6 +39,7 @@ install_dir="$WORKSPACE/_inst"
 src_dir="."
 embed_ofi="no"
 build_mpich="yes"
+warnings_checker="no"
 device_caps=""
 cpu=""
 thread_cs="" # Default will be set later depending on the device
@@ -62,6 +63,7 @@ use_json="yes"
 xpmem_dir="/usr/local"
 USE_GCC_9=0
 USE_ICX="yes"
+fast="none"
 
 MPICHLIB_CFLAGS=
 MPICHLIB_CXXFLAGS=
@@ -90,7 +92,7 @@ done
 ## Initialization
 #####################################################################
 
-while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:x:X:y:Y:z:Z:" opt; do
+while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
     case "$opt" in
         a)
             cpu=$OPTARG ;;
@@ -112,6 +114,8 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:
             use_xpmem=$OPTARG ;;
         f)
             install_dir=$OPTARG ;;
+        F)
+            fast=$OPTARG ;;
         g)
             device=$OPTARG ;;
         G)
@@ -160,6 +164,8 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:
             shm_eager=$OPTARG ;;
         w)
             xfail_file=$OPTARG ;;
+        W)
+            warnings_checker=$OPTARG ;;
         x)
             run_tests=$OPTARG ;;
         X)
@@ -379,12 +385,12 @@ SetCompiler() {
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
             COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FCFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_F77FLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
+            COMPILER_FFLAGS="-ggdb -mtune=generic"
+            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
+            COMPILER_FCFLAGS="-ggdb -mtune=generic"
+            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
+            COMPILER_F77FLAGS="-ggdb -mtune=generic"
+            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
             COMPILER_LDFLAGS="-mtune=generic"
             COMPILER_LDFLAGS_OPTS="-mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -fuse-linker-plugin"
 
@@ -505,12 +511,12 @@ SetCompiler() {
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
             COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FCFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_F77FLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
+            COMPILER_FFLAGS="-ggdb -mtune=generic"
+            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
+            COMPILER_FCFLAGS="-ggdb -mtune=generic"
+            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
+            COMPILER_F77FLAGS="-ggdb -mtune=generic"
+            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
             COMPILER_LDFLAGS="-mtune=generic"
             COMPILER_LDFLAGS_OPTS="-mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -fuse-linker-plugin"
 
@@ -626,12 +632,12 @@ SetCompiler() {
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
             COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FCFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_F77FLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
+            COMPILER_FFLAGS="-ggdb -mtune=generic"
+            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
+            COMPILER_FCFLAGS="-ggdb -mtune=generic"
+            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
+            COMPILER_F77FLAGS="-ggdb -mtune=generic"
+            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
             COMPILER_LDFLAGS="-mtune=generic"
             COMPILER_LDFLAGS_OPTS="-mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -fuse-linker-plugin"
 
@@ -934,7 +940,11 @@ SetConfigOpt() {
     config_opt+=( -enable-static )
     config_opt+=( -enable-error-messages=yes )
     config_opt+=( -enable-large-tests )
-    config_opt+=( -enable-strict )
+    if [ "$warnings_checker" = "yes" ]; then
+        config_opt+=( -enable-strict=error )
+    else
+        config_opt+=( -enable-strict )
+    fi
     config_opt+=( -enable-collalgo-tests )
     config_opt+=( -enable-izem-queue )
     config_opt+=( -with-zm-prefix=yes )
@@ -960,12 +970,24 @@ SetConfigOpt() {
         channel=":nemesis"
         device_caps=""
     fi
+
+    case "$fast" in
+        "none")
+            config_opt+=( -enable-fast=none )
+            ;;
+        "O3")
+            config_opt+=( -enable-fast=all,O3 )
+            ;;
+        *)
+            echo "Bad fast option: $fast"
+            exit 1
+    esac
+
     case "$jenkins_configure" in
         "debug")
             config_opt+=( -enable-g=all )
             config_opt+=( -enable-timing=runtime )
             config_opt+=( -enable-error-checking=all )
-            config_opt+=( -enable-fast=none )
             config_opt+=( -enable-debuginfo )
             config_opt+=( -with-device=${device}${channel}:${netmod} )
             config_opt+=( -enable-handle-allocation=default )
@@ -973,10 +995,10 @@ SetConfigOpt() {
             config_opt+=( -enable-ch4-netmod-inline=no )
             config_opt+=( -enable-ch4-shm-inline=no )
             config_opt+=( -enable-mpit-pvars=all )
-            MPICHLIB_CFLAGS="-O0 -Wall -ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
-            MPICHLIB_CXXFLAGS="-O0 -Wall -ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
-            MPICHLIB_FCFLAGS="-O0 -Wall -ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
-            MPICHLIB_F77FLAGS="-O0 -Wall -ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
+            MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
+            MPICHLIB_CXXFLAGS="-ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
+            MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
+            MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
                 MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
@@ -987,28 +1009,26 @@ SetConfigOpt() {
             config_opt+=( -enable-g=none )
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
-            config_opt+=( -enable-fast=all,O3 )
             config_opt+=( -disable-debuginfo )
             config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
             config_opt+=( -enable-timing=none )
-            MPICHLIB_CFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
-            MPICHLIB_CXXFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
-            MPICHLIB_FCFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
-            MPICHLIB_F77FLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
+            MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
+            MPICHLIB_CXXFLAGS="-ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
+            MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
+            MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
-                MPICHLIB_LDFLAGS="-O0 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
             ;;
         "opt")
             config_opt+=( -enable-g=none )
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
-            config_opt+=( -enable-fast=all,O3 )
             config_opt+=( -disable-debuginfo )
             config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
@@ -1019,14 +1039,14 @@ SetConfigOpt() {
                 config_opt+=( --enable-direct=$ofi_prov)
                 netmod_opt+=(:direct-provider)
             fi
-            MPICHLIB_CFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS_OPTS"
-            MPICHLIB_CXXFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS_OPTS"
-            MPICHLIB_FCFLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
-            MPICHLIB_F77FLAGS="-O3 -Wall -ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
+            MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS_OPTS"
+            MPICHLIB_CXXFLAGS="-ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS_OPTS"
+            MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
+            MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
-                MPICHLIB_LDFLAGS="-O0 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
 
             ;;
@@ -1267,7 +1287,7 @@ if [ "$build_mpich" == "yes" ]; then
 
     #Show libraries linked dynamically
     ldd "$install_dir"/lib/libmpi.so
-    cat m.txt mi.txt | $src_dir/maint/clmake > filtered-make.txt 2>&1
+    cat m.txt | $src_dir/maint/clmake > filtered-make.txt 2>&1
 fi
 
 #####################################################################
@@ -1448,6 +1468,35 @@ if [ "$run_tests" == "yes" ]; then
             make testing
         fi
     fi
+
+    if test -z "`cat filtered-make.txt`" ; then
+        failures=0
+    else
+        failures=1
+    fi
+
+    # Delete the last line of the test file and add the warning tests
+    sed -i '$ d' test/mpi/summary.junit.xml
+
+    echo "    <testsuite" >> test/mpi/summary.junit.xml
+    echo "        failures=\"$failures\"" >> test/mpi/summary.junit.xml
+    echo "        errors=\"0\"" >> test/mpi/summary.junit.xml
+    echo "        skipped=\"0\"" >> test/mpi/summary.junit.xml
+    echo "        tests=\"1\"" >> test/mpi/summary.junit.xml
+    echo "        date=\"`date +%Y-%m-%d-%H-%M`\"" >> test/mpi/summary.junit.xml
+    echo "        name=\"summary_junit_xml\">" >> test/mpi/summary.junit.xml
+
+    echo "        <testcase name=\"compilation\" time=\"0\">" >> test/mpi/summary.junit.xml
+
+    if [ "$failures" != "0" ] ; then
+      echo "            <failure><![CDATA[" >> test/mpi/summary.junit.xml
+      cat filtered-make.txt >> test/mpi/summary.junit.xml
+      echo "            ]]></failure>" >> test/mpi/summary.junit.xml
+    fi
+
+    echo "        </testcase>" >> test/mpi/summary.junit.xml
+    echo "    </testsuite>" >> test/mpi/summary.junit.xml
+    echo "</testsuites>" >> test/mpi/summary.junit.xml
 
     # Cleanup
     if killall -9 hydra_pmi_proxy; then

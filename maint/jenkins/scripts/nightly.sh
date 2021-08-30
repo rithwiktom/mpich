@@ -90,12 +90,6 @@ if [ $? != 0 ]; then
     fail=1
 fi
 
-${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    ${provider}-${compiler}-${force_am}-${direct}-${configs} \
-    ${REL_WORKSPACE} \
-    ${REL_WORKSPACE}/test/mpi/summary.junit.xml \
-    "sys_csr1"
-
 # NOTE: If this filename changes, it also needs to be updated in the `nightly-test` job configuration on jenkins
 filename="warnings.${provider}-${compiler}-${force_am}-${direct}-${configs}.txt"
 cp ${REL_WORKSPACE}/${filename} /home/sys_csr1/nightly-warnings/

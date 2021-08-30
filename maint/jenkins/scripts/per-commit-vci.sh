@@ -61,9 +61,3 @@ srun --chdir="$REMOTE_WS" /bin/bash ${BUILD_SCRIPT} \
     -V $vci \
     -Y $async \
     -j "$CONFIG_EXTRA"
-
-${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    "vci-${provider}-${compiler}-noam-${direct}-${config}-${mt}-${vci}" \
-    ${REL_WORKSPACE} \
-    ${REL_WORKSPACE}/test/mpi/summary.junit.xml \
-    "sys_csr1"

@@ -107,12 +107,6 @@ if [ $? != 0 ]; then
     fail=1
 fi
 
-${BUILD_SCRIPT_DIR}/check_warnings.sh \
-    ${provider}-${compiler}-${force_am}-${direct}-${configs} \
-    ${REL_WORKSPACE} \
-    ${REL_WORKSPACE}/test/mpi/summary.junit.xml \
-    "nuser07"
-
 filename="warnings.${provider}-${compiler}-${force_am}-${direct}-${configs}.txt"
 cp ${REL_WORKSPACE}/${filename} /home/nuser07/nightly-warnings/
 
