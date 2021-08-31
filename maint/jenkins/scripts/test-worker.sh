@@ -1066,6 +1066,7 @@ SetConfigOpt() {
         if [ "$embed_ofi" = "yes" ]; then
             prov_config=
             prov_config+=( --disable-efa)
+            prov_config+=( --disable-usnic)
 
             # Add OFI config options
             if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
