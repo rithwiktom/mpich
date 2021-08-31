@@ -158,7 +158,6 @@ for (a in all_netmods) {
                                                     def node_name = tester_pool_nodes
                                                     def username = "sys_csr1"
                                                     def build_mode = "nightly"
-                                                    def warnings_filename = "warnings.${config_name}.txt"
 
                                                     /* Set the current node and username depending on the configuration */
                                                     if ("${provider}" == "verbs") {
@@ -353,28 +352,10 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -E \$xpmem \
     -j "\$CONFIG_EXTRA"
 
-# Copy the warnings file to WORKSPACE
-cp \${REL_WORKSPACE}/\${NAME}/${warnings_filename} /home/${username}/nightly-warnings/
-
 EOF
-
-# Touch the warnings file incase it doesn't yet exist
-touch /home/${username}/nightly-warnings/${warnings_filename}
 
 chmod +x nightly-test-job.sh
 salloc -J nightly:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360 ./nightly-test-job.sh
-
-# Distribute the filename to other systems (if needed)
-# TODO: This assumes the same username on all nodes in the same label
-if [ "$node_name" == *"||"* ]; then
-    for i in \$(echo "$node_name" | tr " || " "\n"); do
-        # TODO: This assumes the hostname matches the name in Jenkins. This won't be true for the DG1 cluster if we ever use it in a label
-        if [ "\$(hostname -s)" != "\$i" ]; then
-            scp /home/${username}/nightly-warnings/${warnings_filename} \$i:/home/${username}/nightly-warnings/${warnings_filename}
-        fi
-    done
-fi
-
 """)
                                                         archiveArtifacts "$config_name/**"
                                                         junit skipPublishingChecks: true, testResults: "${config_name}/test/mpi/summary.junit.xml"
