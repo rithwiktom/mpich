@@ -559,20 +559,21 @@ stage('Test RPMs') {
     parallel rpm_tests
 }
 
-stage('Update Drop Tag') {
-    node('anfedclx8') {
-        // Get some code from a GitHub repository
-        checkout([$class: 'GitSCM',
-                 branches: [[name: '*/drops']],
-                 doGenerateSubmoduleConfigurations: false,
-                 extensions: [[$class: 'SubmoduleOption',
-                 disableSubmodules: false,
-                 recursiveSubmodules: true]],
-                 submoduleCfg: [],
-                 userRemoteConfigs: [[credentialsId: 'password-sys_csr1_github',
-                                      url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git' ]]
-        ])
-        sh(script: """
+if (params.publish_results) {
+    stage('Update Drop Tag') {
+        node('anfedclx8') {
+            // Get some code from a GitHub repository
+            checkout([$class: 'GitSCM',
+                     branches: [[name: '*/drops']],
+                     doGenerateSubmoduleConfigurations: false,
+                     extensions: [[$class: 'SubmoduleOption',
+                     disableSubmodules: false,
+                     recursiveSubmodules: true]],
+                     submoduleCfg: [],
+                     userRemoteConfigs: [[credentialsId: 'password-sys_csr1_github',
+                                          url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git' ]]
+            ])
+            sh(script: """
 #!/bin/bash -xe
 
 version=\$(<maint/jenkins/drop_version)
@@ -593,69 +594,69 @@ git tag \${tag_string}
 git push --tags origin
 
 """)
-        cleanWs()
+            cleanWs()
+        }
     }
-}
 
-def rpms_upload = [:]
+    def rpms_upload = [:]
 
-for (a in providers) {
-    for (b in compilers) {
-        for (c in configs) {
-            for (d in pmixs) {
-                for (e in flavors) {
-                    def provider = a
-                    def compiler = b
-                    def config = c
-                    def pmix = d
-                    def flavor = e
-                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
-                        continue;
-                    }
-                    if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
-                        continue;
-                    }
-                    if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
-                        continue;
-                    }
-                    if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
-                        continue
-                    }
-                    if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "ats" && "${provider}" == "psm2") {
-                        continue
-                    }
-                    if ("${provider}" == "cxi" && "${flavor}" != "regular") {
-                        continue;
-                    }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    // This build is for anccskl6, so oneCCL can be tested with the drop
-                    if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
-                        node('anfedclx8') {
-                            withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
-                            sh(script: """
+    for (a in providers) {
+        for (b in compilers) {
+            for (c in configs) {
+                for (d in pmixs) {
+                    for (e in flavors) {
+                        def provider = a
+                        def compiler = b
+                        def config = c
+                        def pmix = d
+                        def flavor = e
+                        if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                            continue;
+                        }
+                        if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
+                            continue;
+                        }
+                        if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                            continue;
+                        }
+                        if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
+                            continue
+                        }
+                        if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
+                            continue
+                        }
+                        if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
+                            continue
+                        }
+                        if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
+                            continue
+                        }
+                        if ("${flavor}" == "ats" && "${provider}" == "psm2") {
+                            continue
+                        }
+                        if ("${provider}" == "cxi" && "${flavor}" != "regular") {
+                            continue;
+                        }
+                        if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                            continue;
+                        }
+                        // This build is for anccskl6, so oneCCL can be tested with the drop
+                        if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
+                            continue;
+                        }
+                        if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
+                            continue;
+                        }
+                        if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
+                            continue;
+                        }
+                        if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
+                            continue;
+                        }
+                        rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
+                            node('anfedclx8') {
+                                withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
+                                sh(script: """
 #!/bin/bash
 
 version=`cat \${HOME}/rpmbuild/drop_version`
@@ -685,6 +686,7 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
 -T \${HOME}/rpmbuild/RPMS/x86_64/\${RPM_NAME}
 
 """)
+                                }
                             }
                         }
                     }
@@ -692,8 +694,8 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
             }
         }
     }
-}
 
-stage('Upload RPMs') {
-    parallel rpms_upload
+    stage('Upload RPMs') {
+        parallel rpms_upload
+    }
 }
