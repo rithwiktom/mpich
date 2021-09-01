@@ -778,8 +778,8 @@ SetCompiler() {
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
             if [ "$USE_ICX" = "yes" ]; then
-                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu99 -Wall"
-                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu99 -Wall"
+                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu11 -Wall"
+                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu11 -Wall"
                 COMPILER_CXXFLAGS="-ggdb -mtune=generic -Wall"
                 COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wall"
                 COMPILER_FFLAGS="-ggdb -mtune=generic -w"
