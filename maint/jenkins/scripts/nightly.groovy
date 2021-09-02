@@ -33,6 +33,15 @@ if ("${RUN_TYPE}" == "regular") {
     all_providers = [ "sockets", "psm2" ]
     all_gpus = [ "nogpu" ]
     all_threads = [ "handoff", "direct", "lockless" ]
+} else if ("${RUN_TYPE}" == "weekly-opt") {
+    all_providers = [ "sockets", "psm2" ]
+    all_ams = [ "noam" ]
+    all_directs = [ "auto" ]
+    all_configs = [ "opt" ]
+    all_gpus = [ "nogpu" ]
+    all_threads = [ "runtime" ]
+    all_vcis = [ "vci1" ]
+    all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "dg1") {
     all_gpus = [ "dg1" ]
     all_tests = [ "gpu" ]
