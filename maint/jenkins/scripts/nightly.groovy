@@ -86,7 +86,6 @@ def skip_config(netmod, provider, compiler, am, direct, config, gpu, test, threa
 
     // Misc
     skip |= ("${pmix}" == "pmix") // Don't nightly test pmix
-    skip |= ("${gpu}" == "ats") // Don't nightly test ATS (yet)
     skip |= ("${am}" == "am") // TODO: Skip am until failures resolved
 
     // GPUs
