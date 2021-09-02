@@ -43,12 +43,14 @@ if ("${RUN_TYPE}" == "regular") {
     all_vcis = [ "vci1" ]
     all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "dg1") {
+    all_providers = [ "sockets" ]
     all_gpus = [ "dg1" ]
     all_tests = [ "gpu" ]
     all_threads = [ "runtime" ]
     all_vcis = [ "vci1" ]
     all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "ats") {
+    all_providers = [ "sockets" ]
     all_gpus = [ "ats" ]
     all_tests = [ "gpu" ]
     all_threads = [ "runtime" ]
@@ -63,7 +65,6 @@ def invalid_config(netmod, provider, compiler, am, direct, config, gpu, test, th
 
     // GPU filters
     invalid |= ("${test}" == "gpu" && "${gpu}" == "nogpu")
-    invalid |= ("${provider}" == "verbs" && "${gpu}" == "ats")
     invalid |= ("${provider}" == "psm2" && "${gpu}" != "nogpu")
     invalid |= ("${thread}" != "runtime" && "${gpu}" != "nogpu")
 
