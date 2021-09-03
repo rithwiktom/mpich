@@ -80,6 +80,9 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
@@ -187,7 +190,7 @@ fi
 neo_dir=/opt/neo/release/2020.10.05
 
 #Set ze path for all the builds
-ze_dir=/opt/neo/release/2020.10.05
+ze_dir=/usr
 # Build with native support for GPU-specific RPMs
 if [ "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
     ze_native="${flavor}"
@@ -329,6 +332,9 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
@@ -450,6 +456,9 @@ for (a in providers) {
                     def pmix = d
                     def flavor = e
                     def testgpu = 0
+                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                        continue;
+                    }
                     /* The gen9 machine only uses sockets */
                     if (("${provider}" == "psm2" || "${provider}" == "verbs") && "${flavor}" == "gen9") {
                         continue
@@ -550,23 +559,21 @@ stage('Test RPMs') {
     parallel rpm_tests
 }
 
-// Tag update and RPM upload stems are broken at the moment. They should be done manually until fixed.
-return
-
-stage('Update Drop Tag') {
-    node('anfedclx8') {
-        // Get some code from a GitHub repository
-        checkout([$class: 'GitSCM',
-                 branches: [[name: '*/drops']],
-                 doGenerateSubmoduleConfigurations: false,
-                 extensions: [[$class: 'SubmoduleOption',
-                 disableSubmodules: false,
-                 recursiveSubmodules: true]],
-                 submoduleCfg: [],
-                 userRemoteConfigs: [[credentialsId: 'password-sys_csr1_github',
-                                      url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git' ]]
-        ])
-        sh(script: """
+if (params.publish_results) {
+    stage('Update Drop Tag') {
+        node('anfedclx8') {
+            // Get some code from a GitHub repository
+            checkout([$class: 'GitSCM',
+                     branches: [[name: '*/drops']],
+                     doGenerateSubmoduleConfigurations: false,
+                     extensions: [[$class: 'SubmoduleOption',
+                     disableSubmodules: false,
+                     recursiveSubmodules: true]],
+                     submoduleCfg: [],
+                     userRemoteConfigs: [[credentialsId: 'password-sys_csr1_github',
+                                          url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git' ]]
+            ])
+            sh(script: """
 #!/bin/bash -xe
 
 version=\$(<maint/jenkins/drop_version)
@@ -587,96 +594,99 @@ git tag \${tag_string}
 git push --tags origin
 
 """)
-        cleanWs()
+            cleanWs()
+        }
     }
-}
 
-def rpms_upload = [:]
+    def rpms_upload = [:]
 
-for (a in providers) {
-    for (b in compilers) {
-        for (c in configs) {
-            for (d in pmixs) {
-                for (e in flavors) {
-                    def provider = a
-                    def compiler = b
-                    def config = c
-                    def pmix = d
-                    def flavor = e
-                    if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
-                        continue;
-                    }
-                    if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
-                        continue;
-                    }
-                    if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
-                        continue
-                    }
-                    if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "ats" && "${provider}" == "psm2") {
-                        continue
-                    }
-                    if ("${provider}" == "cxi" && "${flavor}" != "regular") {
-                        continue;
-                    }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    // This build is for anccskl6, so oneCCL can be tested with the drop
-                    if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
-                        node('anfedclx8') {
-                            def version = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/drop_version')
-                            def release = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/release_version')
-                            withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
+    for (a in providers) {
+        for (b in compilers) {
+            for (c in configs) {
+                for (d in pmixs) {
+                    for (e in flavors) {
+                        def provider = a
+                        def compiler = b
+                        def config = c
+                        def pmix = d
+                        def flavor = e
+                        if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                            continue;
+                        }
+                        if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
+                            continue;
+                        }
+                        if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                            continue;
+                        }
+                        if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
+                            continue
+                        }
+                        if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
+                            continue
+                        }
+                        if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
+                            continue
+                        }
+                        if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
+                            continue
+                        }
+                        if ("${flavor}" == "ats" && "${provider}" == "psm2") {
+                            continue
+                        }
+                        if ("${provider}" == "cxi" && "${flavor}" != "regular") {
+                            continue;
+                        }
+                        if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                            continue;
+                        }
+                        // This build is for anccskl6, so oneCCL can be tested with the drop
+                        if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
+                            continue;
+                        }
+                        if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
+                            continue;
+                        }
+                        if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
+                            continue;
+                        }
+                        if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
+                            continue;
+                        }
+                        rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
+                            node('anfedclx8') {
+                                withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
                                 sh(script: """
 #!/bin/bash
 
-version=\$(<drop_version)
-release=\$(<release_version)
+version=`cat \${HOME}/rpmbuild/drop_version`
+release=`cat \${HOME}/rpmbuild/release_version`
 
 pmix_string=""
-dir="drop"$version"."$release
+dir="drop\${version}.\${release}"
 subdir=""
 
-if [ "${pmix}" == "pmix" ]; then
-    pmix_string="-pmix"
-    subdir="pmix"
-fi
 flavor_string=""
 if [ "${flavor}" != "regular" ]; then
     flavor_string="-${flavor}"
     subdir="${flavor}"
 fi
 if [ "${flavor}" == "regular" ]; then
-    subdir="regular"
+    subdir="regular/${pmix}"
+    if [ "${pmix}" == "pmix" ]; then
+        pmix_string="-pmix"
+    fi
 fi
 
-NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-drop\$version"
-RPM_NAME="\$NAME-\$version-\$release.x86_64.rpm"
+NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-drop\${version}"
+RPM_NAME="\${NAME}-\${version}-\${release}.x86_64.rpm"
 
-curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$subdir -T \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME 
+curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
+https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$subdir/\${RPM_NAME} \
+-T \${HOME}/rpmbuild/RPMS/x86_64/\${RPM_NAME}
 
 """)
+                                }
                             }
                         }
                     }
@@ -684,8 +694,8 @@ curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT https://af02p-or.devtools.intel.com/art
             }
         }
     }
-}
 
-stage('Upload RPMs') {
-    parallel rpms_upload
+    stage('Upload RPMs') {
+        parallel rpms_upload
+    }
 }
