@@ -248,47 +248,54 @@ else
 fi
 
 # Set common multi-threading environment (if enabled)
+# identify the actual threading model
+runtime_mt_model="direct"
 if [ "${thread}" != "runtime" ]; then
-    mt_model="${thread}"
-    nvcis=`echo ${vci} | sed -e 's/^vci//'`
-    export MPIR_CVAR_CH4_NUM_VCIS=\${nvcis}
-    export MPIR_CVAR_CH4_OFI_MAX_RMA_SEP_CTX=\${nvcis}
-    export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=\${nvcis}
-    export MPIR_CVAR_ASYNC_PROGRESS=0
-
-    if [ "${thread}" = "handoff" ]; then
-        export MPIR_CVAR_ASYNC_PROGRESS=1
-    fi
-
-    echo "Appending mt_xfail_common.conf"
-    srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
-    srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_common.conf >> \$JENKINS_DIR/xfail.conf"
-
-    if [ "${vci}" = "vci4" ]; then
-        echo "Appending mt_xfail_vci4.conf"
-        srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
-        srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_vci4.conf >> \$JENKINS_DIR/xfail.conf"
-    fi
-
-    echo "Appending mt_xfail_\${mt_model}.conf"
-    srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
-    srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_\${mt_model}.conf >> \$JENKINS_DIR/xfail.conf"
-
-    if [ "${config}" = "debug" ]; then
-        export MPIR_CVAR_CH4_MT_MODEL=\$mt_model
-        mt_model="runtime"
-    fi
-
-    if [ "${async}" = "async-single" ]; then
-        export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=1
-    fi
-
-    if [ "${provider}" = "psm2" ]; then
-        export FI_PSM2_LOCK_LEVEL=1
-    fi
-
-    CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
+   runtime_mt_model="${thread}"
 fi
+
+# finalize threading model selection type
+if [ "${config}" = "debug" ]; then
+    mt_model="runtime"
+fi
+
+if [ "\${mt_model}" = "runtime" ]; then
+   export MPIR_CVAR_CH4_MT_MODEL=\$runtime_mt_model
+fi
+
+nvcis=`echo ${vci} | sed -e 's/^vci//'`
+export MPIR_CVAR_CH4_NUM_VCIS=\${nvcis}
+export MPIR_CVAR_CH4_OFI_MAX_RMA_SEP_CTX=\${nvcis}
+export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=\${nvcis}
+export MPIR_CVAR_ASYNC_PROGRESS=0
+
+if [ "${thread}" = "handoff" ]; then
+    export MPIR_CVAR_ASYNC_PROGRESS=1
+fi
+
+echo "Appending mt_xfail_common.conf"
+srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
+srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_common.conf >> \$JENKINS_DIR/xfail.conf"
+
+if [ "${vci}" = "vci4" ]; then
+    echo "Appending mt_xfail_vci4.conf"
+    srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
+    srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_vci4.conf >> \$JENKINS_DIR/xfail.conf"
+fi
+
+echo "Appending mt_xfail_\${runtime_mt_model}.conf"
+srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
+srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_\${runtime_mt_model}.conf >> \$JENKINS_DIR/xfail.conf"
+
+if [ "${async}" = "async-single" ]; then
+    export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=1
+fi
+
+if [ "${provider}" = "psm2" ]; then
+    export FI_PSM2_LOCK_LEVEL=1
+fi
+
+CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 
 # Set the environment for GPU systems
 if [ "$gpu" = "dg1" ]; then
