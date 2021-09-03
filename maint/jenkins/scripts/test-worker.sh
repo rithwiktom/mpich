@@ -778,8 +778,8 @@ SetCompiler() {
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
             if [ "$USE_ICX" = "yes" ]; then
-                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu99 -Wall"
-                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu99 -Wall"
+                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu11 -Wall"
+                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu11 -Wall"
                 COMPILER_CXXFLAGS="-ggdb -mtune=generic -Wall"
                 COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wall"
                 COMPILER_FFLAGS="-ggdb -mtune=generic -w"
@@ -1066,6 +1066,7 @@ SetConfigOpt() {
         if [ "$embed_ofi" = "yes" ]; then
             prov_config=
             prov_config+=( --disable-efa)
+            prov_config+=( --disable-usnic)
 
             # Add OFI config options
             if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
