@@ -408,6 +408,16 @@ export MPIR_CVAR_CH4_OFI_MAX_RMA_SEP_CTX=\${nvcis}
 export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=\${nvcis}
 export MPIR_CVAR_ASYNC_PROGRESS=0
 
+
+# Temporarily limit vcis to 2 for psm2, to avoid failures of tests with large number of ranks
+if [ "${provider}" = "psm2" -a "${vci}" == "vci4" ]; then
+   override_nvcis=2
+   export MPIR_CVAR_CH4_NUM_VCIS=\${override_nvcis}
+   export MPIR_CVAR_CH4_OFI_MAX_RMA_SEP_CTX=\${override_nvcis}
+   export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=\${override_nvcis}
+   export MPIR_CVAR_ASYNC_PROGRESS=0
+fi
+
 if [ "${thread}" = "handoff" ]; then
     export MPIR_CVAR_ASYNC_PROGRESS=1
 fi
