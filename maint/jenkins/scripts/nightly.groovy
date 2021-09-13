@@ -299,8 +299,6 @@ CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 
 # Set the environment for GPU systems
 if [ "$gpu" = "dg1" ]; then
-    # TODO: enable when IPC support is enabled
-    gpudirect=no
     embedded_ofi="yes"
     CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
     neo_dir=/home/puser03/neo/libraries/intel-level-zero/compute-runtime/ea6e298-Release-2021.01.05
@@ -309,8 +307,6 @@ if [ "$gpu" = "dg1" ]; then
     ze_native="$gpu"
     disable_psm2="yes"
 elif [ "$gpu" = "ats" ]; then
-    # TODO: enable when IPC support is enabled
-    gpudirect=no
     embedded_ofi="yes"
     xpmem="no"
     neo_dir=/usr
@@ -318,6 +314,7 @@ elif [ "$gpu" = "ats" ]; then
     ze_native="$gpu"
     disable_psm2="yes"
 elif [ "$gpu" = "nogpu" ]; then
+    gpudirect="no"
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
 fi
 
