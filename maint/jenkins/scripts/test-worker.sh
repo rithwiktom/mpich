@@ -65,6 +65,8 @@ USE_GCC_9=0
 USE_ICX="yes"
 fast="none"
 
+GENGBIN_NEO=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
+
 MPICHLIB_CFLAGS=
 MPICHLIB_CXXFLAGS=
 MPICHLIB_FCFLAGS=
@@ -1214,13 +1216,21 @@ if [ "$build_mpich" == "yes" ]; then
 
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
 
-        if [ "$neo_dir" != "" ]; then
-            export PATH=$neo_dir/bin:$PATH
+        # Check if this is an ATS build not running on jfcst-xe
+        if [ "$neo_dir" == "$GENGBIN_NEO" && ! -d "$GENGBIN_NEO" ]; then
+            neo_dir=/usr
         fi
 
-        #Bring /usr/bin/ocloc to the front to use the new ocloc for ATS.
-        export PATH=/usr/bin/:$PATH
-        export LD_LIBRARY_PATH=/usr/lib64/:$LD_LIBRARY_PATH
+        if [ "$neo_dir" == "$GENGBIN_NEO" ]; then
+            export LD_LIBRARY_PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/igc/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/gmmlib/lib:$LD_LIBRARY_PATH
+            export PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:$PATH
+        elif [ "$neo_dir" != "" ]; then
+            export PATH=$neo_dir/bin:$PATH
+
+            #Bring /usr/bin/ocloc to the front to use the new ocloc for ATS.
+            export PATH=/usr/bin/:$PATH
+            export LD_LIBRARY_PATH=/usr/lib64/:$LD_LIBRARY_PATH
+        fi
 
         # Disable OpenCL support for hwloc
         config_opt+=( --disable-opencl)
