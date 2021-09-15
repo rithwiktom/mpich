@@ -3,7 +3,7 @@ import sys
 import os
 
 class G:
-    opts = {'jobname': '-', 'compiler': '-', 'jenkins_configure': '-', 'label': '-', 'netmod': '-'}
+    opts = {'jobname': '-', 'compiler': '-', 'config': '-', 'provider': '-', 'direct': '-', 'am': '-', 'pmix': '-'}
     states = []
     xfails = {}
 
@@ -23,7 +23,7 @@ def main():
 
 # ---- subroutines --------------------------------------------
 def parse_args():
-    opt_names = {'j': "jobname", 'c': "compiler", 'o': "jenkins_configure", 'q': "label", 'm': "netmod", 'f': "XFAIL_CONF"}
+    opt_names = {'j': "jobname", 'c': "compiler", 'o': "config", 'm': "provider", 's': "direct", 'a': "am", 'p': "pmix", 'f': "XFAIL_CONF"}
     last_opt = ''
     for a in sys.argv[1:]:
         if last_opt:
@@ -44,7 +44,7 @@ def parse_args():
     if 'dir' in G.opts:
         os.chdir(G.opts['dir'])
 
-    G.states = (G.opts['jobname'], G.opts['compiler'], G.opts['jenkins_configure'], G.opts['netmod'], G.opts['label'])
+    G.states = (G.opts['jobname'], G.opts['compiler'], G.opts['config'], G.opts['provider'], G.opts['direct'], G.opts['am'], G.opts['pmix'])
 
     if 'XFAIL_CONF' not in G.opts:
         raise Exception("%s: missing -f XFAIL_CONF\n" % 0)
