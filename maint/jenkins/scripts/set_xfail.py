@@ -73,7 +73,7 @@ def load_xfail_conf():
                 else:
                     # print(" Unmatched state [%s] - [%s] - %s" % (cond, pat, testlist))
                     pass
-            elif RE.match(r'\s*(.*?)\s*\/(.*)\/\s*xfail=(\w*)\s*(\S+)\s*$', line):
+            elif RE.match(r'\s*(.*?)\s*\/(.*)\/\s*xfail=([-\/#\w]*)\s*(\S+)\s*$', line):
                 # -- new direct pattern
                 cond, pat, reason, testlist = RE.m.group(1, 2, 3, 4)
                 if match_states(cond, G.states):
@@ -119,7 +119,7 @@ def apply_xfails():
 
 def match_states(cond, states):
     tlist = cond.split()
-    for i in range(5):
+    for i in range(7):
         if not match(tlist[i], G.states[i]):
             return 0
     return 1
