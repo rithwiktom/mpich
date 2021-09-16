@@ -1335,13 +1335,13 @@ if [ "$build_tests" == "yes" ]; then
     cd -
 fi
 
-if [[ -x ${WORKSPACE}/set-xfail.sh ]] ; then
-    set_xfail=${WORKSPACE}/set-xfail.sh
-elif [[ -x ${SCRIPT_DIR}/set-xfail.sh ]] ; then
-    set_xfail=${SCRIPT_DIR}/set-xfail.sh
+if [[ -f ${WORKSPACE}/set_xfail.py ]] ; then
+    set_xfail=${WORKSPACE}/set_xfail.py
+elif [[ -f ${SCRIPT_DIR}/set_xfail.py ]] ; then
+    set_xfail=${SCRIPT_DIR}/set_xfail.py
 fi
 
-if [[ -x ${set_xfail} ]] ; then
+if [[ -f ${set_xfail} ]] ; then
     if [[ "x$xfail_file" == "x" ]]; then
         xfail_file="${JENKINS_DIR}/xfail.conf"
     fi
@@ -1394,7 +1394,7 @@ fi
 
 cd -
 
-${set_xfail} -j ${BUILD_MODE} -c ${compiler} -o ${jenkins_configure} \
+python3 ${set_xfail} -j ${BUILD_MODE} -c ${compiler} -o ${jenkins_configure} \
     -s ${direct} -m ${ofi_prov_esp} -a ${force_am} -p ${use_pmix} -f ${xfail_file}
 EOF
 
@@ -1413,7 +1413,7 @@ if [ "$run_tests" == "yes" ]; then
     ## Run tests
     #####################################################################
 
-    if [[ -x ${set_xfail} ]] ; then
+    if [[ -f ${set_xfail} ]] ; then
         ./populate-testlists.sh
     fi
 
