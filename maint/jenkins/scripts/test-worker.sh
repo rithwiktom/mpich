@@ -923,7 +923,11 @@ SetConfigOpt() {
     fi
 
     config_opt+=( --with-custom-version-string=${custom_version_string} )
-    config_opt+=( --disable-ofi-domain )
+    if [ "$ofi_prov" = "cxi" ]; then
+        config_opt+=( --enable-ofi-domain )
+    else
+        config_opt+=( --disable-ofi-domain )
+    fi
     config_opt+=( --disable-ft-tests )
     config_opt+=( -with-fwrapname=mpigf )
     if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
