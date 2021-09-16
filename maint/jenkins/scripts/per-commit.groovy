@@ -516,6 +516,11 @@ elif [ "$gpu" = "nogpu" ]; then
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
 fi
 
+# Temporary constraint until g++ and gfortran are installed
+if [ "${provider}" = "cxi" ]; then
+    CONFIG_EXTRA="\$CONFIG_EXTRA --disable-cxx --disable-fortran"
+fi
+
 # AM builds force direct mode with global locking
 if [ "${am}" = "am" ]; then
     thread_cs="global"
