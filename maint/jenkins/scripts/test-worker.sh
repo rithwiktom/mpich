@@ -1459,6 +1459,11 @@ if [ "$run_tests" == "yes" ]; then
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
     fi
 
+    if [ "$neo_dir" == "$GENGBIN_NEO" ]; then
+        # Make sure the patched NEO is in front
+        export LD_LIBRARY_PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/igc/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/gmmlib/lib:$LD_LIBRARY_PATH
+    fi
+
     if [ "$use_json" == "yes" ]; then
         export MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/CH4_coll_tuning.json"
         export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
