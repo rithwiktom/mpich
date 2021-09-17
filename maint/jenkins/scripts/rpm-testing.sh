@@ -240,6 +240,10 @@ if [ "$testgpu" == "0" ]; then
     config_opts="$config_opts --without-ze"
 fi
 
+if [ "${flavor}" == "regular" ]; then
+    export MPITEST_GPU_ENABLED=1
+fi
+
 error_checking=""
 if [ "$configs" == "default" ]; then
     error_checking=--disable-checkerrors
