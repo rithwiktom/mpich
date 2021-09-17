@@ -231,6 +231,7 @@ cd test/mpi
 
 if [ "$testgpu" == "0" ]; then
     find . -name testlist.gpu -exec rm '{}' \; -and -exec touch '{}' \;
+    config_opts="$config_opts --without-ze"
 fi
 
 error_checking=""
