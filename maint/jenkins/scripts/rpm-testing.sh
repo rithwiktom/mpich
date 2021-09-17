@@ -20,6 +20,7 @@ force_am=noam
 
 MPI_DIR=""
 ze_dir=""
+GENGBIN_NEO=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
 if [ "$flavor" == "dg1" ]; then
     # This is run on the A20 cluster
     ze_dir="/home/puser42/neo/release/2020.10.05"
@@ -189,6 +190,11 @@ elif [ "$flavor" == "ats" ]; then
     export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
 else
     export LD_LIBRARY_PATH=/opt/neo/release/2020.10.05/lib64:/opt/dg1/clan-spir-1.1/lib:$LD_LIBRARY_PATH
+fi
+
+# Make sure the patched NEO is in front in LD_LIBRARY_PATH if on ats cluster
+if [ -d "$GENGBIN_NEO" ]; then
+    export LD_LIBRARY_PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/igc/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/gmmlib/lib:$LD_LIBRARY_PATH
 fi
 
 export PATH=/opt/intel/csr/bin:$PATH
