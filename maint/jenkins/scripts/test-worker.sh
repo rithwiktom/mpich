@@ -923,7 +923,11 @@ SetConfigOpt() {
     fi
 
     config_opt+=( --with-custom-version-string=${custom_version_string} )
-    config_opt+=( --disable-ofi-domain )
+    config_opts_without_space=`echo $config_opts | sed 's/\ //g'`
+    if [[ "$config_opts_without_space" != *"--enable-ofi-domain"* ]]; then
+        config_opt+=( --disable-ofi-domain )
+    fi
+
     config_opt+=( --disable-ft-tests )
     config_opt+=( -with-fwrapname=mpigf )
     if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
