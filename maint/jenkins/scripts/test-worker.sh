@@ -65,7 +65,8 @@ USE_GCC_9=0
 USE_ICX="yes"
 fast="none"
 
-GENGBIN_NEO=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
+GENGBIN_NEO_ATS=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
+GENGBIN_NEO_DG1=/home/puser03/neo/libraries/intel-level-zero
 
 MPICHLIB_CFLAGS=
 MPICHLIB_CXXFLAGS=
@@ -1228,13 +1229,18 @@ if [ "$build_mpich" == "yes" ]; then
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
 
         # Check if this is an ATS build not running on jfcst-xe
-        if [ "$neo_dir" == "$GENGBIN_NEO" && ! -d "$GENGBIN_NEO" ]; then
+        if [ "$neo_dir" == "$GENGBIN_NEO_ATS" && ! -d "$GENGBIN_NEO_ATS" ]; then
+            neo_dir=/usr
+        elif [ "$neo_dir" == "$GENGBIN_NEO_DG1" && ! -d "$GENGBIN_NEO_ATS" ]; then
             neo_dir=/usr
         fi
 
-        if [ "$neo_dir" == "$GENGBIN_NEO" ]; then
-            export LD_LIBRARY_PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/igc/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/gmmlib/lib:$LD_LIBRARY_PATH
-            export PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:$PATH
+        if [ "$neo_dir" == "$GENGBIN_NEO_ATS" ]; then
+            export LD_LIBRARY_PATH=$GENGBIN_NEO_ATS/neo/build/bin:$GENGBIN_NEO_ATS/neo/build/lib:$GENGBIN_NEO_ATS/igc/lib:$GENGBIN_NEO_ATS/gmmlib/lib:$LD_LIBRARY_PATH
+            export PATH=$GENGBIN_NEO_ATS/neo/build/bin:$PATH
+        elif [ "$neo_dir" == "$GENGBIN_NEO_DG1" ]; then
+            export LD_LIBRARY_PATH=$GENGBIN_NEO_DG1/api_+_loader/v1.2.3-Debug-2021.06.29/lib64/:$GENGBIN_NEO_DG1/compute-runtime/21.21.19914-Debug-2021.06.29/lib64:/home/puser03/neo/compilers/intel-igc/igc-1.0.7423-Release-2021.06.23/lib64:$LD_LIBRARY_PATH
+            export PATH=$GENGBIN_NEO_DG1/compute-runtime/21.21.19914-Debug-2021.06.29/bin:/home/puser03/neo/compilers/intel-igc/igc-1.0.7423-Release-2021.06.23/bin:$PATH
         elif [ "$neo_dir" != "" ]; then
             export PATH=$neo_dir/bin:$PATH
 
@@ -1459,9 +1465,12 @@ if [ "$run_tests" == "yes" ]; then
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
     fi
 
-    if [ "$neo_dir" == "$GENGBIN_NEO" ]; then
-        # Make sure the patched NEO is in front
-        export LD_LIBRARY_PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/igc/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/gmmlib/lib:$LD_LIBRARY_PATH
+    if [ "$neo_dir" == "$GENGBIN_NEO_ATS" ]; then
+        export LD_LIBRARY_PATH=$GENGBIN_NEO_ATS/neo/build/bin:$GENGBIN_NEO_ATS/neo/build/lib:$GENGBIN_NEO_ATS/igc/lib:$GENGBIN_NEO_ATS/gmmlib/lib:$LD_LIBRARY_PATH
+    elif [ "$neo_dir" == "$GENGBIN_NEO_DG1" ]; then
+        export LD_LIBRARY_PATH=$GENGBIN_NEO_DG1/api_+_loader/v1.2.3-Debug-2021.06.29/lib64/:$GENGBIN_NEO_DG1/compute-runtime/21.21.19914-Debug-2021.06.29/lib64:/home/puser03/neo/compilers/intel-igc/igc-1.0.7423-Release-2021.06.23/lib64:$LD_LIBRARY_PATH
+    elif [ "$neo_dir" != "" ]; then
+        export LD_LIBRARY_PATH=$neo_dir/lib64:$LD_LIBRARY_PATH
     fi
 
     if [ "$use_json" == "yes" ]; then
