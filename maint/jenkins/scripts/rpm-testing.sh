@@ -56,6 +56,7 @@ fi
 export http_proxy=http://proxy-us.intel.com:911
 export https_proxy=https://proxy-us.intel.com:911
 export no_proxy="127.0.0.1, localhost, .intel.com"
+export MPITEST_TIMEOUT_MULTIPLIER=2.0
 
 JENKINS_DIR="$WORKSPACE/maint/jenkins"
 BUILD_SCRIPT_DIR="$JENKINS_DIR/scripts"
