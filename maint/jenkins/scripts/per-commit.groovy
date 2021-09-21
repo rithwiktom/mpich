@@ -38,7 +38,7 @@ def num_optional_groups = num_groups - num_required_groups
 
 /* Required: */
 def all_netmods   = [ "ofi" ]
-def all_providers = [ "sockets", "psm2", "verbs" ]
+def all_providers = [ "sockets", "psm2", "verbs", "cxi" ]
 def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
@@ -111,7 +111,7 @@ ${netmod}:${provider}/${compiler}/${am}/${direct}/${config}/${gpu}/${test}/${thr
 @NonCPS
 def match_github_phrase() {
     /* Match on the main trigger and any additional configure options */
-    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|dg1|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
+    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|cxi|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|dg1|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
     try {
         jenkins_config_string = "" + matcher.find() ? matcher.group() : "not found"
         if (jenkins_config_string.split(" ").size() > 1) {
@@ -193,6 +193,7 @@ print BLUEOCEAN_URL
 
 /* Get the nodes from the "tester_pool" label */
 def tester_pool_nodes = "" + get_nodes("tester_pool").join(" || ")
+def cassini_nodes = "" + get_nodes("cassini").join(" || ")
 
 def branches = [:]
 
@@ -297,6 +298,8 @@ for (a in netmods) {
                                                     /* Set the current node and username depending on the configuration */
                                                     if ("${provider}" == "verbs") {
                                                         node_name = "anccskl6"
+                                                    } else if ("${provider}" == "cxi") {
+                                                        node_name = cassini_nodes
                                                     }
                                                     if ("${gpu}" == "dg1") {
                                                         node_name = "a20-testbed"
@@ -311,13 +314,7 @@ for (a in netmods) {
                                                         node_name = "${jenkins_node}"
                                                     }
                                                     /* Throw an exception if the compute resources are offline */
-                                                    if (node_name != tester_pool_nodes) {
-                                                        if (check_node_offline(node_name)) {
-                                                            def errstr = "node '${node_name}' is offline"
-                                                            print errstr
-                                                            throw new Exception(errstr);
-                                                        }
-                                                    } else {
+                                                    if (node_name == tester_pool_nodes) {
                                                         def offline_count = 0
                                                         for (node in get_nodes("tester_pool")) {
                                                             if (check_node_offline(node)) {
@@ -329,6 +326,24 @@ for (a in netmods) {
                                                             print errstr
                                                             throw new Exception(errstr);
                                                         }
+                                                    } else if (node_name == cassini_nodes) {
+                                                        def offline_count = 0
+                                                        for (node in get_nodes("cassini")) {
+                                                            if (check_node_offline(node)) {
+                                                                offline_count = offline_count + 1
+                                                            }
+                                                        }
+                                                        if (offline_count == get_nodes("cassini").size()) {
+                                                            def errstr = "all nodes in label 'cassini' are offline"
+                                                            print errstr
+                                                            throw new Exception(errstr);
+                                                        }
+                                                    } else {
+                                                        if (check_node_offline(node_name)) {
+                                                            def errstr = "node '${node_name}' is offline"
+                                                            print errstr
+                                                            throw new Exception(errstr);
+                                                        }
                                                     }
                                                     node("${node_name}") {
                                                         cleanWs()
@@ -336,6 +351,8 @@ for (a in netmods) {
                                                         unstash name: 'per-commit-tarball'
                                                         sh(script: """
 #!/bin/bash -x
+
+prefix=""
 
 # Print out the hostname for debugging logs
 hostname
@@ -346,22 +363,47 @@ cat > per-commit-test-job.sh << "EOF"
 # Set overlap as default
 export SLURM_OVERLAP=1
 
-srun -N 1 hostname
+if [ "${provider}" != "cxi" ]; then
+    prefix="srun -N 1"
+else
+    prefix=""
+fi
+\${prefix} hostname
 
+if [ "${provider}" != "cxi" ]; then
+    prefix="srun"
+else
+    prefix=""
+fi
 set +e
-srun --chdir="/tmp" rm -rf /tmp/
-srun --chdir="/dev/shm" rm -rf /dev/shm/
+\${prefix} rm -rf /tmp/
+\${prefix} rm -rf /dev/shm/
 set -e
 
 PRE="/state/partition1/home/${username}/"
 REL_WORKSPACE="\${WORKSPACE#\$PRE}"
-OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
-REMOTE_WS=\$(srun --chdir=/tmp mktemp -d /tmp/jenkins.tmp.XXXXXXXX)
+if [ "${provider}" = "cxi" ]; then
+    OFI_DIR="/opt/cray/libfabric/1.13.0.0/"
+else
+    OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
+fi
+REMOTE_WS=\$(\${prefix} mktemp -d /tmp/jenkins.tmp.XXXXXXXX)
 JENKINS_DIR="\$REMOTE_WS/maint/jenkins"
 BUILD_SCRIPT_DIR="\$JENKINS_DIR/scripts"
 
-sbcast ${tarball_name} "\${REMOTE_WS}/${tarball_name}"
-srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}
+if [ "${provider}" != "cxi" ]; then
+    prefix="sbcast"
+else
+    prefix="mv"
+fi
+\${prefix} ${tarball_name} "\${REMOTE_WS}/${tarball_name}"
+if [ "${provider}" != "cxi" ]; then
+    srun --chdir='\$REMOTE_WS' tar -xf ${tarball_name}
+else
+    cd \$REMOTE_WS
+    tar -xf ${tarball_name}
+    cd -
+fi
 
 CONFIG_EXTRA="${jenkins_config_extras}"
 embedded_ofi="no"
@@ -373,6 +415,7 @@ neo_dir=""
 ze_dir=""
 xpmem_dir="/usr/local"
 fast=""
+use_icx="yes"
 
 disable_psm2="no"
 
@@ -423,18 +466,23 @@ if [ "${thread}" = "handoff" ]; then
 fi
 
 echo "Appending mt_xfail_common.conf"
-srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
-srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_common.conf >> \$JENKINS_DIR/xfail.conf"
+if [ "${provider}" != "cxi" ]; then
+    prefix='srun --chdir="\$REMOTE_WS"'
+else
+    prefix=""
+fi
+\${prefix} /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
+\${prefix} /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_common.conf >> \$JENKINS_DIR/xfail.conf"
 
 if [ "${vci}" = "vci4" ]; then
     echo "Appending mt_xfail_vci4.conf"
-    srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
-    srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_vci4.conf >> \$JENKINS_DIR/xfail.conf"
+    \${prefix} /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
+    \${prefix} /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_vci4.conf >> \$JENKINS_DIR/xfail.conf"
 fi
 
 echo "Appending mt_xfail_\${runtime_mt_model}.conf"
-srun --chdir="\$REMOTE_WS" /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
-srun --chdir="\$REMOTE_WS" /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_\${runtime_mt_model}.conf >> \$JENKINS_DIR/xfail.conf"
+\${prefix} /bin/bash -c "echo '' >> \$JENKINS_DIR/xfail.conf"
+\${prefix} /bin/bash -c "cat \$JENKINS_DIR/mt_xfail_\${runtime_mt_model}.conf >> \$JENKINS_DIR/xfail.conf"
 
 if [ "${async}" = "async-single" ]; then
     export MPIR_CVAR_CH4_MAX_PROGRESS_THREADS=1
@@ -468,6 +516,11 @@ elif [ "$gpu" = "nogpu" ]; then
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
 fi
 
+# Temporary constraint until g++ and gfortran are installed
+if [ "${provider}" = "cxi" ]; then
+    CONFIG_EXTRA="\$CONFIG_EXTRA --disable-cxx --disable-fortran"
+fi
+
 # AM builds force direct mode with global locking
 if [ "${am}" = "am" ]; then
     thread_cs="global"
@@ -479,13 +532,17 @@ if [ "\${GITHUB_PR_TARGET_BRANCH}" == "main" ]; then
     gpudirect="no"
 fi
 
+if [ "\${provider}" = "cxi" -a "\${compiler}" = "icc" ]; then
+    use_icx="yes"
+fi
+
 NAME="${config_name}"
 
 ${jenkins_envs}
 
 export LD_LIBRARY_PATH=\$OFI_DIR/lib/:\$LD_LIBRARY_PATH
 
-srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
+\${prefix} /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -B \${disable_psm2} \
     -h \${REMOTE_WS} \
     -i \${OFI_DIR} \
@@ -511,12 +568,18 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -G ${test} \
     -z "-L\$neo_dir/lib64" \
     -E \$xpmem \
+    -I \$use_icx \
     -j "\$CONFIG_EXTRA"
 
 EOF
 
 chmod +x per-commit-test-job.sh
-salloc -J per-commit:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360 ./per-commit-test-job.sh
+if [ "${provider}" != "cxi" ]; then
+    prefix="salloc -J per-commit:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360"
+else
+    prefix=""
+fi
+\${prefix} ./per-commit-test-job.sh
 
 """)
                                                         archiveArtifacts "$config_name/**"
