@@ -281,6 +281,7 @@ if [ "${run_tests}" = "yes" ]; then
     srun cp test/mpi/summary.junit.xml ${config_name}/test/mpi/summary.junit.xml
 fi
 
+srun rm -f \$INSTALL_DIR/lib/pkgconfig/libfabric.pc
 srun mkdir -p \$INSTALL_DIR/share/doc/mpich
 srun --chdir="\$REMOTE_WS" install -m 0644 'COPYRIGHT' \$INSTALL_DIR/share/doc/mpich
 srun --chdir="\$REMOTE_WS" install -m 0644 'CHANGES' \$INSTALL_DIR/share/doc/mpich
