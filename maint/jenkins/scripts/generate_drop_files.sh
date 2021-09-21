@@ -109,6 +109,12 @@ pushenv("PSM3_MULTI_EP", "1")
 EOF
     fi
 
+    if [ "$provider" == "psm2" && "$flavor" == "regular" ]; then
+        cat >> $filename << EOF
+pushenv("MPIR_CVAR_ENABLE_GPU", "0")
+EOF
+    fi
+
 }
 
 # For the JLSE nodes that use TCL modulefiles instead of LUA
@@ -214,6 +220,12 @@ setenv {PSM3_MULTI_EP} "1"
 EOF
     fi
 
+
+    if [ "$provider" == "psm2" && "$flavor" == "regular" ]; then
+        cat >> $filename << EOF
+setenv {MPIR_CVAR_ENABLE_GPU} {0}
+EOF
+    fi
 
 }
 
