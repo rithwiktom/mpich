@@ -378,7 +378,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -504,7 +504,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -625,7 +625,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -758,6 +758,7 @@ SetCompiler() {
             AR=xiar
 
             if [ "$USE_ICX" = "yes" ]; then
+                module load compiler # This assumes the oneAPI module is available
                 CC=icx
                 CXX=icpx
                 F77=ifort
@@ -775,7 +776,7 @@ SetCompiler() {
             SKL_OPT="-xCORE-AVX512"
 
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -928,6 +929,12 @@ SetConfigOpt() {
         config_opt+=( --disable-ofi-domain )
     fi
 
+    if [ "$ofi_prov" = "cxi" ]; then
+        config_opt+=( --enable-ofi-domain )
+    else
+        config_opt+=( --disable-ofi-domain )
+    fi
+
     config_opt+=( --disable-ft-tests )
     config_opt+=( -with-fwrapname=mpigf )
     if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
@@ -1006,7 +1013,7 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
             MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
                 MPICHLIB_LDFLAGS="-O0 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
@@ -1026,7 +1033,7 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
             MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
                 MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
@@ -1050,7 +1057,7 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
             MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
                 MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
@@ -1177,7 +1184,7 @@ SetConfigOpt() {
 
     config_opt+=( --enable-thread-cs=${thread_cs})
     # --with-libfabric: CH4, --with-ofi: CH3
-    config_opt+=( --with-libfabric=$ofi_dir )
+    config_opt+=( --with-libfabric=${ofi_dir} )
 
     # pmix option
     if [ "$use_pmix" = "pmix" ]; then
@@ -1438,7 +1445,7 @@ if [ "$run_tests" == "yes" ]; then
     if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
     else
-        export LD_LIBRARY_PATH=$ofi_dir/lib/:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=${ofi_dir}/lib:${ofi_dir}/lib64:$LD_LIBRARY_PATH
     fi
 
     # There is a MR Cache Registration issue in libfabric which needs to be resolved before we
