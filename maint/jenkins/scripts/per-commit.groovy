@@ -498,8 +498,8 @@ CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 if [ "$gpu" = "dg1" ]; then
     embedded_ofi="yes"
     CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
-    neo_dir=/home/puser03/neo/libraries/intel-level-zero/compute-runtime/ea6e298-Release-2021.01.05
-    ze_dir=/home/puser03/neo/libraries/intel-level-zero/api_+_loader/a88be32-Release-2021.01.05
+    neo_dir=/home/puser03/neo/libraries/intel-level-zero
+    ze_dir=/home/puser03/neo/libraries/intel-level-zero/api_+_loader/v1.2.3-Debug-2021.06.29
     xpmem="no"
     ze_native="$gpu"
     disable_psm2="yes"
