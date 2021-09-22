@@ -398,7 +398,7 @@ else
 fi
 \${prefix} ${tarball_name} "\${REMOTE_WS}/${tarball_name}"
 if [ "${provider}" != "cxi" ]; then
-    srun --chdir='\$REMOTE_WS' tar -xf ${tarball_name}
+    srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}
 else
     cd \$REMOTE_WS
     tar -xf ${tarball_name}
