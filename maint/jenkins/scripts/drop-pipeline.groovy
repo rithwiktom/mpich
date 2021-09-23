@@ -5,6 +5,12 @@ import org.jenkinsci.plugins.workflow.steps.*
 def tarball_name='mpich-drops.tar.bz2'
 
 node('anfedclx8') {
+    stage('Cleanup RPM Directory') {
+        sh(script: """rm -rf \$HOME/rpmbuild""")
+    }
+}
+
+node('anfedclx8') {
     try {
         stage('Checkout') {
             cleanWs()
@@ -548,6 +554,7 @@ tar -xf \$TARBALL
 salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600 ./RPM-testing-drop-job.sh
 """)
                             junit "**/summary.junit.xml"
+                            cleanWs()
                         }
                     }
                 }
@@ -698,5 +705,11 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
 
     stage('Upload RPMs') {
         parallel rpms_upload
+    }
+}
+
+node('anfedclx8') {
+    stage('Cleanup Build Directories') {
+        sh(script: """rm -rf \$HOME/rpmbuild/BUILD \$HOME/rpmbuild/BUILDROOT""")
     }
 }
