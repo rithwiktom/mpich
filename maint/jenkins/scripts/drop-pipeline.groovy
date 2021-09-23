@@ -7,7 +7,7 @@ def tarball_name='mpich-drops.tar.bz2'
 node('anfedclx8') {
     stage('Cleanup RPM Directory') {
         sh(script: """rm -rf \$HOME/rpmbuild""")
-        sh(script: """mkdir \$HOME/rpmbuild""")
+        sh(script: """mkdir -p \$HOME/rpmbuild/SPECS""")
     }
 }
 
