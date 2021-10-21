@@ -64,6 +64,7 @@ xpmem_dir="/usr/local"
 USE_GCC_9=0
 USE_ICX="yes"
 fast="none"
+ofi_domain="no"
 
 GENGBIN_NEO_ATS=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
 GENGBIN_NEO_DG1=/home/puser03/neo/libraries/intel-level-zero
@@ -95,7 +96,7 @@ done
 ## Initialization
 #####################################################################
 
-while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
+while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
     case "$opt" in
         a)
             cpu=$OPTARG ;;
@@ -149,6 +150,8 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:p:P:q:r:s:t:
             neo_dir=$OPTARG ;;
         o)
             jenkins_configure=$OPTARG ;;
+        O)
+            ofi_domain=$OPTARG ;;
         p)
             ofi_prov=$OPTARG ;;
         P)
@@ -925,15 +928,20 @@ SetConfigOpt() {
     fi
 
     config_opt+=( --with-custom-version-string=${custom_version_string} )
-    config_opts_without_space=`echo $config_opts | sed 's/\ //g'`
-    if [[ "$config_opts_without_space" != *"--enable-ofi-domain"* ]]; then
-        config_opt+=( --disable-ofi-domain )
-    fi
 
-    if [ "$ofi_prov" = "cxi" ]; then
-        config_opt+=( --enable-ofi-domain )
-    else
-        config_opt+=( --disable-ofi-domain )
+    # Take user input over default
+    config_opts_without_space=`echo $config_opts | sed 's/\ //g'`
+    if [[ "$config_opts_without_space" != *"--enable-ofi-domain"* && "$config_opts_without_space" != *"--disable-ofi-domain"* ]]; then
+        # Override ofi-domain option for CXI provider
+        if [ "$ofi_prov" = "cxi" ]; then
+            ofi_domain="yes"
+        fi
+
+        if [ "$ofi_domain" = "yes" ]; then
+            config_opt+=( --enable-ofi-domain )
+        else
+            config_opt+=( --disable-ofi-domain )
+        fi
     fi
 
     config_opt+=( --disable-ft-tests )
