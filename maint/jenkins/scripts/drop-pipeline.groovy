@@ -93,7 +93,7 @@ for (a in providers) {
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
-                    if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                    if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
                     }
                     if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
@@ -114,7 +114,7 @@ for (a in providers) {
                     if ("${provider}" == "cxi" && "${flavor}" != "regular") {
                         continue;
                     }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                    if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
                         continue;
                     }
                     // This build is for anccskl6, so oneCCL can be tested with the drop
@@ -346,7 +346,7 @@ for (a in providers) {
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
-                    if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                    if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
                     }
                     if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
@@ -367,7 +367,7 @@ for (a in providers) {
                     if ("${provider}" == "cxi" && "${flavor}" != "regular") {
                         continue;
                     }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                    if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
                         continue;
                     }
                     // This build is for anccskl6, so oneCCL can be tested with the drop
@@ -471,8 +471,7 @@ for (a in providers) {
                     if (("${provider}" == "psm2" || "${provider}" == "verbs") && "${flavor}" == "gen9") {
                         continue
                     }
-                    /* The only current PMIx setup is using sockets and will not be installed on gen9 */
-                    if ("${pmix}" == "pmix" && ("${provider}" != "sockets" || "${flavor}" == "gen9")) {
+                    if ("${pmix}" == "pmix" && ("${provider}" == "psm2" || "${flavor}" == "gen9")) {
                         continue
                     }
                     if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
@@ -625,7 +624,7 @@ git push --tags origin
                         if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                             continue;
                         }
-                        if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                        if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                             continue;
                         }
                         if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
@@ -646,7 +645,7 @@ git push --tags origin
                         if ("${provider}" == "cxi" && "${flavor}" != "regular") {
                             continue;
                         }
-                        if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                        if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
                             continue;
                         }
                         // This build is for anccskl6, so oneCCL can be tested with the drop
