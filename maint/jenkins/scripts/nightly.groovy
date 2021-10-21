@@ -33,13 +33,24 @@ if ("${RUN_TYPE}" == "regular") {
     all_providers = [ "sockets", "psm2" ]
     all_gpus = [ "nogpu" ]
     all_threads = [ "handoff", "direct", "lockless" ]
+} else if ("${RUN_TYPE}" == "weekly-opt") {
+    all_providers = [ "sockets", "psm2" ]
+    all_ams = [ "noam" ]
+    all_directs = [ "auto" ]
+    all_configs = [ "opt" ]
+    all_gpus = [ "nogpu" ]
+    all_threads = [ "runtime" ]
+    all_vcis = [ "vci1" ]
+    all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "dg1") {
+    all_providers = [ "sockets" ]
     all_gpus = [ "dg1" ]
     all_tests = [ "gpu" ]
     all_threads = [ "runtime" ]
     all_vcis = [ "vci1" ]
     all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "ats") {
+    all_providers = [ "sockets" ]
     all_gpus = [ "ats" ]
     all_tests = [ "gpu" ]
     all_threads = [ "runtime" ]
@@ -54,7 +65,6 @@ def invalid_config(netmod, provider, compiler, am, direct, config, gpu, test, th
 
     // GPU filters
     invalid |= ("${test}" == "gpu" && "${gpu}" == "nogpu")
-    invalid |= ("${provider}" == "verbs" && "${gpu}" == "ats")
     invalid |= ("${provider}" == "psm2" && "${gpu}" != "nogpu")
     invalid |= ("${thread}" != "runtime" && "${gpu}" != "nogpu")
 
@@ -77,7 +87,6 @@ def skip_config(netmod, provider, compiler, am, direct, config, gpu, test, threa
 
     // Misc
     skip |= ("${pmix}" == "pmix") // Don't nightly test pmix
-    skip |= ("${gpu}" == "ats") // Don't nightly test ATS (yet)
     skip |= ("${am}" == "am") // TODO: Skip am until failures resolved
 
     // GPUs
