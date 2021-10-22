@@ -179,11 +179,14 @@ def check_node_offline(name) {
 
 /* Parse the github comment */
 match_github_phrase()
-if ("${jenkins_node}" == "") {
-    status_context = "per-commit: ($jenkins_config_string)"
-} else {
-    status_context = "per-commit: ${jenkins_node} ($jenkins_config_string)"
+status_line = "($jenkins_config_string)"
+if ("{$jenkins_config_extras}" != "") {
+    status_line = "$status_line $jenkins_config_extras"
 }
+if ("${jenkins_node}" != "") {
+    status_line = "$jenkins_node $status_line"
+}
+status_context = "per-commit: $status_line"
 
 /* Check if the link should be for per-commit-github or per-commit-github-main */
 if (env['GITHUB_PR_TARGET_BRANCH'].equals("main")) {

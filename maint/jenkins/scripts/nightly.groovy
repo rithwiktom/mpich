@@ -6,6 +6,17 @@ def tarball_name = "mpich-nightly.tar.bz2"
 def continue_pipeline = true
 currentBuild.result = "SUCCESS"
 
+/* Configure ofi-domain for odd days */
+ofi_domain = ""
+def date = new Date()
+def day = date[Calendar.DAY_OF_YEAR]
+
+if (day % 2 == 0) {
+    ofi_domain = "no"
+} else {
+    ofi_domain = "yes"
+}
+
 /*
   Possible values for each configure group
   If the regex is updated, these also need to be updated
@@ -244,6 +255,7 @@ neo_dir=""
 ze_dir=""
 xpmem_dir="/usr/local"
 fast=""
+ofi_domain="${ofi_domain}"
 
 disable_psm2="no"
 
@@ -363,6 +375,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -G ${test} \
     -z "-L\$neo_dir/lib64" \
     -E \$xpmem \
+    -O \$ofi_domain \
     -j "\$CONFIG_EXTRA"
 
 EOF
