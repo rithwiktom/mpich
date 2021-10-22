@@ -5,6 +5,13 @@ import org.jenkinsci.plugins.workflow.steps.*
 def tarball_name='mpich-drops.tar.bz2'
 
 node('anfedclx8') {
+    stage('Cleanup RPM Directory') {
+        sh(script: """rm -rf \$HOME/rpmbuild""")
+        sh(script: """mkdir -p \$HOME/rpmbuild/SPECS""")
+    }
+}
+
+node('anfedclx8') {
     try {
         stage('Checkout') {
             cleanWs()
@@ -86,7 +93,7 @@ for (a in providers) {
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
-                    if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                    if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
                     }
                     if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
@@ -107,7 +114,7 @@ for (a in providers) {
                     if ("${provider}" == "cxi" && "${flavor}" != "regular") {
                         continue;
                     }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                    if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
                         continue;
                     }
                     // This build is for anccskl6, so oneCCL can be tested with the drop
@@ -203,7 +210,7 @@ if [ "${flavor}" == "nogpu" ]; then
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
-    config_extra+=" --enable-psm3"
+    config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
 fi
@@ -281,6 +288,7 @@ if [ "${run_tests}" = "yes" ]; then
     srun cp test/mpi/summary.junit.xml ${config_name}/test/mpi/summary.junit.xml
 fi
 
+srun rm -f \$INSTALL_DIR/lib/pkgconfig/libfabric.pc
 srun mkdir -p \$INSTALL_DIR/share/doc/mpich
 srun --chdir="\$REMOTE_WS" install -m 0644 'COPYRIGHT' \$INSTALL_DIR/share/doc/mpich
 srun --chdir="\$REMOTE_WS" install -m 0644 'CHANGES' \$INSTALL_DIR/share/doc/mpich
@@ -338,7 +346,7 @@ for (a in providers) {
                     if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                         continue;
                     }
-                    if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                    if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
                     }
                     if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
@@ -359,7 +367,7 @@ for (a in providers) {
                     if ("${provider}" == "cxi" && "${flavor}" != "regular") {
                         continue;
                     }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                    if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
                         continue;
                     }
                     // This build is for anccskl6, so oneCCL can be tested with the drop
@@ -463,8 +471,7 @@ for (a in providers) {
                     if (("${provider}" == "psm2" || "${provider}" == "verbs") && "${flavor}" == "gen9") {
                         continue
                     }
-                    /* The only current PMIx setup is using sockets and will not be installed on gen9 */
-                    if ("${pmix}" == "pmix" && ("${provider}" != "sockets" || "${flavor}" == "gen9")) {
+                    if ("${pmix}" == "pmix" && ("${provider}" == "psm2" || "${flavor}" == "gen9")) {
                         continue
                     }
                     if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
@@ -547,6 +554,7 @@ tar -xf \$TARBALL
 salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600 ./RPM-testing-drop-job.sh
 """)
                             junit "**/summary.junit.xml"
+                            cleanWs()
                         }
                     }
                 }
@@ -616,7 +624,7 @@ git push --tags origin
                         if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
                             continue;
                         }
-                        if ("${pmix}" == "pmix" && "${provider}" != "sockets") {
+                        if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                             continue;
                         }
                         if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
@@ -637,7 +645,7 @@ git push --tags origin
                         if ("${provider}" == "cxi" && "${flavor}" != "regular") {
                             continue;
                         }
-                        if ("${provider}" == "cxi" && "${pmix}" == "pmix") {
+                        if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
                             continue;
                         }
                         // This build is for anccskl6, so oneCCL can be tested with the drop
@@ -697,5 +705,11 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
 
     stage('Upload RPMs') {
         parallel rpms_upload
+    }
+}
+
+node('anfedclx8') {
+    stage('Cleanup Build Directories') {
+        sh(script: """rm -rf \$HOME/rpmbuild/BUILD \$HOME/rpmbuild/BUILDROOT""")
     }
 }
