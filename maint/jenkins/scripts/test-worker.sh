@@ -785,10 +785,10 @@ SetCompiler() {
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
             if [ "$USE_ICX" = "yes" ]; then
-                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu11 -Wall"
-                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu11 -Wall"
-                COMPILER_CXXFLAGS="-ggdb -mtune=generic -Wall"
-                COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wall"
+                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu11 -Wall -Wno-header-guard"
+                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu11 -Wall -Wno-header-guard"
+                COMPILER_CXXFLAGS="-ggdb -mtune=generic -Wall -Wno-header-guard"
+                COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wall -Wno-header-guard"
                 COMPILER_FFLAGS="-ggdb -mtune=generic -w"
                 COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
                 COMPILER_FCFLAGS="-ggdb -mtune=generic -w"
