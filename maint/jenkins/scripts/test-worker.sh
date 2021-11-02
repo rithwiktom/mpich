@@ -981,9 +981,6 @@ SetConfigOpt() {
         elif [ "x$ofi_prov" != "x" ]; then
             device_caps=":$ofi_prov"
         fi
-        if [ "x$ofi_prov" != "x" -a "x$ofi_prov" != "all" ]; then
-            config_opt+=( --with-default-ofi-provider=${ofi_prov})
-        fi
         if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
             config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
         fi

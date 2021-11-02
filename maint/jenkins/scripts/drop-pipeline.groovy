@@ -277,7 +277,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -k \$embedded_ofi \
     -Y "\${ze_native}" \
     -Z "\${ze_dir}" \
-    -j "--with-default-ofi-provider=\${provider_string} --disable-opencl \${config_extra}" \
+    -j "--disable-opencl \${config_extra}" \
     -D \$daos \
     -E \$xpmem \
     -P ${pmix} \
