@@ -75,7 +75,7 @@ def providers = ['sockets', 'psm2', 'cxi', 'all']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
-def flavors = ['regular', 'dg1', 'ats', 'nogpu']
+def flavors = ['regular', 'ats', 'nogpu']
 
 def run_tests = "no"
 
@@ -89,17 +89,8 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
-                    if ("${flavor}" == "dg1") {
-                        continue;
-                    }
                     if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
-                    }
-                    if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
-                        continue
                     }
                     if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
                         continue
@@ -198,7 +189,7 @@ neo_dir=/opt/neo/release/2020.10.05
 #Set ze path for all the builds
 ze_dir=/usr
 # Build with native support for GPU-specific RPMs
-if [ "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
+if [ "${flavor}" == "ats" ]; then
     ze_native="${flavor}"
 fi
 
@@ -216,7 +207,7 @@ fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
 
-if [ "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
+if [ "${flavor}" == "ats" ]; then
     embedded_ofi="yes"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
@@ -224,10 +215,6 @@ if [ "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
     config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
-fi
-
-if [ "${flavor}" == "dg1" ]; then
-    config_extra+=" --disable-ze-double"
 fi
 
 if [ "${provider}" != "sockets" ]; then
@@ -254,13 +241,7 @@ elif [ "${provider}" == "all" ]; then
     provider_string=""
 fi
 
-build_dg1="no"
-if [ "${flavor}" == "dg1" ]; then
-    build_dg1="yes"
-fi
-
 srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
-    -B \${build_dg1} \
     -h \${REMOTE_WS}/_build \
     -i \${OFI_DIR} \
     -c ${compiler} \
@@ -341,17 +322,8 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
-                    if ("${flavor}" == "dg1") {
-                        continue;
-                    }
                     if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
-                    }
-                    if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
-                        continue
                     }
                     if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
                         continue
@@ -462,15 +434,6 @@ for (a in providers) {
                     def pmix = d
                     def flavor = e
                     def testgpu = 0
-                    if ("${flavor}" == "dg1") {
-                        continue;
-                    }
-                    if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
-                        continue
-                    }
                     if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
                         continue
                     }
@@ -502,10 +465,6 @@ for (a in providers) {
                         def node_name = "anfedclx8-admin"
                         if ("${provider}" == "verbs") {
                             node_name = "anccskl6"
-                        }
-                        if ("${flavor}" == "dg1") {
-                            node_name = "a20-testbed"
-                            testgpu = 1
                         }
                         if ("${flavor}" == "ats") {
                             node_name = "jfcst-xe"
@@ -612,17 +571,8 @@ git push --tags origin
                         def config = c
                         def pmix = d
                         def flavor = e
-                        if ("${flavor}" == "dg1") {
-                            continue;
-                        }
                         if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                             continue;
-                        }
-                        if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
-                            continue
-                        }
-                        if ("${flavor}" == "dg1" && "${provider}" == "psm2") {
-                            continue
                         }
                         if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
                             continue

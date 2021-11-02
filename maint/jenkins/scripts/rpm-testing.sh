@@ -21,12 +21,7 @@ force_am=noam
 MPI_DIR=""
 ze_dir=""
 GENGBIN_NEO=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
-if [ "$flavor" == "dg1" ]; then
-    # This is run on the A20 cluster
-    ze_dir="/home/puser42/neo/release/2020.10.05"
-    module use /home/puser42/dg1_modules
-    module load neo/2020.10.05
-elif [ "$flavor" == "ats" ]; then
+if [ "$flavor" == "ats" ]; then
     ze_dir="/usr"
 fi
 
@@ -40,7 +35,7 @@ if [ "$flavor" != "regular" ]; then
     flavor_string="-${flavor}"
 fi
 
-if [ "$flavor" == "dg1" -o "$flavor" == "ats" ]; then
+if [ "$flavor" == "ats" ]; then
     config_opts="--with-ze=${ze_dir}"
 fi
 
@@ -60,7 +55,7 @@ export MPITEST_TIMEOUT_MULTIPLIER=2.0
 
 JENKINS_DIR="$WORKSPACE/maint/jenkins"
 BUILD_SCRIPT_DIR="$JENKINS_DIR/scripts"
-if [ "${flavor}" != "dg1" -a "${flavor}" != "ats" ]; then
+if [ "${flavor}" != "ats" ]; then
     OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
 fi
 if [ "${provider}" == "all" ]; then
@@ -84,7 +79,7 @@ count=1
 rpm -qpR ${WORKSPACE}/$RPM.rpm
 
 set -e
-if [ "$flavor" == "dg1" -o "$flavor" == "ats" ]; then
+if [ "$flavor" == "ats" ]; then
     set +e
     rpm --initdb --dbpath /tmp/rpmdb
     rpm --dbpath /tmp/rpmdb --nodeps -ihv --prefix /tmp/inst ${WORKSPACE}/$RPM.rpm
@@ -94,7 +89,7 @@ else
 fi
 
 if [ "$nodes" -gt "1" ]; then
-    if [ "$flavor" == "dg1" -o "$flavor" == "ats" ]; then
+    if [ "$flavor" == "ats" ]; then
         srun -N 1 -n 1 -r 1 $BUILD_SCRIPT_DIR/install_drop_rpm.sh 0 ${WORKSPACE}/$RPM.rpm
     else
     	srun -N 1 -n 1 -r 1 sudo rpm -Uvh --force ${WORKSPACE}/$RPM.rpm --nodeps
@@ -148,7 +143,7 @@ fi
 # Make sure module alias is setup
 . /opt/ohpc/admin/lmod/lmod/init/bash >/dev/null
 # check env by using module
-if [ "$flavor" == "dg1" -o "$flavor" == "ats" ]; then
+if [ "$flavor" == "ats" ]; then
     module use /tmp/inst/modulefiles/
     MPI_DIR="/tmp/inst/${MPI}"
 else
@@ -181,9 +176,7 @@ export LD_LIBRARY_PATH=${OFI_DIR}/lib:/opt/intel/csr/lib:/opt/intel/csr/lib64:$L
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 # This is used on the anfedclx8 machine
-if [ "$flavor" == "dg1" ]; then
-    export LD_LIBRARY_PATH=/home/puser42/neo/release/2020.10.05/lib64:$LD_LIBRARY_PATH
-elif [ "$flavor" == "ats" ]; then
+if [ "$flavor" == "ats" ]; then
     export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
 else
     export LD_LIBRARY_PATH=/opt/neo/release/2020.10.05/lib64:/opt/dg1/clan-spir-1.1/lib:$LD_LIBRARY_PATH
@@ -269,9 +262,9 @@ fi
 ${WORKSPACE}/set-xfail.sh -j validation -c ${compiler} -o ${configs} -s ${direct} \
     -m "${provider_string}" -a ${force_am} -f ${xfail_file} -p ${pmix}
 
-# For the DG1 cluster, we need to additionally xfail all of the known problems with DG1s
-if [ "$flavor" == "dg1" -o "$flavor" == "ats" ]; then
-    ${WORKSPACE}/set-xfail.sh -j per-commit-a20 -c ${compiler} -o ${configs} -s ${direct} \
+# For the GPU clusters, we need to additionally xfail all of the known problems with GPUs
+if [ "$flavor" == "ats" ]; then
+    python3 ${WORKSPACE}/set_xfail.py -j per-commit-gpu -c ${compiler} -o ${configs} -s ${direct} \
         -m "${provider_string}" -a ${force_am} -f ${xfail_file} -p ${pmix}
 fi
 
@@ -287,7 +280,7 @@ if [ $? != 0 ]; then
 fi
 cp summary.junit.xml ${WORKSPACE}
 
-if [ $flavor == "dg1" -o "$flavor" == "ats" ]; then
+if [ "$flavor" == "ats" ]; then
     rm -rf /tmp/inst
     rm -rf /tmp/rpmdb
 else
@@ -295,7 +288,7 @@ else
 fi
 
 if [ "$nodes" -gt "1" ]; then
-   if [ $flavor == "dg1" -o "$flavor" == "ats" ]; then
+   if [ "$flavor" == "ats" ]; then
        srun -N 1 -n 1 -e 1 $BUILD_SCRIPT_DIR/install_drop_rpm.sh 1 ${WORKSPACE}/$RPM.rpm
    else	
        srun -N 1 -n 1 -r 1 sudo rpm -e $RPM
