@@ -60,14 +60,7 @@ export MPITEST_TIMEOUT_MULTIPLIER=2.0
 
 JENKINS_DIR="$WORKSPACE/maint/jenkins"
 BUILD_SCRIPT_DIR="$JENKINS_DIR/scripts"
-#if [ "$flavor" == "gen9" ]; then
-#    is_there=0
-#else
-#    RPM_DIR="/home/sys_csr1/rpmbuild/RPMS/x86_64"
-#    cp -f ${RPM_DIR}/$RPM.rpm ${WORKSPACE}/
-#    is_there=$?
-#fi
-if [ "${flavor}" != "dg1" -a "${flavor}" != "gen9" -a "${flavor}" != "ats" ]; then
+if [ "${flavor}" != "dg1" -a "${flavor}" != "ats" ]; then
     OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
 fi
 if [ "${provider}" == "all" ]; then

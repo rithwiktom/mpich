@@ -75,7 +75,7 @@ def providers = ['sockets', 'psm2', 'cxi', 'all']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
-def flavors = ['regular', 'gen9', 'dg1', 'ats', 'nogpu']
+def flavors = ['regular', 'dg1', 'ats', 'nogpu']
 
 def run_tests = "no"
 
@@ -89,17 +89,11 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
-                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
-                        continue;
-                    }
-                    if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
+                    if ("${flavor}" == "dg1") {
                         continue;
                     }
                     if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
-                    }
-                    if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
-                        continue
                     }
                     if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
                         continue
@@ -222,7 +216,7 @@ fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
 
-if [ "${flavor}" == "gen9" -o "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
+if [ "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; then
     embedded_ofi="yes"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
@@ -232,7 +226,7 @@ if [ "${flavor}" == "gen9" -o "${flavor}" == "dg1" -o "${flavor}" == "ats" ]; th
     xpmem="no"
 fi
 
-if [ "${flavor}" == "dg1" -o "${flavor}" == "gen9" ]; then
+if [ "${flavor}" == "dg1" ]; then
     config_extra+=" --disable-ze-double"
 fi
 
@@ -347,17 +341,11 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
-                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
-                        continue;
-                    }
-                    if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
+                    if ("${flavor}" == "dg1") {
                         continue;
                     }
                     if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                         continue;
-                    }
-                    if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
-                        continue
                     }
                     if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
                         continue
@@ -474,15 +462,8 @@ for (a in providers) {
                     def pmix = d
                     def flavor = e
                     def testgpu = 0
-                    if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
+                    if ("${flavor}" == "dg1") {
                         continue;
-                    }
-                    /* The gen9 machine only uses sockets */
-                    if (("${provider}" == "psm2" || "${provider}" == "verbs") && "${flavor}" == "gen9") {
-                        continue
-                    }
-                    if ("${pmix}" == "pmix" && ("${provider}" == "psm2" || "${flavor}" == "gen9")) {
-                        continue
                     }
                     if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
                         continue
@@ -631,17 +612,11 @@ git push --tags origin
                         def config = c
                         def pmix = d
                         def flavor = e
-                        if ("${flavor}" == "dg1" || "${flavor}" == "gen9") {
-                            continue;
-                        }
-                        if ("${provider}" == "verbs" && "${flavor}" == "gen9") {
+                        if ("${flavor}" == "dg1") {
                             continue;
                         }
                         if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
                             continue;
-                        }
-                        if ("${pmix}" == "pmix" && "${flavor}" == "gen9") {
-                            continue
                         }
                         if ("${flavor}" == "dg1" && "${pmix}" == "pmix") {
                             continue
