@@ -347,15 +347,7 @@ SetCompiler() {
 
     case "$compiler" in
         "gnu")
-            if [ -f /opt/rh/devtoolset-7/enable ]; then
-                source /opt/rh/devtoolset-7/enable
-            elif [ -f /opt/rh/devtoolset-6/enable ]; then
-                source /opt/rh/devtoolset-6/enable
-            elif [ -f /opt/rh/devtoolset-4/enable ]; then
-                source /opt/rh/devtoolset-4/enable
-            elif [ -f /opt/rh/devtoolset-3/enable ]; then
-                source /opt/rh/devtoolset-3/enable
-            elif [[ "$(module whatis gnu9)" == "gnu9"* ]]; then
+            if [[ "$(module whatis gnu9)" == "gnu9"* ]]; then
                 # This check is kind of hacky. module is-avail does not seem to work
                 module load gnu9
                 USE_GCC_9=1
@@ -602,16 +594,6 @@ SetCompiler() {
         "icc")
 
             INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
-
-            if [ -f /opt/rh/devtoolset-7/enable ]; then
-                source /opt/rh/devtoolset-7/enable
-            elif [ -f /opt/rh/devtoolset-6/enable ]; then
-                source /opt/rh/devtoolset-6/enable
-            elif [ -f /opt/rh/devtoolset-4/enable ]; then
-                source /opt/rh/devtoolset-4/enable
-            elif [ -f /opt/rh/devtoolset-3/enable ]; then
-                source /opt/rh/devtoolset-3/enable
-            fi
 
             if [ -f /opt/intel/inteloneapi/compiler/latest/env/vars.sh ]; then
                 . /opt/intel/inteloneapi/compiler/latest/env/vars.sh intel64
