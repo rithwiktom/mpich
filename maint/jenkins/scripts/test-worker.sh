@@ -892,7 +892,7 @@ SetConfigOpt() {
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
             config_opt+=( -enable-timing=none )
-            if [ "$ofi_prov" != "psm" -a "$ofi_prov" != "psm2" -a "$ofi_prov" != "opa" -a "$ofi_prov" != "verbs;ofi_rxm"]; then
+            if [ "$ofi_prov" != "psm2" -a "$ofi_prov" != "verbs;ofi_rxm"]; then
                 config_opt+=( --enable-direct=$ofi_prov)
                 netmod_opt+=(:direct-provider)
             fi
@@ -966,10 +966,6 @@ SetConfigOpt() {
             else
                 prov_config+=( --disable-cxi)
             fi
-        fi
-
-        if [ "$ofi_prov" = "opa2" -o "$ofi_prov" = "all" ]; then
-            prov_config+=( --with-opa-headers=/usr)
         fi
 
         prov_config+=( --enable-embedded)
@@ -1320,9 +1316,7 @@ if [ "$run_tests" == "yes" ]; then
     fi
 
     echo `env | grep MPI`
-    if [ "$ofi_prov" == "opa1x" ]; then
-        make testing V=1 MPITEST_PROGRAM_WRAPPER="-genv FI_OPA1X_UUID \`uuidgen\` -ppn 1 "
-    elif [[ "$BUILD_MODE" = "multinode" ]]; then
+    if [[ "$BUILD_MODE" = "multinode" ]]; then
         make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
     else
         if [ "$use_pmix" = "pmix" ]; then
