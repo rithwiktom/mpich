@@ -70,6 +70,9 @@ BUILD_SCRIPT_DIR="$JENKINS_DIR/scripts"
 if [ "${flavor}" != "dg1" -a "${flavor}" != "gen9" -a "${flavor}" != "ats" ]; then
     OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
 fi
+if [ "${provider}" == "all" ]; then
+    OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
+fi
 DAOS_INSTALL_DIR="/opt/daos-34"
 pmix_dir="/opt/openpmix"
 prte_dir="/opt/prrte"
@@ -265,6 +268,9 @@ xfail_file=${WORKSPACE}/maint/jenkins/xfail.conf
 provider_string="${provider}"
 if [ "$provider" == "verbs" ]; then
     provider_string="verbs;ofi_rxm"
+elif [ "${provider}" == "all" ]; then # If using a build with no default provider, the PSM2 provider
+                                      # will be selected so use that for testing
+    provider_string="psm2"
 fi
 
 ${WORKSPACE}/set-xfail.sh -j validation -c ${compiler} -o ${configs} -s ${direct} \

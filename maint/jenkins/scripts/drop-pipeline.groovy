@@ -69,7 +69,9 @@ cp maint/jenkins/mpich-ofi.spec \$HOME/rpmbuild/SPECS/mpich-ofi.spec
 
 def branches = [:]
 
-def providers = ['sockets', 'psm2', 'cxi']
+// The "all" provider means that the build supports all providers. This is normal for the debug
+// build, but using this provider enables it for a default build as well
+def providers = ['sockets', 'psm2', 'cxi', 'all']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
@@ -131,6 +133,9 @@ for (a in providers) {
                     if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
                         continue;
                     }
+                    if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
+                        continue;
+                    }
                     branches["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                         node('anfedclx8') {
                             def config_name = "${provider}-${compiler}-${config}-${pmix}-${flavor}"
@@ -158,7 +163,7 @@ RELEASE=\$(<release_version)
 CUSTOM_VERSION_STRING="\${VERSION}_release\${RELEASE}"
 PRE="/state/partition1/home/sys_csr1/"
 REL_WORKSPACE="\${WORKSPACE#\$PRE}"
-if [ "${provider}" == "cxi" ]; then
+if [ "${provider}" == "cxi" -o "${provider}" == "all" ]; then
     OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
 else
     OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
@@ -251,6 +256,8 @@ srun --chdir="\$BUILD_SCRIPT_DIR" "\$BUILD_SCRIPT_DIR/generate_drop_files.sh" "\
 provider_string="${provider}"
 if [ "${provider}" == "verbs" ]; then
     provider_string="verbs;ofi_rxm"
+elif [ "${provider}" == "all" ]; then
+    provider_string=""
 fi
 
 build_dg1="no"
@@ -383,6 +390,9 @@ for (a in providers) {
                     if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
                         continue;
                     }
+                    if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
+                        continue;
+                    }
                     rpms["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                         node('anfedclx8') {
                             def version = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/drop_version')
@@ -501,6 +511,9 @@ for (a in providers) {
                         continue;
                     }
                     if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
+                        continue;
+                    }
+                    if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
                         continue;
                     }
                     /* We currently have no way to install an RPM on a verbs cluster */
@@ -659,6 +672,9 @@ git push --tags origin
                             continue;
                         }
                         if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
+                            continue;
+                        }
+                        if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
                             continue;
                         }
                         rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {

@@ -1353,7 +1353,11 @@ if [[ -f ${set_xfail} ]] ; then
 fi
 
 # escape the string for non-alpha characters
-printf -v ofi_prov_esp "%q" $ofi_prov
+if [ "${ofi_prov}" == "all" ]; then
+    ofi_prov_esp="sockets"
+else
+    printf -v ofi_prov_esp "%q" $ofi_prov
+fi
 cat >populate-testlists.sh<<EOF
 #!/bin/bash
 
@@ -1483,7 +1487,11 @@ if [ "$run_tests" == "yes" ]; then
         export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
         export MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
     fi
-    export FI_PROVIDER="$ofi_prov"
+    if [ "${ofi_prov}" != "all" ]; then
+        export FI_PROVIDER="$ofi_prov"
+    else
+        export FI_PROVIDER="sockets"
+    fi
 
     echo $PATH
     echo $LD_LIBRARY_PATH
