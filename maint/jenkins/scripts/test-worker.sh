@@ -213,9 +213,9 @@ CollectResults() {
         -o -name "m.txt" \
         -o -name "mi.txt" \
         -o -name "summary.junit.xml" \
-        -o -name "script.qs.*" \) \
-        | while read -r line; do
-            mkdir -p "$results/$(dirname $line)"
+        -o -name "script.qs.*" \) |
+        while read -r line;
+            do mkdir -p "$results/$(dirname $line)"
         done
 
     find . \
@@ -233,62 +233,62 @@ CollectResults() {
     # Record the command line string, including some environment variables
 
     if [ "$CFLAGS" != "" ]; then
-	cmdline="CFLAGS='$CFLAGS' $cmdline"
+        cmdline="CFLAGS='$CFLAGS' $cmdline"
     fi
     if [ "$CXXFLAGS" != "" ]; then
-	cmdline="CXXFLAGS='$CXXFLAGS' $cmdline"
+        cmdline="CXXFLAGS='$CXXFLAGS' $cmdline"
     fi
     if [ "$FCFLAGS" != "" ]; then
-	cmdline="FCFLAGS='$FCFLAGS' $cmdline"
+        cmdline="FCFLAGS='$FCFLAGS' $cmdline"
     fi
     if [ "$F77FLAGS" != "" ]; then
-	cmdline="F77FLAGS='$F77FLAGS' $cmdline"
+        cmdline="F77FLAGS='$F77FLAGS' $cmdline"
     fi
     # LDFLAGS is overwritten by us anyway - so do not capture it
 
     if [ "$EXTRA_MPICHLIB_CFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_CFLAGS='$EXTRA_MPICHLIB_CFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_CFLAGS='$EXTRA_MPICHLIB_CFLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_CXXFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_CXXFLAGS='$EXTRA_MPICHLIB_CXXFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_CXXFLAGS='$EXTRA_MPICHLIB_CXXFLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_FCFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_FCFLAGS='$EXTRA_MPICHLIB_FCFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_FCFLAGS='$EXTRA_MPICHLIB_FCFLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_F77FLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_F77FLAGS='$EXTRA_MPICHLIB_F77FLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_F77FLAGS='$EXTRA_MPICHLIB_F77FLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_LDFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_LDFLAGS='$EXTRA_MPICHLIB_LDFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_LDFLAGS='$EXTRA_MPICHLIB_LDFLAGS' $cmdline"
     fi
 
     echo $cmdline > $results/test-worker-cmdline.txt
 
     if [ "$run_tests" = "yes" ]; then
-	cores=`find ./test/mpi -name 'core.*'`
-	if [ -n "${cores}" ]; then
-	    mkdir -p ${core_dir}
-	    chgrp csr ${core_dir}
-	    chmod 775 ${core_dir} # Allow "csr" group users to remove the files
-	    echo "CORES: ${core_dir}"
-	    echo "Core files found:"
-	    echo "${cores}"
-	    for c in ${cores}; do
-		cp $c ${core_dir}
-	    done
-	else
-	    echo "Core files not found."
-	fi
+        cores=`find ./test/mpi -name 'core.*'`
+        if [ -n "${cores}" ]; then
+            mkdir -p ${core_dir}
+            chgrp csr ${core_dir}
+            chmod 775 ${core_dir} # Allow "csr" group users to remove the files
+            echo "CORES: ${core_dir}"
+            echo "Core files found:"
+            echo "${cores}"
+            for c in ${cores}; do
+                cp $c ${core_dir}
+            done
+        else
+            echo "Core files not found."
+        fi
     fi
 }
 
 PrepareEnv() {
     # Search for psm2
     for d in $psm2_dir_list; do
-	if [ -f "$d/lib64/libpsm2.so" ]; then
-	    psm2_dir=$d
-	    break
-	fi
+        if [ -f "$d/lib64/libpsm2.so" ]; then
+            psm2_dir=$d
+            break
+        fi
     done
 
     for d in $verbs_dir_list; do
@@ -373,11 +373,8 @@ SetCompiler() {
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
 
-	    GNU_DETERMINISTIC_FLAGS="-fno-associative-math -fno-rounding-math -fno-tree-vectorization"
+            GNU_DETERMINISTIC_FLAGS="-fno-associative-math -fno-rounding-math -fno-tree-vectorization"
 
-#            if [ "${jenkins_configure}" = "debug" ]; then
-#                config_opt+="--enable-coverage"
-#            fi
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
@@ -385,7 +382,6 @@ SetCompiler() {
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
-            #. ${PWD}/setup_gnu.sh
             COMPILER_CFLAGS="-ggdb -Wall -mtune=generic -std=gnu99"
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
@@ -399,13 +395,12 @@ SetCompiler() {
             COMPILER_LDFLAGS="-mtune=generic"
             COMPILER_LDFLAGS_OPTS="-mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -fuse-linker-plugin"
 
-	    # set flags for deterministic result
-	    if [ "$jenkins_configure" = "debug" ]; then
-		COMPILER_CFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
+            if [ "$jenkins_configure" = "debug" ]; then # set flags for deterministic result
+                COMPILER_CFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
                 COMPILER_CXXFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_CXXFLAGS_OPTS"
                 COMPILER_FFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_FFLAGS_OPTS"
                 COMPILER_F77FLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_F77FLAGS_OPTS"
-	    fi
+            fi
 
             case "$cpu" in
                 "ivy_bridge")
@@ -501,9 +496,6 @@ SetCompiler() {
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
 
-#            if [ "${jenkins_configure}" = "debug" ]; then
-#                config_opt+="--enable-coverage"
-#            fi
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
@@ -511,7 +503,7 @@ SetCompiler() {
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
-            #. ${PWD}/setup_gnu.sh
+
             COMPILER_CFLAGS="-ggdb -Wall -mtune=generic -std=gnu99"
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
@@ -616,9 +608,6 @@ SetCompiler() {
             LD="ld"
             AR="gcc-ar"
 
-#            if [ "${jenkins_configure}" = "debug" ]; then
-#                config_opt+="--enable-coverage"
-#            fi
             IVY_BRIDGE_OPT="-msse2 -msse4.2 -mcrc32 -mavx"
             HASWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
             BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
@@ -632,7 +621,7 @@ SetCompiler() {
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
-            #. ${PWD}/setup_gnu.sh
+
             COMPILER_CFLAGS="-ggdb -Wall -mtune=generic -std=gnu99"
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
@@ -727,7 +716,7 @@ SetCompiler() {
             ;;
         "icc")
 
-	    INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
+            INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
 
             if [ -f /opt/rh/devtoolset-7/enable ]; then
                 source /opt/rh/devtoolset-7/enable
@@ -811,13 +800,12 @@ SetCompiler() {
                 COMPILER_LDFLAGS_OPTS="-ipo -qopt-report-phase=ipo -qopt-report=5 -mtune=generic"
             fi
 
-	    # set flags for deterministic result
-	    if [ "$jenkins_configure" = "debug" ]; then
-		COMPILER_CFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
+            if [ "$jenkins_configure" = "debug" ]; then # set flags for deterministic result
+                COMPILER_CFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
                 COMPILER_CXXFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_CXXFLAGS_OPTS"
                 COMPILER_FFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_FFLAGS_OPTS"
                 COMPILER_F77FLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_F77FLAGS_OPTS"
-	    fi
+            fi
 
             case "$cpu" in
                 "ivy_bridge")
@@ -1164,27 +1152,27 @@ SetConfigOpt() {
             config_opt+=( --enable-ch4-am-only )
         fi
 
-	if [ "${thread_cs}" = "" ]; then
-	    # For CH4, default is per-vci CS
-	    thread_cs="per-vci"
-	    # Set max vcis to a high number to run with oneCCL
-	    config_opt+=" --with-ch4-max-vcis=64"
-	elif [ "${thread_cs}" = "global" ]; then
-	    # If global CS is specified, fall back to direct MT model,
-	    # which is the only supported model with global CS
-	    mt_model="direct"
-	fi
+        if [ "${thread_cs}" = "" ]; then
+            # For CH4, default is per-vci CS
+            thread_cs="per-vci"
+            # Set max vcis to a high number to run with oneCCL
+            config_opt+=" --with-ch4-max-vcis=64"
+        elif [ "${thread_cs}" = "global" ]; then
+            # If global CS is specified, fall back to direct MT model,
+            # which is the only supported model with global CS
+            mt_model="direct"
+        fi
         config_opt+=("--enable-ch4-mt=${mt_model}")
 
         if [ "${netmod_opt[@]}" != "" ]; then
             config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
         fi
     else
-	# CH3
-	if [ "${thread_cs}" = "" ]; then
-	    # For CH3, default is global CS
-	    thread_cs="global"
-	fi
+        # CH3
+        if [ "${thread_cs}" = "" ]; then
+            # For CH3, default is global CS
+            thread_cs="global"
+        fi
     fi
 
     config_opt+=( --enable-thread-cs=${thread_cs})
@@ -1288,9 +1276,9 @@ if [ "$build_mpich" == "yes" ]; then
 
     #A hack to elimiate dependancy issue with icc RPMs. We need to find a better fix
     if [ "${compiler}" = "icc" ]; then
-       cd $src_dir
-       for i in -limf -lirng -lcilkrts -lintlc -lsvml; do echo $i; sed -i -e "s/$i//g" libtool; done
-       cd -
+        cd $src_dir
+        for i in -limf -lirng -lcilkrts -lintlc -lsvml; do echo $i; sed -i -e "s/$i//g" libtool; done
+        cd -
     fi
 
     make -j$N_MAKE_JOBS 2>&1 | tee m.txt
@@ -1492,9 +1480,9 @@ if [ "$run_tests" == "yes" ]; then
 
     echo `env | grep MPI`
     if [ "$ofi_prov" == "opa1x" ]; then
-         make testing V=1 MPITEST_PROGRAM_WRAPPER="-genv FI_OPA1X_UUID \`uuidgen\` -ppn 1 "
+        make testing V=1 MPITEST_PROGRAM_WRAPPER="-genv FI_OPA1X_UUID \`uuidgen\` -ppn 1 "
     elif [[ "$BUILD_MODE" = "multinode" ]]; then
-         make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
+        make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
     else
         if [ "$use_pmix" = "pmix" ]; then
             make testing MPIEXEC="/opt/prrte/bin/prte" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE"
@@ -1523,9 +1511,9 @@ if [ "$run_tests" == "yes" ]; then
     echo "        <testcase name=\"compilation\" time=\"0\">" >> test/mpi/summary.junit.xml
 
     if [ "$failures" != "0" ] ; then
-      echo "            <failure><![CDATA[" >> test/mpi/summary.junit.xml
-      cat filtered-make.txt >> test/mpi/summary.junit.xml
-      echo "            ]]></failure>" >> test/mpi/summary.junit.xml
+        echo "            <failure><![CDATA[" >> test/mpi/summary.junit.xml
+        cat filtered-make.txt >> test/mpi/summary.junit.xml
+        echo "            ]]></failure>" >> test/mpi/summary.junit.xml
     fi
 
     echo "        </testcase>" >> test/mpi/summary.junit.xml
@@ -1543,17 +1531,6 @@ fi
 #####################################################################
 
 CollectResults
-
-# Coverage
-#if [[ "$jenkins_configure" = "debug" && ("$compiler" = "gnu" || "$compiler" = "gnu-8") ]]; then
-#    set -x
-#    cd $WORKSPACE
-#    make coverage
-#    lcov --directory . --capture --output-file app.info
-#    python lcov_cobertura.py app.info
-#    cp coverage.xml test/mpi/
-#    cd -
-#fi
 
 exit 0
 
