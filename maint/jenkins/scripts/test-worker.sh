@@ -5,8 +5,6 @@ set -x
 WORKSPACE="$PWD"
 SCRIPT_DIR=$(dirname $BASH_SOURCE[0])
 JENKINS_DIR=$(dirname $SCRIPT_DIR)
-device="ch4"
-channel="" # CH3 channel -- becomes ":nememsis" if ch3
 compiler="gnu"
 neo_dir="" # For custom NEO builds for L0
 ze_dir=""
@@ -95,7 +93,7 @@ done
 ## Initialization
 #####################################################################
 
-while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
+while getopts ":a:A:b:B:c:d:D:e:E:f:F:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
     case "$opt" in
         a)
             cpu=$OPTARG ;;
@@ -119,8 +117,6 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:
             install_dir=$OPTARG ;;
         F)
             fast=$OPTARG ;;
-        g)
-            device=$OPTARG ;;
         G)
             test_coverage=$OPTARG ;;
         h)
@@ -776,11 +772,6 @@ SetNetmod() {
 SetConfigOpt() {
     netmod_opt=""
 
-    if [ "$device" != "ch3" -a "$device" != "ch4" ]; then
-        echo "BAD DEVICE: ${device}\n";
-        exit 1;
-    fi
-
     config_opt+=( --with-custom-version-string=${custom_version_string} )
 
     # Take user input over default
@@ -828,20 +819,13 @@ SetConfigOpt() {
         config_opt+=( -with-xpmem=${xpmem_dir} )
     fi
 
-    # Prepare device specifier fragments (going to `--with-device=...`)
-    if [ "$device" = "ch4" ]; then
-        if [ "$jenkins_configure" = "debug" ]; then
-            device_caps=""
-        elif [ "x$ofi_prov" != "x" ]; then
-            device_caps=":$ofi_prov"
-        fi
-        if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
-            config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
-        fi
-        channel=""
-    elif [ "$device" = "ch3" ]; then
-        channel=":nemesis"
+    if [ "$jenkins_configure" = "debug" ]; then
         device_caps=""
+    elif [ "x$ofi_prov" != "x" ]; then
+        device_caps=":$ofi_prov"
+    fi
+    if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
+        config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
     fi
 
     case "$fast" in
@@ -862,7 +846,7 @@ SetConfigOpt() {
             config_opt+=( -enable-timing=runtime )
             config_opt+=( -enable-error-checking=all )
             config_opt+=( -enable-debuginfo )
-            config_opt+=( -with-device=${device}${channel}:${netmod} )
+            config_opt+=( -with-device=ch4:${netmod} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -enable-ch4-netmod-inline=no )
@@ -883,7 +867,7 @@ SetConfigOpt() {
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
             config_opt+=( -disable-debuginfo )
-            config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
+            config_opt+=( -with-device=ch4:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
@@ -903,7 +887,7 @@ SetConfigOpt() {
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
             config_opt+=( -disable-debuginfo )
-            config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
+            config_opt+=( -with-device=ch4:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
@@ -933,117 +917,107 @@ SetConfigOpt() {
         MPICHLIB_F77FLAGS="$MPICHLIB_F77FLAGS -ffree-line-length-256"
     fi
 
-    if [ "$device" = "ch4" ]; then
-        # This assumes that the ofi source is already dropped in the correct
-        # location and has been autogen'ed
-        if [ "$embed_ofi" = "yes" ]; then
-            prov_config=
-            prov_config+=( --disable-efa)
-            prov_config+=( --disable-usnic)
+    # This assumes that the ofi source is already dropped in the correct
+    # location and has been autogen'ed
+    if [ "$embed_ofi" = "yes" ]; then
+        prov_config=
+        prov_config+=( --disable-efa)
+        prov_config+=( --disable-usnic)
 
-            # Add OFI config options
-            if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
-                # "$jenkins_configure" = "debug" => runtime capability sets => OFI subconfigure will
-                # build in all possible providers, so we must specify psm2 location here regardless
-                # of the provider the user specified. Otherwise this libfabric build will detect
-                # system-installed psm2 (pretty old) which leads to a build failure.
-                if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "all" ]; then
-                    if [ -f "$psm2_dir/lib64/libpsm2.so" ]; then
-                        enable_psm2=$psm2_dir
-                    else
-                        enable_psm2="yes"
-                    fi
-                    if [ "$BUILD_A20" = "yes" ]; then
-                        prov_config+=( --disable-psm2)
-                    else
-                        prov_config+=( --enable-psm2=${enable_psm2})
-                    fi
+        # Add OFI config options
+        if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
+            # "$jenkins_configure" = "debug" => runtime capability sets => OFI subconfigure will
+            # build in all possible providers, so we must specify psm2 location here regardless
+            # of the provider the user specified. Otherwise this libfabric build will detect
+            # system-installed psm2 (pretty old) which leads to a build failure.
+            if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "all" ]; then
+                if [ -f "$psm2_dir/lib64/libpsm2.so" ]; then
+                    enable_psm2=$psm2_dir
                 else
+                    enable_psm2="yes"
+                fi
+                if [ "$BUILD_A20" = "yes" ]; then
                     prov_config+=( --disable-psm2)
-                fi
-
-                if [ "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "all" ]; then
-                    if [ -f "${verbs_dir}/lib64/libibverbs.so" ]; then
-                        enable_verbs=${verbs_dir}
-                    else
-                        enable_verbs="yes"
-                    fi
-                    prov_config+=( --enable-verbs=${enable_verbs})
                 else
-                    prov_config+=( --disable-verbs)
+                    prov_config+=( --enable-psm2=${enable_psm2})
                 fi
+            else
+                prov_config+=( --disable-psm2)
+            fi
 
-                if [ "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" ]; then
-                    if [ -f "${cxi_dir}/lib64/libcxi.so" ]; then
-                        enable_cxi=${cxi_dir}
-                    else
-                        enable_cxi="yes"
-                    fi
-                    prov_config+=( --enable-cxi=${enable_cxi})
+            if [ "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "all" ]; then
+                if [ -f "${verbs_dir}/lib64/libibverbs.so" ]; then
+                    enable_verbs=${verbs_dir}
                 else
-                    prov_config+=( --disable-cxi)
+                    enable_verbs="yes"
                 fi
+                prov_config+=( --enable-verbs=${enable_verbs})
+            else
+                prov_config+=( --disable-verbs)
             fi
 
-            if [ "$ofi_prov" = "opa2" -o "$ofi_prov" = "all" ]; then
-                prov_config+=( --with-opa-headers=/usr)
+            if [ "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" ]; then
+                if [ -f "${cxi_dir}/lib64/libcxi.so" ]; then
+                    enable_cxi=${cxi_dir}
+                else
+                    enable_cxi="yes"
+                fi
+                prov_config+=( --enable-cxi=${enable_cxi})
+            else
+                prov_config+=( --disable-cxi)
             fi
-
-            prov_config+=( --enable-embedded)
-
-            ofi_dir="embedded"
-            config_opt+=( ${prov_config[@]})
         fi
 
-        if [ "$direct" = "auto" -o "$direct" = "no-odd-even" ]; then
-            shmmods="posix"
-            if [ "$ze_dir" != "" ]; then
-                shmmods="${shmmods}"
-            fi
-            if [ "$use_xpmem" = "yes" ]; then
-                shmmods="${shmmods},xpmem"
-            fi
-            if [ "$use_gpudirect" = "yes" ]; then
-                shmmods="${shmmods},gpudirect"
-            fi
-            config_opt+=( --with-ch4-shmmods=${shmmods} )
-        elif [ "$direct" = "netmod" ]; then
-            config_opt+=( --with-ch4-shmmods=none )
-        else
-            # ch3 does not require `direct`
-            echo "*** Wrong ch4-direct configuration specified. Specify auto or netmod for option '-s'. Aborting now ***"
-            exit 1
+        if [ "$ofi_prov" = "opa2" -o "$ofi_prov" = "all" ]; then
+            prov_config+=( --with-opa-headers=/usr)
         fi
 
-        if [ "$force_am" = "am" ]; then
-            config_opt+=( --enable-ch4-am-only )
-        fi
+        prov_config+=( --enable-embedded)
 
-        if [ "${thread_cs}" = "" ]; then
-            # For CH4, default is per-vci CS
-            thread_cs="per-vci"
-            # Set max vcis to a high number to run with oneCCL
-            config_opt+=" --with-ch4-max-vcis=64"
-        elif [ "${thread_cs}" = "global" ]; then
-            # If global CS is specified, fall back to direct MT model,
-            # which is the only supported model with global CS
-            mt_model="direct"
-        fi
-        config_opt+=("--enable-ch4-mt=${mt_model}")
+        ofi_dir="embedded"
+        config_opt+=( ${prov_config[@]})
+    fi
 
-        if [ "${netmod_opt[@]}" != "" ]; then
-            config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
+    if [ "$direct" = "auto" -o "$direct" = "no-odd-even" ]; then
+        shmmods="posix"
+        if [ "$ze_dir" != "" ]; then
+            shmmods="${shmmods}"
         fi
+        if [ "$use_xpmem" = "yes" ]; then
+            shmmods="${shmmods},xpmem"
+        fi
+        if [ "$use_gpudirect" = "yes" ]; then
+            shmmods="${shmmods},gpudirect"
+        fi
+        config_opt+=( --with-ch4-shmmods=${shmmods} )
+    elif [ "$direct" = "netmod" ]; then
+        config_opt+=( --with-ch4-shmmods=none )
     else
-        # CH3
-        if [ "${thread_cs}" = "" ]; then
-            # For CH3, default is global CS
-            thread_cs="global"
-        fi
+        echo "*** Wrong ch4-direct configuration specified. Specify auto or netmod for option '-s'. Aborting now ***"
+        exit 1
+    fi
+
+    if [ "$force_am" = "am" ]; then
+        config_opt+=( --enable-ch4-am-only )
+    fi
+
+    if [ "${thread_cs}" = "" ]; then
+        # For CH4, default is per-vci CS
+        thread_cs="per-vci"
+        # Set max vcis to a high number to run with oneCCL
+        config_opt+=" --with-ch4-max-vcis=64"
+    elif [ "${thread_cs}" = "global" ]; then
+        # If global CS is specified, fall back to direct MT model,
+        # which is the only supported model with global CS
+        mt_model="direct"
+    fi
+    config_opt+=("--enable-ch4-mt=${mt_model}")
+
+    if [ "${netmod_opt[@]}" != "" ]; then
+        config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
     fi
 
     config_opt+=( --enable-thread-cs=${thread_cs})
-    # --with-libfabric: CH4, --with-ofi: CH3
     config_opt+=( --with-libfabric=${ofi_dir} )
 
     # pmix option
