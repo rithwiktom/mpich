@@ -4,6 +4,25 @@ import org.jenkinsci.plugins.workflow.steps.*
 
 def tarball_name='mpich-drops.tar.bz2'
 
+def skip_config(provider, compiler, config, pmix, flavor) {
+    skip = false
+
+    // Misc
+    skip |= ("${pmix}" == "pmix" && "${provider}" == "psm2") // Don't build PMIx with PSM2
+    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
+
+    // GPUs
+    skip |= ("${gpu}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
+    skip |= ("${gpu}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
+    skip |= ("${gpu}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${compiler}" == "icc" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu and nopmix
+
+    // Provider
+    skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
+    skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
+
+    return skip
+}
+
 node('anfedclx8') {
     stage('Cleanup RPM Directory') {
         sh(script: """rm -rf \$HOME/rpmbuild""")
@@ -89,38 +108,11 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
-                    if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
-                        continue;
-                    }
-                    if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
+
+                    if (skip_config(provider, compiler, config, pmix, flavor)) {
                         continue
                     }
-                    if ("${flavor}" == "ats" && "${provider}" == "psm2") {
-                        continue
-                    }
-                    if ("${provider}" == "cxi" && "${flavor}" != "regular") {
-                        continue;
-                    }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
-                        continue;
-                    }
-                    // This build is for anccskl6, so oneCCL can be tested with the drop
-                    // skl6 does not get latest oneAPI compiler builds so only creating gnu builds
-                    if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
-                        continue;
-                    }
+
                     branches["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                         node('anfedclx8') {
                             def config_name = "${provider}-${compiler}-${config}-${pmix}-${flavor}"
@@ -322,37 +314,11 @@ for (a in providers) {
                     def config = c
                     def pmix = d
                     def flavor = e
-                    if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
-                        continue;
-                    }
-                    if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
+
+                    if (skip_config(provider, compiler, config, pmix, flavor)) {
                         continue
                     }
-                    if ("${flavor}" == "ats" && "${provider}" == "psm2") {
-                        continue
-                    }
-                    if ("${provider}" == "cxi" && "${flavor}" != "regular") {
-                        continue;
-                    }
-                    if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
-                        continue;
-                    }
-                    // This build is for anccskl6, so oneCCL can be tested with the drop
-                    if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
-                        continue;
-                    }
+
                     rpms["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                         node('anfedclx8') {
                             def version = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/drop_version')
@@ -434,32 +400,14 @@ for (a in providers) {
                     def pmix = d
                     def flavor = e
                     def testgpu = 0
-                    if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
-                        continue
-                    }
-                    if ("${flavor}" == "ats" && "${provider}" == "psm2") {
-                        continue
-                    }
                     /* We don't have a way to automate testing with cxi yet */
                     if ("${provider}" == "cxi") {
                         continue
                     }
-                    // This build is for anccskl6, so oneCCL can be tested with the drop
-                    if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
-                        continue;
+                    if (skip_config(provider, compiler, config, pmix, flavor)) {
+                        continue
                     }
-                    if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
-                        continue;
-                    }
-                    if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
-                        continue;
-                    }
-                    if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
-                        continue;
-                    }
+
                     /* We currently have no way to install an RPM on a verbs cluster */
                     rpm_tests["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                         def node_name = "anfedclx8-admin"
@@ -571,37 +519,11 @@ git push --tags origin
                         def config = c
                         def pmix = d
                         def flavor = e
-                        if ("${pmix}" == "pmix" && "${provider}" == "psm2") {
-                            continue;
-                        }
-                        if ("${flavor}" == "ats" && "${pmix}" == "pmix") {
+
+                        if (skip_config(provider, compiler, config, pmix, flavor)) {
                             continue
                         }
-                        if ("${flavor}" == "ats" && "${provider}" == "psm2") {
-                            continue
-                        }
-                        if ("${provider}" == "cxi" && "${flavor}" != "regular") {
-                            continue;
-                        }
-                        if ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") {
-                            continue;
-                        }
-                        // This build is for anccskl6, so oneCCL can be tested with the drop
-                        if ("${flavor}" == "nogpu" && "${provider}" == "psm2") {
-                            continue;
-                        }
-                        if ("${flavor}" == "nogpu" && "${provider}" == "cxi") {
-                            continue;
-                        }
-                        if ("${flavor}" == "nogpu" && "${compiler}" == "icc") {
-                            continue;
-                        }
-                        if ("${flavor}" == "nogpu" && "${pmix}" == "pmix") {
-                            continue;
-                        }
-                        if ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavors}" != "ats")) {
-                            continue;
-                        }
+
                         rpms_upload["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                             node('anfedclx8') {
                                 withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
