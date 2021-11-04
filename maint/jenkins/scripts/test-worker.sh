@@ -28,7 +28,7 @@ cxi_dir_list="/opt/intel/csr /home/sys_csr1/software/cxi" # list of locations wh
 ofi_sockets_def_conn_map_sz=4096
 N_MAKE_JOBS=8
 BUILD_MODE="per-commit"
-BUILD_A20="no"
+disable_psm2="no"
 results="$HOME"
 test_multiplier=1.0
 run_tests="yes"
@@ -102,7 +102,7 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:
         b)
             BUILD_MODE=$OPTARG ;;
         B)
-            BUILD_A20=$OPTARG ;;
+            disable_psm2=$OPTARG ;;
         c)
             compiler=$OPTARG ;;
         d)
@@ -936,7 +936,7 @@ SetConfigOpt() {
                 else
                     enable_psm2="yes"
                 fi
-                if [ "$BUILD_A20" = "yes" ]; then
+                if [ "$disable_psm2" = "yes" ]; then
                     prov_config+=( --disable-psm2)
                 else
                     prov_config+=( --enable-psm2=${enable_psm2})
