@@ -27,7 +27,7 @@ def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
 def all_configs   = [ "debug", "default" ]
-def all_gpus      = [ "nogpu", "dg1", "ats" ]
+def all_gpus      = [ "nogpu", "ats" ]
 def all_tests     = [ "cpu-gpu", "gpu" ]
 def all_threads   = [ "runtime", "handoff", "direct", "lockless" ]
 def all_vcis      = [ "vci1", "vci4" ]
@@ -50,13 +50,6 @@ if ("${RUN_TYPE}" == "regular") {
     all_directs = [ "auto" ]
     all_configs = [ "opt" ]
     all_gpus = [ "nogpu" ]
-    all_threads = [ "runtime" ]
-    all_vcis = [ "vci1" ]
-    all_asyncs = [ "async-single" ]
-} else if ("${RUN_TYPE}" == "dg1") {
-    all_providers = [ "sockets" ]
-    all_gpus = [ "dg1" ]
-    all_tests = [ "gpu" ]
     all_threads = [ "runtime" ]
     all_vcis = [ "vci1" ]
     all_asyncs = [ "async-single" ]
@@ -182,11 +175,6 @@ for (a in all_netmods) {
                                                     /* Set the current node and username depending on the configuration */
                                                     if ("${provider}" == "verbs") {
                                                         node_name = "anccskl6"
-                                                    }
-                                                    if ("${gpu}" == "dg1") {
-                                                        node_name = "a20-testbed"
-                                                        username = "nuser07"
-                                                        build_mode = "nightly-gpu"
                                                     }
                                                     if ("${gpu}" == "ats") {
                                                         node_name = "jfcst-xe"
@@ -319,15 +307,7 @@ fi
 CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 
 # Set the environment for GPU systems
-if [ "$gpu" = "dg1" ]; then
-    embedded_ofi="yes"
-    CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
-    neo_dir=/home/puser03/neo/libraries/intel-level-zero
-    ze_dir=/home/puser03/neo/libraries/intel-level-zero/api_+_loader/v1.2.3-Debug-2021.06.29
-    xpmem="no"
-    ze_native="$gpu"
-    disable_psm2="yes"
-elif [ "$gpu" = "ats" ]; then
+if [ "$gpu" = "ats" ]; then
     embedded_ofi="yes"
     xpmem="no"
     neo_dir=/usr

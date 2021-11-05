@@ -202,17 +202,7 @@ if [ "${thread}" != "runtime" ]; then
 fi
 
 # Set the environment for GPU systems
-if [ "$gpu" = "dg1" ]; then
-    # TODO: enable when IPC support is enabled
-    gpudirect=no
-    embedded_ofi="yes"
-    CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
-    neo_dir=/home/puser03/neo/libraries/intel-level-zero/compute-runtime/ea6e298-Release-2021.01.05
-    ze_dir=/home/puser03/neo/libraries/intel-level-zero/api_+_loader/a88be32-Release-2021.01.05
-    xpmem="no"
-    ze_native="$gpu"
-    disable_psm2="yes"
-elif [ "$gpu" = "ats" ]; then
+if [ "$gpu" = "ats" ]; then
     # TODO: enable when IPC support is enabled
     gpudirect=no
     embedded_ofi="yes"

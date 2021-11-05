@@ -5,8 +5,6 @@ set -x
 WORKSPACE="$PWD"
 SCRIPT_DIR=$(dirname $BASH_SOURCE[0])
 JENKINS_DIR=$(dirname $SCRIPT_DIR)
-device="ch4"
-channel="" # CH3 channel -- becomes ":nememsis" if ch3
 compiler="gnu"
 neo_dir="" # For custom NEO builds for L0
 ze_dir=""
@@ -30,7 +28,7 @@ cxi_dir_list="/opt/intel/csr /home/sys_csr1/software/cxi" # list of locations wh
 ofi_sockets_def_conn_map_sz=4096
 N_MAKE_JOBS=8
 BUILD_MODE="per-commit"
-BUILD_A20="no"
+disable_psm2="no"
 results="$HOME"
 test_multiplier=1.0
 run_tests="yes"
@@ -67,7 +65,6 @@ fast="none"
 ofi_domain="no"
 
 GENGBIN_NEO_ATS=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
-GENGBIN_NEO_DG1=/home/puser03/neo/libraries/intel-level-zero
 
 MPICHLIB_CFLAGS=
 MPICHLIB_CXXFLAGS=
@@ -96,7 +93,7 @@ done
 ## Initialization
 #####################################################################
 
-while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
+while getopts ":a:A:b:B:c:d:D:e:E:f:F:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:u:v:w:W:x:X:y:Y:z:Z:" opt; do
     case "$opt" in
         a)
             cpu=$OPTARG ;;
@@ -105,7 +102,7 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:
         b)
             BUILD_MODE=$OPTARG ;;
         B)
-            BUILD_A20=$OPTARG ;;
+            disable_psm2=$OPTARG ;;
         c)
             compiler=$OPTARG ;;
         d)
@@ -120,8 +117,6 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:g:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:
             install_dir=$OPTARG ;;
         F)
             fast=$OPTARG ;;
-        g)
-            device=$OPTARG ;;
         G)
             test_coverage=$OPTARG ;;
         h)
@@ -214,9 +209,9 @@ CollectResults() {
         -o -name "m.txt" \
         -o -name "mi.txt" \
         -o -name "summary.junit.xml" \
-        -o -name "script.qs.*" \) \
-        | while read -r line; do
-            mkdir -p "$results/$(dirname $line)"
+        -o -name "script.qs.*" \) |
+        while read -r line;
+            do mkdir -p "$results/$(dirname $line)"
         done
 
     find . \
@@ -234,62 +229,62 @@ CollectResults() {
     # Record the command line string, including some environment variables
 
     if [ "$CFLAGS" != "" ]; then
-	cmdline="CFLAGS='$CFLAGS' $cmdline"
+        cmdline="CFLAGS='$CFLAGS' $cmdline"
     fi
     if [ "$CXXFLAGS" != "" ]; then
-	cmdline="CXXFLAGS='$CXXFLAGS' $cmdline"
+        cmdline="CXXFLAGS='$CXXFLAGS' $cmdline"
     fi
     if [ "$FCFLAGS" != "" ]; then
-	cmdline="FCFLAGS='$FCFLAGS' $cmdline"
+        cmdline="FCFLAGS='$FCFLAGS' $cmdline"
     fi
     if [ "$F77FLAGS" != "" ]; then
-	cmdline="F77FLAGS='$F77FLAGS' $cmdline"
+        cmdline="F77FLAGS='$F77FLAGS' $cmdline"
     fi
     # LDFLAGS is overwritten by us anyway - so do not capture it
 
     if [ "$EXTRA_MPICHLIB_CFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_CFLAGS='$EXTRA_MPICHLIB_CFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_CFLAGS='$EXTRA_MPICHLIB_CFLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_CXXFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_CXXFLAGS='$EXTRA_MPICHLIB_CXXFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_CXXFLAGS='$EXTRA_MPICHLIB_CXXFLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_FCFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_FCFLAGS='$EXTRA_MPICHLIB_FCFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_FCFLAGS='$EXTRA_MPICHLIB_FCFLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_F77FLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_F77FLAGS='$EXTRA_MPICHLIB_F77FLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_F77FLAGS='$EXTRA_MPICHLIB_F77FLAGS' $cmdline"
     fi
     if [ "$EXTRA_MPICHLIB_LDFLAGS" != "" ]; then
-	cmdline="EXTRA_MPICHLIB_LDFLAGS='$EXTRA_MPICHLIB_LDFLAGS' $cmdline"
+        cmdline="EXTRA_MPICHLIB_LDFLAGS='$EXTRA_MPICHLIB_LDFLAGS' $cmdline"
     fi
 
     echo $cmdline > $results/test-worker-cmdline.txt
 
     if [ "$run_tests" = "yes" ]; then
-	cores=`find ./test/mpi -name 'core.*'`
-	if [ -n "${cores}" ]; then
-	    mkdir -p ${core_dir}
-	    chgrp csr ${core_dir}
-	    chmod 775 ${core_dir} # Allow "csr" group users to remove the files
-	    echo "CORES: ${core_dir}"
-	    echo "Core files found:"
-	    echo "${cores}"
-	    for c in ${cores}; do
-		cp $c ${core_dir}
-	    done
-	else
-	    echo "Core files not found."
-	fi
+        cores=`find ./test/mpi -name 'core.*'`
+        if [ -n "${cores}" ]; then
+            mkdir -p ${core_dir}
+            chgrp csr ${core_dir}
+            chmod 775 ${core_dir} # Allow "csr" group users to remove the files
+            echo "CORES: ${core_dir}"
+            echo "Core files found:"
+            echo "${cores}"
+            for c in ${cores}; do
+                cp $c ${core_dir}
+            done
+        else
+            echo "Core files not found."
+        fi
     fi
 }
 
 PrepareEnv() {
     # Search for psm2
     for d in $psm2_dir_list; do
-	if [ -f "$d/lib64/libpsm2.so" ]; then
-	    psm2_dir=$d
-	    break
-	fi
+        if [ -f "$d/lib64/libpsm2.so" ]; then
+            psm2_dir=$d
+            break
+        fi
     done
 
     for d in $verbs_dir_list; do
@@ -348,15 +343,7 @@ SetCompiler() {
 
     case "$compiler" in
         "gnu")
-            if [ -f /opt/rh/devtoolset-7/enable ]; then
-                source /opt/rh/devtoolset-7/enable
-            elif [ -f /opt/rh/devtoolset-6/enable ]; then
-                source /opt/rh/devtoolset-6/enable
-            elif [ -f /opt/rh/devtoolset-4/enable ]; then
-                source /opt/rh/devtoolset-4/enable
-            elif [ -f /opt/rh/devtoolset-3/enable ]; then
-                source /opt/rh/devtoolset-3/enable
-            elif [[ "$(module whatis gnu9)" == "gnu9"* ]]; then
+            if [[ "$(module whatis gnu9)" == "gnu9"* ]]; then
                 # This check is kind of hacky. module is-avail does not seem to work
                 module load gnu9
                 USE_GCC_9=1
@@ -374,11 +361,8 @@ SetCompiler() {
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
 
-	    GNU_DETERMINISTIC_FLAGS="-fno-associative-math -fno-rounding-math -fno-tree-vectorization"
+            GNU_DETERMINISTIC_FLAGS="-fno-associative-math -fno-rounding-math -fno-tree-vectorization"
 
-#            if [ "${jenkins_configure}" = "debug" ]; then
-#                config_opt+="--enable-coverage"
-#            fi
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
@@ -386,7 +370,6 @@ SetCompiler() {
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
-            #. ${PWD}/setup_gnu.sh
             COMPILER_CFLAGS="-ggdb -Wall -mtune=generic -std=gnu99"
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
@@ -400,131 +383,12 @@ SetCompiler() {
             COMPILER_LDFLAGS="-mtune=generic"
             COMPILER_LDFLAGS_OPTS="-mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -fuse-linker-plugin"
 
-	    # set flags for deterministic result
-	    if [ "$jenkins_configure" = "debug" ]; then
-		COMPILER_CFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
+            if [ "$jenkins_configure" = "debug" ]; then # set flags for deterministic result
+                COMPILER_CFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
                 COMPILER_CXXFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_CXXFLAGS_OPTS"
                 COMPILER_FFLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_FFLAGS_OPTS"
                 COMPILER_F77FLAGS_OPTS="$GNU_DETERMINISTIC_FLAGS $COMPILER_F77FLAGS_OPTS"
-	    fi
-
-            case "$cpu" in
-                "ivy_bridge")
-                    COMPILER_CFLAGS="$IVY_BRIDGE_OPT $COMPILER_CFLAGS"
-                    COMPILER_CFLAGS_OPTS="$IVY_BRIDGE_OPT $COMPILER_CFLAGS_OPTS"
-                    COMPILER_CXXFLAGS="$IVY_BRIDGE_OPT $COMPILER_CXXFLAGS"
-                    COMPILER_CXXFLAGS_OPTS="$IVY_BRIDGE_OPT $COMPILER_CXXFLAGS_OPTS"
-                    COMPILER_FFLAGS="$IVY_BRIDGE_OPT $COMPILER_FFLAGS"
-                    COMPILER_FFLAGS_OPTS="$IVY_BRIDGE_OPT $COMPILER_FFLAGS_OPTS"
-                    COMPILER_FCFLAGS="$IVY_BRIDGE_OPT $COMPILER_FCFLAGS"
-                    COMPILER_FCFLAGS_OPTS="$IVY_BRIDGE_OPT $COMPILER_FCFLAGS_OPTS"
-                    COMPILER_F77FLAGS="$IVY_BRIDGE_OPT $COMPILER_F77FLAGS"
-                    COMPILER_F77FLAGS_OPTS="$IVY_BRIDGE_OPT $COMPILER_F77FLAGS_OPTS"
-                    COMPILER_LDFLAGS="$IVY_BRIDGE_OPT $COMPILER_LDFLAGS"
-                    COMPILER_LDFLAGS_OPTS="$IVY_BRIDGE_OPT $COMPILER_LDFLAGS_OPTS"
-                    ;;
-                "haswell")
-                    COMPILER_CFLAGS="$HASWELL_OPT $COMPILER_CFLAGS"
-                    COMPILER_CFLAGS_OPTS="$HASWELL_OPT $COMPILER_CFLAGS_OPTS"
-                    COMPILER_CXXFLAGS="$HASWELL_OPT $COMPILER_CXXFLAGS"
-                    COMPILER_CXXFLAGS_OPTS="$HASWELL_OPT $COMPILER_CXXFLAGS_OPTS"
-                    COMPILER_FFLAGS="$HASWELL_OPT $COMPILER_FFLAGS"
-                    COMPILER_FFLAGS_OPTS="$HASWELL_OPT $COMPILER_FFLAGS_OPTS"
-                    COMPILER_FCFLAGS="$HASWELL_OPT $COMPILER_FCFLAGS"
-                    COMPILER_FCFLAGS_OPTS="$HASWELL_OPT $COMPILER_FCFLAGS_OPTS"
-                    COMPILER_F77FLAGS="$HASWELL_OPT $COMPILER_F77FLAGS"
-                    COMPILER_F77FLAGS_OPTS="$HASWELL_OPT $COMPILER_F77FLAGS_OPTS"
-                    COMPILER_LDFLAGS="$HASWELL_OPT $COMPILER_LDFLAGS"
-                    COMPILER_LDFLAGS_OPTS="$HASWELL_OPT $COMPILER_LDFLAGS_OPTS"
-                    ;;
-                "broadwell")
-                    COMPILER_CFLAGS="$BROADWELL_OPT $COMPILER_CFLAGS"
-                    COMPILER_CFLAGS_OPTS="$BROADWELL_OPT $COMPILER_CFLAGS_OPTS"
-                    COMPILER_CXXFLAGS="$BROADWELL_OPT $COMPILER_CXXFLAGS"
-                    COMPILER_CXXFLAGS_OPTS="$BROADWELL_OPT $COMPILER_CXXFLAGS_OPTS"
-                    COMPILER_FFLAGS="$BROADWELL_OPT $COMPILER_FFLAGS"
-                    COMPILER_FFLAGS_OPTS="$BROADWELL_OPT $COMPILER_FFLAGS_OPTS"
-                    COMPILER_FCFLAGS="$BROADWELL_OPT $COMPILER_FCFLAGS"
-                    COMPILER_FCFLAGS_OPTS="$BROADWELL_OPT $COMPILER_FCFLAGS_OPTS"
-                    COMPILER_F77FLAGS="$BROADWELL_OPT $COMPILER_F77FLAGS"
-                    COMPILER_F77FLAGS_OPTS="$BROADWELL_OPT $COMPILER_F77FLAGS_OPTS"
-                    COMPILER_LDFLAGS="$BROADWELL_OPT $COMPILER_LDFLAGS"
-                    COMPILER_LDFLAGS_OPTS="$BROADWELL_OPT $COMPILER_LDFLAGS_OPTS"
-                    ;;
-                "knl")
-                    COMPILER_CFLAGS="$KNL_OPT $COMPILER_CFLAGS"
-                    COMPILER_CFLAGS_OPTS="$KNL_OPT $COMPILER_CFLAGS_OPTS"
-                    COMPILER_CXXFLAGS="$KNL_OPT $COMPILER_CXXFLAGS"
-                    COMPILER_CXXFLAGS_OPTS="$KNL_OPT $COMPILER_CXXFLAGS_OPTS"
-                    COMPILER_FFLAGS="$KNL_OPT $COMPILER_FFLAGS"
-                    COMPILER_FFLAGS_OPTS="$KNL_OPT $COMPILER_FFLAGS_OPTS"
-                    COMPILER_FCFLAGS="$KNL_OPT $COMPILER_FCFLAGS"
-                    COMPILER_FCFLAGS_OPTS="$KNL_OPT $COMPILER_FCFLAGS_OPTS"
-                    COMPILER_F77FLAGS="$KNL_OPT $COMPILER_F77FLAGS"
-                    COMPILER_F77FLAGS_OPTS="$KNL_OPT $COMPILER_F77FLAGS_OPTS"
-                    COMPILER_LDFLAGS="$KNL_OPT $COMPILER_LDFLAGS"
-                    COMPILER_LDFLAGS_OPTS="$KNL_OPT $COMPILER_LDFLAGS_OPTS"
-                    ;;
-                "skylake")
-                    COMPILER_CFLAGS="$SKL_OPT $COMPILER_CFLAGS"
-                    COMPILER_CFLAGS_OPTS="$SKL_OPT $COMPILER_CFLAGS_OPTS"
-                    COMPILER_CXXFLAGS="$SKL_OPT $COMPILER_CXXFLAGS"
-                    COMPILER_CXXFLAGS_OPTS="$SKL_OPT $COMPILER_CXXFLAGS_OPTS"
-                    COMPILER_FFLAGS="$SKL_OPT $COMPILER_FFLAGS"
-                    COMPILER_FFLAGS_OPTS="$SKL_OPT $COMPILER_FFLAGS_OPTS"
-                    COMPILER_FCFLAGS="$SKL_OPT $COMPILER_FCFLAGS"
-                    COMPILER_FCFLAGS_OPTS="$SKL_OPT $COMPILER_FCFLAGS_OPTS"
-                    COMPILER_F77FLAGS="$SKL_OPT $COMPILER_F77FLAGS"
-                    COMPILER_F77FLAGS_OPTS="$SKL_OPT $COMPILER_F77FLAGS_OPTS"
-                    COMPILER_LDFLAGS="$SKL_OPT $COMPILER_LDFLAGS"
-                    COMPILER_LDFLAGS_OPTS="$SKL_OPT $COMPILER_LDFLAGS_OPTS"
-                    ;;
-            esac
-            ;;
-
-        "gnu-4.8")
-            if [ -f /opt/rh/devtoolset-3/enable ]; then
-                source /opt/rh/devtoolset-3/enable
-            else
-                echo "GCC 4.8 installation was not found!"
-                exit 1
             fi
-            CC=gcc
-            CXX=g++
-            F77=gfortran
-            FC=gfortran
-            LD="ld"
-            AR="gcc-ar"
-
-            IVY_BRIDGE_OPT="-msse2 -msse4.2 -mcrc32 -mavx"
-            HASWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
-            BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
-            KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
-            SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
-
-#            if [ "${jenkins_configure}" = "debug" ]; then
-#                config_opt+="--enable-coverage"
-#            fi
-            export NM="gcc-nm"
-            export RANLIB="gcc-ranlib"
-            if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
-            else
-                export LDFLAGS="${LDFLAGS} -Wl,-z,now"
-            fi
-            #. ${PWD}/setup_gnu.sh
-            COMPILER_CFLAGS="-ggdb -Wall -mtune=generic -std=gnu99"
-            COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
-            COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
-            COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -Wall"
-            COMPILER_FFLAGS="-ggdb -mtune=generic"
-            COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
-            COMPILER_FCFLAGS="-ggdb -mtune=generic"
-            COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
-            COMPILER_F77FLAGS="-ggdb -mtune=generic"
-            COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0"
-            COMPILER_LDFLAGS="-mtune=generic"
-            COMPILER_LDFLAGS_OPTS="-mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -fuse-linker-plugin"
 
             case "$cpu" in
                 "ivy_bridge")
@@ -617,9 +481,6 @@ SetCompiler() {
             LD="ld"
             AR="gcc-ar"
 
-#            if [ "${jenkins_configure}" = "debug" ]; then
-#                config_opt+="--enable-coverage"
-#            fi
             IVY_BRIDGE_OPT="-msse2 -msse4.2 -mcrc32 -mavx"
             HASWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
             BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
@@ -633,7 +494,7 @@ SetCompiler() {
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
-            #. ${PWD}/setup_gnu.sh
+
             COMPILER_CFLAGS="-ggdb -Wall -mtune=generic -std=gnu99"
             COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions -finline-limit=2147483647 -mtune=generic -flto=32 -flto-partition=balanced --param inline-unit-growth=300 --param ipcp-unit-growth=300 --param large-function-insns=500000000 --param large-function-growth=5000000000 --param large-stack-frame-growth=5000000 --param max-inline-insns-single=2147483647 --param max-inline-insns-auto=2147483647 --param inline-min-speedup=0 -std=gnu99 -Wall"
             COMPILER_CXXFLAGS="-ggdb -Wall -mtune=generic"
@@ -728,17 +589,7 @@ SetCompiler() {
             ;;
         "icc")
 
-	    INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
-
-            if [ -f /opt/rh/devtoolset-7/enable ]; then
-                source /opt/rh/devtoolset-7/enable
-            elif [ -f /opt/rh/devtoolset-6/enable ]; then
-                source /opt/rh/devtoolset-6/enable
-            elif [ -f /opt/rh/devtoolset-4/enable ]; then
-                source /opt/rh/devtoolset-4/enable
-            elif [ -f /opt/rh/devtoolset-3/enable ]; then
-                source /opt/rh/devtoolset-3/enable
-            fi
+            INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
 
             if [ -f /opt/intel/inteloneapi/compiler/latest/env/vars.sh ]; then
                 . /opt/intel/inteloneapi/compiler/latest/env/vars.sh intel64
@@ -812,13 +663,12 @@ SetCompiler() {
                 COMPILER_LDFLAGS_OPTS="-ipo -qopt-report-phase=ipo -qopt-report=5 -mtune=generic"
             fi
 
-	    # set flags for deterministic result
-	    if [ "$jenkins_configure" = "debug" ]; then
-		COMPILER_CFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
+            if [ "$jenkins_configure" = "debug" ]; then # set flags for deterministic result
+                COMPILER_CFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_CFLAGS_OPTS"
                 COMPILER_CXXFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_CXXFLAGS_OPTS"
                 COMPILER_FFLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_FFLAGS_OPTS"
                 COMPILER_F77FLAGS_OPTS="$INTEL_DETERMINISTIC_FLAGS $COMPILER_F77FLAGS_OPTS"
-	    fi
+            fi
 
             case "$cpu" in
                 "ivy_bridge")
@@ -922,11 +772,6 @@ SetNetmod() {
 SetConfigOpt() {
     netmod_opt=""
 
-    if [ "$device" != "ch3" -a "$device" != "ch4" ]; then
-        echo "BAD DEVICE: ${device}\n";
-        exit 1;
-    fi
-
     config_opt+=( --with-custom-version-string=${custom_version_string} )
 
     # Take user input over default
@@ -974,23 +819,13 @@ SetConfigOpt() {
         config_opt+=( -with-xpmem=${xpmem_dir} )
     fi
 
-    # Prepare device specifier fragments (going to `--with-device=...`)
-    if [ "$device" = "ch4" ]; then
-        if [ "$jenkins_configure" = "debug" ]; then
-            device_caps=""
-        elif [ "x$ofi_prov" != "x" ]; then
-            device_caps=":$ofi_prov"
-        fi
-        if [ "x$ofi_prov" != "x" -a "x$ofi_prov" != "all" ]; then
-            config_opt+=( --with-default-ofi-provider=${ofi_prov})
-        fi
-        if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
-            config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
-        fi
-        channel=""
-    elif [ "$device" = "ch3" ]; then
-        channel=":nemesis"
+    if [ "$jenkins_configure" = "debug" ]; then
         device_caps=""
+    elif [ "x$ofi_prov" != "x" ]; then
+        device_caps=":$ofi_prov"
+    fi
+    if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
+        config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
     fi
 
     case "$fast" in
@@ -1011,7 +846,7 @@ SetConfigOpt() {
             config_opt+=( -enable-timing=runtime )
             config_opt+=( -enable-error-checking=all )
             config_opt+=( -enable-debuginfo )
-            config_opt+=( -with-device=${device}${channel}:${netmod} )
+            config_opt+=( -with-device=ch4:${netmod} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -enable-ch4-netmod-inline=no )
@@ -1032,7 +867,7 @@ SetConfigOpt() {
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
             config_opt+=( -disable-debuginfo )
-            config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
+            config_opt+=( -with-device=ch4:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
@@ -1052,12 +887,12 @@ SetConfigOpt() {
             config_opt+=( -enable-timing=none )
             config_opt+=( -enable-error-checking=no )
             config_opt+=( -disable-debuginfo )
-            config_opt+=( -with-device=${device}${channel}:${netmod}${device_caps} )
+            config_opt+=( -with-device=ch4:${netmod}${device_caps} )
             config_opt+=( -enable-handle-allocation=default )
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
             config_opt+=( -enable-timing=none )
-            if [ "$ofi_prov" != "psm" -a "$ofi_prov" != "psm2" -a "$ofi_prov" != "opa" -a "$ofi_prov" != "verbs;ofi_rxm"]; then
+            if [ "$ofi_prov" != "psm2" -a "$ofi_prov" != "verbs;ofi_rxm"]; then
                 config_opt+=( --enable-direct=$ofi_prov)
                 netmod_opt+=(:direct-provider)
             fi
@@ -1082,117 +917,103 @@ SetConfigOpt() {
         MPICHLIB_F77FLAGS="$MPICHLIB_F77FLAGS -ffree-line-length-256"
     fi
 
-    if [ "$device" = "ch4" ]; then
-        # This assumes that the ofi source is already dropped in the correct
-        # location and has been autogen'ed
-        if [ "$embed_ofi" = "yes" ]; then
-            prov_config=
-            prov_config+=( --disable-efa)
-            prov_config+=( --disable-usnic)
+    # This assumes that the ofi source is already dropped in the correct
+    # location and has been autogen'ed
+    if [ "$embed_ofi" = "yes" ]; then
+        prov_config=
+        prov_config+=( --disable-efa)
+        prov_config+=( --disable-usnic)
 
-            # Add OFI config options
-            if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
-                # "$jenkins_configure" = "debug" => runtime capability sets => OFI subconfigure will
-                # build in all possible providers, so we must specify psm2 location here regardless
-                # of the provider the user specified. Otherwise this libfabric build will detect
-                # system-installed psm2 (pretty old) which leads to a build failure.
-                if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "all" ]; then
-                    if [ -f "$psm2_dir/lib64/libpsm2.so" ]; then
-                        enable_psm2=$psm2_dir
-                    else
-                        enable_psm2="yes"
-                    fi
-                    if [ "$BUILD_A20" = "yes" ]; then
-                        prov_config+=( --disable-psm2)
-                    else
-                        prov_config+=( --enable-psm2=${enable_psm2})
-                    fi
+        # Add OFI config options
+        if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
+            # "$jenkins_configure" = "debug" => runtime capability sets => OFI subconfigure will
+            # build in all possible providers, so we must specify psm2 location here regardless
+            # of the provider the user specified. Otherwise this libfabric build will detect
+            # system-installed psm2 (pretty old) which leads to a build failure.
+            if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "all" ]; then
+                if [ -f "$psm2_dir/lib64/libpsm2.so" ]; then
+                    enable_psm2=$psm2_dir
                 else
+                    enable_psm2="yes"
+                fi
+                if [ "$disable_psm2" = "yes" ]; then
                     prov_config+=( --disable-psm2)
-                fi
-
-                if [ "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "all" ]; then
-                    if [ -f "${verbs_dir}/lib64/libibverbs.so" ]; then
-                        enable_verbs=${verbs_dir}
-                    else
-                        enable_verbs="yes"
-                    fi
-                    prov_config+=( --enable-verbs=${enable_verbs})
                 else
-                    prov_config+=( --disable-verbs)
+                    prov_config+=( --enable-psm2=${enable_psm2})
                 fi
+            else
+                prov_config+=( --disable-psm2)
+            fi
 
-                if [ "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" ]; then
-                    if [ -f "${cxi_dir}/lib64/libcxi.so" ]; then
-                        enable_cxi=${cxi_dir}
-                    else
-                        enable_cxi="yes"
-                    fi
-                    prov_config+=( --enable-cxi=${enable_cxi})
+            if [ "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "all" ]; then
+                if [ -f "${verbs_dir}/lib64/libibverbs.so" ]; then
+                    enable_verbs=${verbs_dir}
                 else
-                    prov_config+=( --disable-cxi)
+                    enable_verbs="yes"
                 fi
+                prov_config+=( --enable-verbs=${enable_verbs})
+            else
+                prov_config+=( --disable-verbs)
             fi
 
-            if [ "$ofi_prov" = "opa2" -o "$ofi_prov" = "all" ]; then
-                prov_config+=( --with-opa-headers=/usr)
+            if [ "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" ]; then
+                if [ -f "${cxi_dir}/lib64/libcxi.so" ]; then
+                    enable_cxi=${cxi_dir}
+                else
+                    enable_cxi="yes"
+                fi
+                prov_config+=( --enable-cxi=${enable_cxi})
+            else
+                prov_config+=( --disable-cxi)
             fi
-
-            prov_config+=( --enable-embedded)
-
-            ofi_dir="embedded"
-            config_opt+=( ${prov_config[@]})
         fi
 
-        if [ "$direct" = "auto" -o "$direct" = "no-odd-even" ]; then
-            shmmods="posix"
-            if [ "$ze_dir" != "" ]; then
-                shmmods="${shmmods}"
-            fi
-            if [ "$use_xpmem" = "yes" ]; then
-                shmmods="${shmmods},xpmem"
-            fi
-            if [ "$use_gpudirect" = "yes" ]; then
-                shmmods="${shmmods},gpudirect"
-            fi
-            config_opt+=( --with-ch4-shmmods=${shmmods} )
-        elif [ "$direct" = "netmod" ]; then
-            config_opt+=( --with-ch4-shmmods=none )
-        else
-            # ch3 does not require `direct`
-            echo "*** Wrong ch4-direct configuration specified. Specify auto or netmod for option '-s'. Aborting now ***"
-            exit 1
-        fi
+        prov_config+=( --enable-embedded)
 
-        if [ "$force_am" = "am" ]; then
-            config_opt+=( --enable-ch4-am-only )
-        fi
+        ofi_dir="embedded"
+        config_opt+=( ${prov_config[@]})
+    fi
 
-	if [ "${thread_cs}" = "" ]; then
-	    # For CH4, default is per-vci CS
-	    thread_cs="per-vci"
-	    # Set max vcis to a high number to run with oneCCL
-	    config_opt+=" --with-ch4-max-vcis=64"
-	elif [ "${thread_cs}" = "global" ]; then
-	    # If global CS is specified, fall back to direct MT model,
-	    # which is the only supported model with global CS
-	    mt_model="direct"
-	fi
-        config_opt+=("--enable-ch4-mt=${mt_model}")
-
-        if [ "${netmod_opt[@]}" != "" ]; then
-            config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
+    if [ "$direct" = "auto" -o "$direct" = "no-odd-even" ]; then
+        shmmods="posix"
+        if [ "$ze_dir" != "" ]; then
+            shmmods="${shmmods}"
         fi
+        if [ "$use_xpmem" = "yes" ]; then
+            shmmods="${shmmods},xpmem"
+        fi
+        if [ "$use_gpudirect" = "yes" ]; then
+            shmmods="${shmmods},gpudirect"
+        fi
+        config_opt+=( --with-ch4-shmmods=${shmmods} )
+    elif [ "$direct" = "netmod" ]; then
+        config_opt+=( --with-ch4-shmmods=none )
     else
-	# CH3
-	if [ "${thread_cs}" = "" ]; then
-	    # For CH3, default is global CS
-	    thread_cs="global"
-	fi
+        echo "*** Wrong ch4-direct configuration specified. Specify auto or netmod for option '-s'. Aborting now ***"
+        exit 1
+    fi
+
+    if [ "$force_am" = "am" ]; then
+        config_opt+=( --enable-ch4-am-only )
+    fi
+
+    if [ "${thread_cs}" = "" ]; then
+        # For CH4, default is per-vci CS
+        thread_cs="per-vci"
+        # Set max vcis to a high number to run with oneCCL
+        config_opt+=" --with-ch4-max-vcis=64"
+    elif [ "${thread_cs}" = "global" ]; then
+        # If global CS is specified, fall back to direct MT model,
+        # which is the only supported model with global CS
+        mt_model="direct"
+    fi
+    config_opt+=("--enable-ch4-mt=${mt_model}")
+
+    if [ "${netmod_opt[@]}" != "" ]; then
+        config_opt+=("--with-ch4-netmod-ofi-args=`printf "%s" "${netmod_opt[@]}"`")
     fi
 
     config_opt+=( --enable-thread-cs=${thread_cs})
-    # --with-libfabric: CH4, --with-ofi: CH3
     config_opt+=( --with-libfabric=${ofi_dir} )
 
     # pmix option
@@ -1227,28 +1048,16 @@ if [ "$build_mpich" == "yes" ]; then
             config_opt+=( --enable-gpu-tests-only )
         fi
 
-        # NOTE: This assumes we are working on A20. Need to load the following modules here since
-        # we run module purge in SetCompiler
-        if [ -d /home/puser42/dg1_modules ]; then
-            module use /home/puser42/dg1_modules
-            module load neo/2020.10.05
-        fi
-
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
 
         # Check if this is an ATS build not running on jfcst-xe
         if [ "$neo_dir" == "$GENGBIN_NEO_ATS" && ! -d "$GENGBIN_NEO_ATS" ]; then
-            neo_dir=/usr
-        elif [ "$neo_dir" == "$GENGBIN_NEO_DG1" && ! -d "$GENGBIN_NEO_ATS" ]; then
             neo_dir=/usr
         fi
 
         if [ "$neo_dir" == "$GENGBIN_NEO_ATS" ]; then
             export LD_LIBRARY_PATH=$GENGBIN_NEO_ATS/neo/build/bin:$GENGBIN_NEO_ATS/neo/build/lib:$GENGBIN_NEO_ATS/igc/lib:$GENGBIN_NEO_ATS/gmmlib/lib:$LD_LIBRARY_PATH
             export PATH=$GENGBIN_NEO_ATS/neo/build/bin:$PATH
-        elif [ "$neo_dir" == "$GENGBIN_NEO_DG1" ]; then
-            export LD_LIBRARY_PATH=$GENGBIN_NEO_DG1/api_+_loader/v1.2.3-Debug-2021.06.29/lib64/:$GENGBIN_NEO_DG1/compute-runtime/21.21.19914-Debug-2021.06.29/lib64:/home/puser03/neo/compilers/intel-igc/igc-1.0.7423-Release-2021.06.23/lib64:$LD_LIBRARY_PATH
-            export PATH=$GENGBIN_NEO_DG1/compute-runtime/21.21.19914-Debug-2021.06.29/bin:/home/puser03/neo/compilers/intel-igc/igc-1.0.7423-Release-2021.06.23/bin:$PATH
         elif [ "$neo_dir" != "" ]; then
             export PATH=$neo_dir/bin:$PATH
 
@@ -1304,9 +1113,9 @@ if [ "$build_mpich" == "yes" ]; then
 
     #A hack to elimiate dependancy issue with icc RPMs. We need to find a better fix
     if [ "${compiler}" = "icc" ]; then
-       cd $src_dir
-       for i in -limf -lirng -lcilkrts -lintlc -lsvml; do echo $i; sed -i -e "s/$i//g" libtool; done
-       cd -
+        cd $src_dir
+        for i in -limf -lirng -lcilkrts -lintlc -lsvml; do echo $i; sed -i -e "s/$i//g" libtool; done
+        cd -
     fi
 
     make -j$N_MAKE_JOBS 2>&1 | tee m.txt
@@ -1356,7 +1165,11 @@ if [[ -f ${set_xfail} ]] ; then
 fi
 
 # escape the string for non-alpha characters
-printf -v ofi_prov_esp "%q" $ofi_prov
+if [ "${ofi_prov}" == "all" ]; then
+    ofi_prov_esp="sockets"
+else
+    printf -v ofi_prov_esp "%q" $ofi_prov
+fi
 cat >populate-testlists.sh<<EOF
 #!/bin/bash
 
@@ -1475,8 +1288,6 @@ if [ "$run_tests" == "yes" ]; then
 
     if [ "$neo_dir" == "$GENGBIN_NEO_ATS" ]; then
         export LD_LIBRARY_PATH=$GENGBIN_NEO_ATS/neo/build/bin:$GENGBIN_NEO_ATS/neo/build/lib:$GENGBIN_NEO_ATS/igc/lib:$GENGBIN_NEO_ATS/gmmlib/lib:$LD_LIBRARY_PATH
-    elif [ "$neo_dir" == "$GENGBIN_NEO_DG1" ]; then
-        export LD_LIBRARY_PATH=$GENGBIN_NEO_DG1/api_+_loader/v1.2.3-Debug-2021.06.29/lib64/:$GENGBIN_NEO_DG1/compute-runtime/21.21.19914-Debug-2021.06.29/lib64:/home/puser03/neo/compilers/intel-igc/igc-1.0.7423-Release-2021.06.23/lib64:$LD_LIBRARY_PATH
     elif [ "$neo_dir" != "" ]; then
         export LD_LIBRARY_PATH=$neo_dir/lib64:$LD_LIBRARY_PATH
     fi
@@ -1486,7 +1297,11 @@ if [ "$run_tests" == "yes" ]; then
         export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
         export MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
     fi
-    export FI_PROVIDER="$ofi_prov"
+    if [ "${ofi_prov}" != "all" ]; then
+        export FI_PROVIDER="$ofi_prov"
+    else
+        export FI_PROVIDER="sockets"
+    fi
 
     echo $PATH
     echo $LD_LIBRARY_PATH
@@ -1501,10 +1316,8 @@ if [ "$run_tests" == "yes" ]; then
     fi
 
     echo `env | grep MPI`
-    if [ "$ofi_prov" == "opa1x" ]; then
-         make testing V=1 MPITEST_PROGRAM_WRAPPER="-genv FI_OPA1X_UUID \`uuidgen\` -ppn 1 "
-    elif [[ "$BUILD_MODE" = "multinode" ]]; then
-         make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
+    if [[ "$BUILD_MODE" = "multinode" ]]; then
+        make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
     else
         if [ "$use_pmix" = "pmix" ]; then
             make testing MPIEXEC="/opt/prrte/bin/prte" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE"
@@ -1533,9 +1346,9 @@ if [ "$run_tests" == "yes" ]; then
     echo "        <testcase name=\"compilation\" time=\"0\">" >> test/mpi/summary.junit.xml
 
     if [ "$failures" != "0" ] ; then
-      echo "            <failure><![CDATA[" >> test/mpi/summary.junit.xml
-      cat filtered-make.txt >> test/mpi/summary.junit.xml
-      echo "            ]]></failure>" >> test/mpi/summary.junit.xml
+        echo "            <failure><![CDATA[" >> test/mpi/summary.junit.xml
+        cat filtered-make.txt >> test/mpi/summary.junit.xml
+        echo "            ]]></failure>" >> test/mpi/summary.junit.xml
     fi
 
     echo "        </testcase>" >> test/mpi/summary.junit.xml
@@ -1553,17 +1366,6 @@ fi
 #####################################################################
 
 CollectResults
-
-# Coverage
-#if [[ "$jenkins_configure" = "debug" && ("$compiler" = "gnu" || "$compiler" = "gnu-8") ]]; then
-#    set -x
-#    cd $WORKSPACE
-#    make coverage
-#    lcov --directory . --capture --output-file app.info
-#    python lcov_cobertura.py app.info
-#    cp coverage.xml test/mpi/
-#    cd -
-#fi
 
 exit 0
 

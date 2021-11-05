@@ -43,7 +43,7 @@ def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
 def all_configs   = [ "debug", "default" ]
-def all_gpus      = [ "nogpu", "dg1", "ats" ]
+def all_gpus      = [ "nogpu", "ats" ]
 /* Optional: */
 def all_tests     = [ "cpu-gpu", "gpu" ]
 def all_threads   = [ "runtime", "handoff", "direct", "lockless" ]
@@ -111,7 +111,7 @@ ${netmod}:${provider}/${compiler}/${am}/${direct}/${config}/${gpu}/${test}/${thr
 @NonCPS
 def match_github_phrase() {
     /* Match on the main trigger and any additional configure options */
-    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|cxi|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|dg1|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
+    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|cxi|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
     try {
         jenkins_config_string = "" + matcher.find() ? matcher.group() : "not found"
         if (jenkins_config_string.split(" ").size() > 1) {
@@ -304,11 +304,6 @@ for (a in netmods) {
                                                     } else if ("${provider}" == "cxi") {
                                                         node_name = cassini_nodes
                                                     }
-                                                    if ("${gpu}" == "dg1") {
-                                                        node_name = "a20-testbed"
-                                                        username = "nuser07"
-                                                        build_mode = "per-commit-gpu"
-                                                    }
                                                     if ("${gpu}" == "ats") {
                                                         node_name = "jfcst-xe"
                                                         build_mode = "per-commit-gpu"
@@ -498,15 +493,7 @@ fi
 CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 
 # Set the environment for GPU systems
-if [ "$gpu" = "dg1" ]; then
-    embedded_ofi="yes"
-    CONFIG_EXTRA="\$CONFIG_EXTRA --disable-ze-double"
-    neo_dir=/home/puser03/neo/libraries/intel-level-zero
-    ze_dir=/home/puser03/neo/libraries/intel-level-zero/api_+_loader/v1.2.3-Debug-2021.06.29
-    xpmem="no"
-    ze_native="$gpu"
-    disable_psm2="yes"
-elif [ "$gpu" = "ats" ]; then
+if [ "$gpu" = "ats" ]; then
     embedded_ofi="yes"
     xpmem="no"
     # TODO: Switch back to system-installed neo once memid impl is fixed
