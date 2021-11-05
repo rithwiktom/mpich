@@ -248,7 +248,7 @@ ldd ${MPI_DIR}/lib/libmpich.so
 
 # set xfails here
 cd ../../
-cp ${BUILD_SCRIPT_DIR}/set-xfail.sh ${WORKSPACE}/set-xfail.sh
+cp ${BUILD_SCRIPT_DIR}/set_xfail.py ${WORKSPACE}/set_xfail.py
 xfail_file=${WORKSPACE}/maint/jenkins/xfail.conf
 
 provider_string="${provider}"
@@ -259,7 +259,7 @@ elif [ "${provider}" == "all" ]; then # If using a build with no default provide
     provider_string="psm2"
 fi
 
-${WORKSPACE}/set-xfail.sh -j validation -c ${compiler} -o ${configs} -s ${direct} \
+python3 ${WORKSPACE}/set_xfail.py -j validation -c ${compiler} -o ${configs} -s ${direct} \
     -m "${provider_string}" -a ${force_am} -f ${xfail_file} -p ${pmix}
 
 # For the GPU clusters, we need to additionally xfail all of the known problems with GPUs
@@ -290,7 +290,7 @@ fi
 if [ "$nodes" -gt "1" ]; then
    if [ "$flavor" == "ats" ]; then
        srun -N 1 -n 1 -e 1 $BUILD_SCRIPT_DIR/install_drop_rpm.sh 1 ${WORKSPACE}/$RPM.rpm
-   else	
+   else
        srun -N 1 -n 1 -r 1 sudo rpm -e $RPM
    fi
 fi
