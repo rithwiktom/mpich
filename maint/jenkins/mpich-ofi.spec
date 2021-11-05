@@ -94,6 +94,10 @@ for file in $FILES_TO_PATCH ; do
     patch_file "$file" "/tmp/%{name}/usr/mpi" "$RPM_INSTALL_PREFIX" "$RPM_INSTALL_PREFIX/%{name}/lib/pkgconfig"
 done
 
+pmix_string=""
+if [ "%{_pmix}" == "pmix" ]; then
+    pmix_string="-pmix"
+fi
 flavor_string=""
 if [ "%{_flavor}" != "regular" ]; then
     flavor_string="-%{_flavor}"
@@ -103,13 +107,13 @@ EXTENSIONS="tcl lua"
 for extension in $EXTENSIONS ; do
     if [ "%{_configs}" = "debug" ]; then
         patch_file "%{version}.%{release}.${extension}" "/usr/mpi" "$RPM_INSTALL_PREFIX" \
-            "$RPM_INSTALL_PREFIX/modulefiles/mpich/%{_compiler}-%{_provider}-debug${flavor_string}/"
+            "$RPM_INSTALL_PREFIX/modulefiles/mpich/%{_compiler}-%{_provider}-debug${pmix_string}${flavor_string}/"
 
         patch_file "%{version}.%{release}.${extension}" "/usr/mpi" "$RPM_INSTALL_PREFIX" \
-            "$RPM_INSTALL_PREFIX/modulefiles/mpich/%{_compiler}-%{_provider}-deterministic${flavor_string}/"
+            "$RPM_INSTALL_PREFIX/modulefiles/mpich/%{_compiler}-%{_provider}-deterministic${pmix_string}${flavor_string}/"
     else
         patch_file "%{version}.%{release}.${extension}" "/usr/mpi" "$RPM_INSTALL_PREFIX" \
-            "$RPM_INSTALL_PREFIX/modulefiles/mpich/%{_compiler}-%{_provider}${flavor_string}/"
+            "$RPM_INSTALL_PREFIX/modulefiles/mpich/%{_compiler}-%{_provider}${pmix_string}${flavor_string}/"
     fi
 done
 
