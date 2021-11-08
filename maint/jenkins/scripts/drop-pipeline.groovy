@@ -9,12 +9,12 @@ def skip_config(provider, compiler, config, pmix, flavor) {
 
     // Misc
     skip |= ("${pmix}" == "pmix" && "${provider}" == "psm2") // Don't build PMIx with PSM2
-    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
+    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
 
     // GPUs
-    skip |= ("${gpu}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
-    skip |= ("${gpu}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
-    skip |= ("${gpu}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${compiler}" == "icc" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu and nopmix
+    skip |= ("${flavor}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
+    skip |= ("${flavor}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
+    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${compiler}" == "icc" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu and nopmix
 
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
