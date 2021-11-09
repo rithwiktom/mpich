@@ -185,6 +185,8 @@ if [ "${flavor}" == "ats" ]; then
     ze_native="${flavor}"
 fi
 
+NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
+
 if [ "${flavor}" == "nogpu" ]; then
     # empty ze since it is not needed on skl6
     ze_dir=""
@@ -195,11 +197,7 @@ if [ "${flavor}" == "nogpu" ]; then
     config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
-fi
-
-NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
-
-if [ "${flavor}" == "ats" ]; then
+elif [ "${flavor}" == "ats" ]; then
     embedded_ofi="yes"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
@@ -207,6 +205,8 @@ if [ "${flavor}" == "ats" ]; then
     config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
+elif [ "\${embedded_ofi}" == "yes" ]; then
+    config_extra+=" --disable-psm3"
 fi
 
 if [ "${provider}" != "sockets" ]; then
