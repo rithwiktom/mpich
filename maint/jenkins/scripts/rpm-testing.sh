@@ -130,7 +130,7 @@ elif [ ${compiler} == "icc" ]; then
 
 fi
 
-if [ ${provider} == "sockets" ]; then
+if [ ${provider} == "sockets" -o "${provider}" == "all" ]; then
     export FI_PROVIDER=sockets
 fi
 
