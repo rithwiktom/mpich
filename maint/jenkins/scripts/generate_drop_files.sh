@@ -102,6 +102,7 @@ pushenv("MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provid
 pushenv("MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/POSIX_coll_tuning.json")
 
 pushenv("FI_PROVIDER", "${provider_string}")
+pushenv("PSM3_MULTI_EP", "1")
 EOF
 
 }
@@ -202,6 +203,7 @@ setenv {MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/MPIR_C
 setenv {MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/POSIX_coll_tuning.json"
 
 setenv {FI_PROVIDER} "${provider_string}"
+setenv {PSM3_MULTI_EP} "1"
 EOF
 
 }
