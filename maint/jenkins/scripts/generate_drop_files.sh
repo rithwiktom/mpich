@@ -72,6 +72,14 @@ pushenv("MPIR_CVAR_REDUCE_DEVICE_COLLECTIVE", "0")
 EOF
     fi
 
+    if [ "$flavor" != "nogpu" ]; then
+        cat >> $filename << EOF
+pushenv("ZE_ENABLE_PCI_ID_DEVICE_ORDER", "1")
+pushenv("EngineInstancedSubDevices", "0")
+
+EOF
+    fi
+
 #    if [ "$compiler" == "icc" -a "$flavor" == "default" ]; then
 #        cat >> $filename << EOF
 #prereq("oneapi")
