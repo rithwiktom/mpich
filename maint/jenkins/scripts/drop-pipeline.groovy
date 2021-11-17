@@ -569,12 +569,14 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
     stage('Upload RPMs') {
         parallel rpms_upload
         node('anfedclx8') {
-            unstash name: 'drop-tarball'
-            sh(script: """
+            withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
+                unstash name: 'drop-tarball'
+                sh(script: """
 #!/bin/bash -xe
 
 version=\$(<drop_version)
 release=\$(<release_version)
+dir="drop\${version}.\${release}"
 
 tag_string="drop\${version}"
 if [ "\${release}" != "0" ]; then
@@ -583,9 +585,12 @@ fi
 
 mv ${tarball_name} mpich-\${tag_string}.tar.bz2
 
-gh release upload --clobber \${tag_string} mpich-\${tag_string}.tar.bz2
+curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
+    https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/tarballs/${tarball_name} \
+    -T ${tarball_name}
 """)
-            cleanWs()
+                cleanWs()
+            }
         }
     }
 }
