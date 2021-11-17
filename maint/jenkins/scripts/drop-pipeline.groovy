@@ -568,8 +568,9 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
 
     stage('Upload RPMs') {
         parallel rpms_upload
-        unstash name: 'drop-tarball'
-        sh(script: """
+        node('anfedclx8') {
+            unstash name: 'drop-tarball'
+            sh(script: """
 #!/bin/bash -xe
 
 version=\$(<drop_version)
@@ -584,7 +585,8 @@ mv ${tarball_name} mpich-\${tag_string}.tar.bz2
 
 gh release upload --clobber \${tag_string} mpich-\${tag_string}.tar.bz2
 """)
-        cleanWs()
+            cleanWs()
+        }
     }
 }
 
