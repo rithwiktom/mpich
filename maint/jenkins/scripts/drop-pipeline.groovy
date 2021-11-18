@@ -586,8 +586,8 @@ fi
 mv ${tarball_name} mpich-\${tag_string}.tar.bz2
 
 curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
-    https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/tarballs/${tarball_name} \
-    -T ${tarball_name}
+    https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/tarballs/mpich-\${tag_string}.tar.bz2 \
+    -T mpich-\${tag_string}.tar.bz2
 """)
                 cleanWs()
             }
