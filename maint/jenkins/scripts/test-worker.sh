@@ -64,6 +64,9 @@ USE_ICX="yes"
 fast="none"
 ofi_domain="no"
 
+device_count=0
+subdevice_count=0
+
 GENGBIN_NEO_ATS=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
 
 MPICHLIB_CFLAGS=
@@ -195,6 +198,36 @@ cd $WORKSPACE
 #####################################################################
 ## Functions
 #####################################################################
+
+ParseCLINFO() {
+    local valid_device=false
+    while read line; do
+        # Make sure it's a GPU device we are looking at
+        if [[ "$line" =~ (Platform Name)[[:space:]]*([[:alnum:]()[:space:]]+) ]]; then
+            if [[ "$line" =~ (Platform Name)[[:space:]]*([[:alnum:]()[:space:]]+)(HD Graphics+) ]]; then
+                valid_device=true
+            else
+                valid_device=false
+            fi
+        fi
+
+        if [ "$valid_device" = true ]; then
+            # Number of Devices
+            if [[ "$line" =~ (Number of devices)[[:space:]]*([[:digit:]]+) ]]; then
+                if [[ ${BASH_REMATCH[2]} -gt $device_count ]]; then
+                    device_count=${BASH_REMATCH[2]}
+                fi
+            fi
+
+            # Number of Subdevices
+            if [[ "$line" =~ (Max number of sub-devices)[[:space:]]*([[:digit:]]+) ]]; then
+                if [[ ${BASH_REMATCH[2]} -gt $subdevice_count ]]; then
+                    subdevice_count=${BASH_REMATCH[2]}
+                fi
+            fi
+        fi
+    done
+}
 
 CollectResults() {
     echo "RESULTS: $results";
@@ -1313,6 +1346,14 @@ if [ "$run_tests" == "yes" ]; then
     if [ "$use_pmix" = "pmix" ]; then
         export LD_LIBRARY_PATH=$pmix_dir/lib:$prte_dir/lib:$LD_LIBRARY_PATH
         export PATH=$pmix_dir/bin:$prte_dir/bin:$PATH
+    fi
+
+    # Get the device and subdevice count if clinfo exists
+    if [ -x $(command -v clinfo &> /dev/null) ]; then
+        ParseCLINFO < <(clinfo)
+
+        export MTEST_GPU_VISIBILITY_DEVICE_COUNT=$device_count
+        export MTEST_GPU_VISIBILITY_SUBDEVICE_COUNT=$subdevice_count
     fi
 
     echo `env | grep MPI`
