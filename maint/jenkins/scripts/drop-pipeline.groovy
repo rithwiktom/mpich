@@ -69,6 +69,16 @@ if [ ! -f ./configure ]; then
     exit 1;
 fi
 
+cd test/mpi
+
+./autogen.sh --with-autotools=\$AUTOTOOLS_DIR | tee test-a.txt
+
+if [ ! -f ./configure ]; then
+    exit 1;
+fi
+
+cd -
+
 tar --exclude=${tarball_name} -cjf ${tarball_name} *
 cp maint/jenkins/mpich-ofi.spec .
 cp maint/jenkins/drop_version .

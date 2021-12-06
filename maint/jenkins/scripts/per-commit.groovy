@@ -661,6 +661,16 @@ if [ ! -f ./configure ]; then
     exit 1;
 fi
 
+cd test/mpi
+
+./autogen.sh --with-autotools=\$AUTOTOOLS_DIR | tee test-a.txt
+
+if [ ! -f ./configure ]; then
+    exit 1;
+fi
+
+cd -
+
 tar --exclude=${tarball_name} -cjf ${tarball_name} *
 """)
                 stash includes: 'mpich-per-commit-*.tar.bz2', name: 'per-commit-tarball'

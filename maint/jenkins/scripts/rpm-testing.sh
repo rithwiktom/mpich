@@ -224,6 +224,7 @@ which automake
 ./autogen.sh --without-ucx
 #from test dir
 cd test/mpi
+./autogen.sh
 
 if [ "$testgpu" == "0" ]; then
     find . -name testlist.gpu -exec rm '{}' \; -and -exec touch '{}' \;

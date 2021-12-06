@@ -1176,8 +1176,22 @@ if [ "$build_tests" == "yes" ]; then
     #Create test binaries here
     #In case of multinode testing, this will allow us to transfer them to
     #the second compute node
+    if [ ! -d test/mpi ]; then
+        mkdir -p test/mpi
+    fi
+
+    test_dir="$src_dir/test/mpi"
+
+    if [ "$src_dir" = "." ]; then
+        test_dir="."
+    fi
+
     cd test/mpi/
-    make -j$N_MAKE_JOBS
+    $test_dir/configure -C --with-mpi="$install_dir" --disable-perftest ${config_opt[@]} \
+        MPICHLIB_CFLAGS="$MPICHLIB_CFLAGS" MPICHLIB_CXXFLAGS="$MPICHLIB_CXXFLAGS" MPICHLIB_FCFLAGS="$MPICHLIB_FCFLAGS" MPICHLIB_F77FLAGS="$MPICHLIB_F77FLAGS" MPICHLIB_LDFLAGS="$MPICHLIB_LDFLAGS" \
+        2>&1 | tee test-c.txt
+
+    make -j$N_MAKE_JOBS | tee test-m.txt
     if test "${PIPESTATUS[0]}" != "0"; then
         CollectResults
         exit 1
