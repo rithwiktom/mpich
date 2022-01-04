@@ -9,12 +9,12 @@ def skip_config(provider, compiler, config, pmix, flavor) {
 
     // Misc
     skip |= ("${pmix}" == "pmix" && "${provider}" == "psm2") // Don't build PMIx with PSM2
-    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${configs}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
+    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
 
     // GPUs
-    skip |= ("${gpu}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
-    skip |= ("${gpu}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
-    skip |= ("${gpu}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${compiler}" == "icc" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu and nopmix
+    skip |= ("${flavor}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
+    skip |= ("${flavor}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
+    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
 
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
@@ -185,6 +185,8 @@ if [ "${flavor}" == "ats" ]; then
     ze_native="${flavor}"
 fi
 
+NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
+
 if [ "${flavor}" == "nogpu" ]; then
     # empty ze since it is not needed on skl6
     ze_dir=""
@@ -195,11 +197,7 @@ if [ "${flavor}" == "nogpu" ]; then
     config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
-fi
-
-NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
-
-if [ "${flavor}" == "ats" ]; then
+elif [ "${flavor}" == "ats" ]; then
     embedded_ofi="yes"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
@@ -207,6 +205,8 @@ if [ "${flavor}" == "ats" ]; then
     config_extra+=" --enable-psm3"
     daos="no"
     xpmem="no"
+elif [ "\${embedded_ofi}" == "yes" ]; then
+    config_extra+=" --disable-psm3"
 fi
 
 if [ "${provider}" != "sockets" ]; then
@@ -568,12 +568,15 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
 
     stage('Upload RPMs') {
         parallel rpms_upload
-        unstash name: 'drop-tarball'
-        sh(script: """
+        node('anfedclx8') {
+            withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
+                unstash name: 'drop-tarball'
+                sh(script: """
 #!/bin/bash -xe
 
 version=\$(<drop_version)
 release=\$(<release_version)
+dir="drop\${version}.\${release}"
 
 tag_string="drop\${version}"
 if [ "\${release}" != "0" ]; then
@@ -582,9 +585,13 @@ fi
 
 mv ${tarball_name} mpich-\${tag_string}.tar.bz2
 
-gh release upload --clobber \${tag_string} mpich-\${tag_string}.tar.bz2
+curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
+    https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/tarballs/mpich-\${tag_string}.tar.bz2 \
+    -T mpich-\${tag_string}.tar.bz2
 """)
-        cleanWs()
+                cleanWs()
+            }
+        }
     }
 }
 

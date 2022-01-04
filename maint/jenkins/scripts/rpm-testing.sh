@@ -130,7 +130,7 @@ elif [ ${compiler} == "icc" ]; then
 
 fi
 
-if [ ${provider} == "sockets" ]; then
+if [ ${provider} == "sockets" -o "${provider}" == "all" ]; then
     export FI_PROVIDER=sockets
 fi
 
@@ -254,9 +254,9 @@ xfail_file=${WORKSPACE}/maint/jenkins/xfail.conf
 provider_string="${provider}"
 if [ "$provider" == "verbs" ]; then
     provider_string="verbs;ofi_rxm"
-elif [ "${provider}" == "all" ]; then # If using a build with no default provider, the PSM2 provider
+elif [ "${provider}" == "all" ]; then # If using a build with no default provider, the sockets provider
                                       # will be selected so use that for testing
-    provider_string="psm2"
+    provider_string="sockets"
 fi
 
 python3 ${WORKSPACE}/set_xfail.py -j validation -c ${compiler} -o ${configs} -s ${direct} \
