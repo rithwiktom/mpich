@@ -14,6 +14,7 @@ jenkins_configure="default"
 netmod="ofi"
 direct="auto"
 config_opts=
+test_opts=
 ofi_prov="all"
 ofi_dir="/opt/intel/csr"
 psm2_dir="/usr"
@@ -45,6 +46,7 @@ mt_model="runtime"
 force_am="noam"
 xfail_file=""
 config_opt=""
+test_opt=""
 shm_eager=""
 daos="no" # Per-commit build will not have DAOS by default, only drop build is using DAOS for now
 DAOS_INSTALL_DIR="/usr"
@@ -131,7 +133,9 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:
         I)
             USE_ICX=$OPTARG ;;
         j)
-            config_opts=$OPTARG ;;
+            config_opts=$OPTARG
+            test_opts=$OPTARG
+            ;;
         J)
             use_json=$OPTARG ;;
         k)
@@ -822,7 +826,6 @@ SetConfigOpt() {
         fi
     fi
 
-    config_opt+=( --disable-ft-tests )
     config_opt+=( -with-fwrapname=mpigf )
     if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
         config_opt+=( -with-file-system=ufs+nfs+daos )
@@ -839,13 +842,11 @@ SetConfigOpt() {
     config_opt+=( -enable-shared )
     config_opt+=( -enable-static )
     config_opt+=( -enable-error-messages=yes )
-    config_opt+=( -enable-large-tests )
     if [ "$warnings_checker" = "yes" ]; then
         config_opt+=( -enable-strict=error )
     else
         config_opt+=( -enable-strict )
     fi
-    config_opt+=( -enable-collalgo-tests )
     config_opt+=( -enable-izem-queue )
     config_opt+=( -with-zm-prefix=yes )
     if [ "$direct" != "netmod" -a "$use_xpmem" = "yes" ]; then
@@ -860,6 +861,11 @@ SetConfigOpt() {
     if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
         config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
     fi
+
+    test_opt+=( --disable-perftest )
+    test_opt+=( --disable-ft-tests )
+    test_opt+=( --enable-collalgo-tests )
+    test_opt+=( --enable-large-tests )
 
     case "$fast" in
         "none")
@@ -1061,6 +1067,7 @@ SetConfigOpt() {
     export MPICHLIB_LDFLAGS
 
     config_opt+=($(echo ${config_opts}))
+    test_opt+=($(echo ${test_opts}))
 
     echo "${config_opt[@]}"
 }
@@ -1077,8 +1084,9 @@ if [ "$build_mpich" == "yes" ]; then
 
     if [ "$ze_dir" != "" ]; then
         config_opt+=( --with-ze=${ze_dir} )
+        test_opt+=( --with-ze=${ze_dir} )
         if [ "$test_coverage" = "gpu" ]; then
-            config_opt+=( --enable-gpu-tests-only )
+            test_opt+=( --enable-gpu-tests-only )
         fi
 
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
@@ -1140,7 +1148,7 @@ if [ "$build_mpich" == "yes" ]; then
         module load gnu9
     fi
 
-    $src_dir/configure -C --prefix="$install_dir" --disable-perftest ${config_opt[@]} \
+    $src_dir/configure -C --prefix="$install_dir" ${config_opt[@]} \
         MPICHLIB_CFLAGS="$MPICHLIB_CFLAGS" MPICHLIB_CXXFLAGS="$MPICHLIB_CXXFLAGS" MPICHLIB_FCFLAGS="$MPICHLIB_FCFLAGS" MPICHLIB_F77FLAGS="$MPICHLIB_F77FLAGS" MPICHLIB_LDFLAGS="$MPICHLIB_LDFLAGS" \
         2>&1 | tee c.txt
 
@@ -1187,7 +1195,7 @@ if [ "$build_tests" == "yes" ]; then
     fi
 
     cd test/mpi/
-    $test_dir/configure -C --with-mpi="$install_dir" --disable-perftest ${config_opt[@]} \
+    $test_dir/configure -C --with-mpi="$install_dir" ${test_opt[@]} \
         MPICHLIB_CFLAGS="$MPICHLIB_CFLAGS" MPICHLIB_CXXFLAGS="$MPICHLIB_CXXFLAGS" MPICHLIB_FCFLAGS="$MPICHLIB_FCFLAGS" MPICHLIB_F77FLAGS="$MPICHLIB_F77FLAGS" MPICHLIB_LDFLAGS="$MPICHLIB_LDFLAGS" \
         2>&1 | tee test-c.txt
 
