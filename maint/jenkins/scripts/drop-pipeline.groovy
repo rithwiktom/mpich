@@ -240,7 +240,7 @@ if [ "${flavor}" == "nogpu" ]; then
     daos="no"
     xpmem="no"
 elif [ "${flavor}" == "ats" ]; then
-    embedded_ofi="yes"
+    embedded_ofi="no"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
     # JLSE builds where we provide embedded libfabric
