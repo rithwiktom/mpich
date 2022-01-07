@@ -40,7 +40,7 @@ embed_ofi="no"
 build_mpich="yes"
 warnings_checker="no"
 device_caps=""
-cpu=""
+cpu="native"
 thread_cs="" # Default will be set later depending on the device
 mt_model="runtime"
 force_am="noam"
@@ -397,6 +397,7 @@ SetCompiler() {
             BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
+            NATIVE_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=native"
 
             GNU_DETERMINISTIC_FLAGS="-fno-associative-math -fno-rounding-math -fno-tree-vectorization"
 
@@ -498,6 +499,20 @@ SetCompiler() {
                     COMPILER_LDFLAGS="$SKL_OPT $COMPILER_LDFLAGS"
                     COMPILER_LDFLAGS_OPTS="$SKL_OPT $COMPILER_LDFLAGS_OPTS"
                     ;;
+                "native")
+                    COMPILER_CFLAGS="$NATIVE_OPT $COMPILER_CFLAGS"
+                    COMPILER_CFLAGS_OPTS="$NATIVE_OPT $COMPILER_CFLAGS_OPTS"
+                    COMPILER_CXXFLAGS="$NATIVE_OPT $COMPILER_CXXFLAGS"
+                    COMPILER_CXXFLAGS_OPTS="$NATIVE_OPT $COMPILER_CXXFLAGS_OPTS"
+                    COMPILER_FFLAGS="$NATIVE_OPT $COMPILER_FFLAGS"
+                    COMPILER_FFLAGS_OPTS="$NATIVE_OPT $COMPILER_FFLAGS_OPTS"
+                    COMPILER_FCFLAGS="$NATIVE_OPT $COMPILER_FCFLAGS"
+                    COMPILER_FCFLAGS_OPTS="$NATIVE_OPT $COMPILER_FCFLAGS_OPTS"
+                    COMPILER_F77FLAGS="$NATIVE_OPT $COMPILER_F77FLAGS"
+                    COMPILER_F77FLAGS_OPTS="$NATIVE_OPT $COMPILER_F77FLAGS_OPTS"
+                    COMPILER_LDFLAGS="$NATIVE_OPT $COMPILER_LDFLAGS"
+                    COMPILER_LDFLAGS_OPTS="$NATIVE_OPT $COMPILER_LDFLAGS_OPTS"
+                    ;;
             esac
             ;;
 
@@ -523,6 +538,7 @@ SetCompiler() {
             BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
+            NATIVE_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=native"
 
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
@@ -616,6 +632,20 @@ SetCompiler() {
                     COMPILER_LDFLAGS="$SKL_OPT $COMPILER_LDFLAGS"
                     COMPILER_LDFLAGS_OPTS="$SKL_OPT $COMPILER_LDFLAGS_OPTS"
                     ;;
+                "native")
+                    COMPILER_CFLAGS="$NATIVE_OPT $COMPILER_CFLAGS"
+                    COMPILER_CFLAGS_OPTS="$NATIVE_OPT $COMPILER_CFLAGS_OPTS"
+                    COMPILER_CXXFLAGS="$NATIVE_OPT $COMPILER_CXXFLAGS"
+                    COMPILER_CXXFLAGS_OPTS="$NATIVE_OPT $COMPILER_CXXFLAGS_OPTS"
+                    COMPILER_FFLAGS="$NATIVE_OPT $COMPILER_FFLAGS"
+                    COMPILER_FFLAGS_OPTS="$NATIVE_OPT $COMPILER_FFLAGS_OPTS"
+                    COMPILER_FCFLAGS="$NATIVE_OPT $COMPILER_FCFLAGS"
+                    COMPILER_FCFLAGS_OPTS="$NATIVE_OPT $COMPILER_FCFLAGS_OPTS"
+                    COMPILER_F77FLAGS="$NATIVE_OPT $COMPILER_F77FLAGS"
+                    COMPILER_F77FLAGS_OPTS="$NATIVE_OPT $COMPILER_F77FLAGS_OPTS"
+                    COMPILER_LDFLAGS="$NATIVE_OPT $COMPILER_LDFLAGS"
+                    COMPILER_LDFLAGS_OPTS="$NATIVE_OPT $COMPILER_LDFLAGS_OPTS"
+                    ;;
             esac
             ;;
         "clang")
@@ -666,6 +696,7 @@ SetCompiler() {
             BROADWELL_OPT="-xCORE-AVX2"
             KNL_OPT="-xCORE-AVX512"
             SKL_OPT="-xCORE-AVX512"
+            NATIVE_OPT="-xCORE-AVX512 -march=native"
 
             if [ "$embed_ofi" != "yes" ]; then
                 export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
@@ -777,6 +808,20 @@ SetCompiler() {
                     COMPILER_F77FLAGS_OPTS="$SKL_OPT $COMPILER_F77FLAGS_OPTS"
                     COMPILER_LDFLAGS="$SKL_OPT $COMPILER_LDFLAGS"
                     COMPILER_LDFLAGS_OPTS=$SKL_OPT $COMPILER_LDFLAGS_OPTS
+                    ;;
+                "native")
+                    COMPILER_CFLAGS="$NATIVE_OPT $COMPILER_CFLAGS"
+                    COMPILER_CFLAGS_OPTS="$NATIVE_OPT $COMPILER_CFLAGS_OPTS"
+                    COMPILER_CXXFLAGS="$NATIVE_OPT $COMPILER_CXXFLAGS"
+                    COMPILER_CXXFLAGS_OPTS="$NATIVE_OPT $COMPILER_CXXFLAGS_OPTS"
+                    COMPILER_FFLAGS="$NATIVE_OPT $COMPILER_FFLAGS"
+                    COMPILER_FFLAGS_OPTS="$NATIVE_OPT $COMPILER_FFLAGS_OPTS"
+                    COMPILER_FCFLAGS="$NATIVE_OPT $COMPILER_FCFLAGS"
+                    COMPILER_FCFLAGS_OPTS="$NATIVE_OPT $COMPILER_FCFLAGS_OPTS"
+                    COMPILER_F77FLAGS="$NATIVE_OPT $COMPILER_F77FLAGS"
+                    COMPILER_F77FLAGS_OPTS="$NATIVE_OPT $COMPILER_F77FLAGS_OPTS"
+                    COMPILER_LDFLAGS="$NATIVE_OPT $COMPILER_LDFLAGS"
+                    COMPILER_LDFLAGS_OPTS="$NATIVE_OPT $COMPILER_LDFLAGS_OPTS"
                     ;;
             esac
             ;;

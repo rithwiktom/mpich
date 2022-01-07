@@ -465,7 +465,7 @@ fi
 
 echo "Appending mt_xfail_common.conf"
 if [ "${provider}" != "cxi" ]; then
-    prefix='srun --chdir="\$REMOTE_WS"'
+    prefix="srun --chdir=\$REMOTE_WS"
 else
     prefix=""
 fi
