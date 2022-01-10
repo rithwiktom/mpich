@@ -159,6 +159,7 @@ REMOTE_WS=\$(srun --chdir=/tmp mktemp -d /tmp/jenkins.tmp.XXXXXXXX)
 JENKINS_DIR="\$REMOTE_WS/maint/jenkins"
 BUILD_SCRIPT_DIR="\$JENKINS_DIR/scripts"
 
+ofi_domain="yes"
 embedded_ofi="no"
 daos="yes"
 xpmem="yes"
@@ -265,6 +266,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -D \$daos \
     -E \$xpmem \
     -P ${pmix} \
+    -O \$ofi_domain \
     -y \$CUSTOM_VERSION_STRING \
     -f \$INSTALL_DIR
 
