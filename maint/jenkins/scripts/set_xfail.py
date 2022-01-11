@@ -20,6 +20,8 @@ class RE:
 def main():
     parse_args()
     load_xfail_conf()
+    if os.path.exists('test/mpi'):
+        os.chdir('test/mpi')
     apply_xfails()
     apply_disable_enable()
 
@@ -64,6 +66,7 @@ def load_xfail_conf():
             elif RE.match(r'\s*(.*?)\s*sed\s+-i\s*"([^"]+)"\s+(test.mpi.*)', line):
                 # -- old "sed" pattern
                 cond, pat, testlist = RE.m.group(1, 2, 3)
+                testlist = re.sub(r'^test\/mpi\/', '', testlist)
                 if match_states(cond, G.states):
                     cond = re.sub(r'\s\s+', ' ', cond)
                     if testlist not in G.xfails:
@@ -78,6 +81,7 @@ def load_xfail_conf():
             elif RE.match(r'\s*(.*?)\s*\/(.*)\/\s*((?:dis|en)able)\s*(\S+)\s*$', line):
                 # -- new direct pattern
                 cond, pat, reason, testlist = RE.m.group(1, 2, 3, 4)
+                testlist = re.sub(r'^test\/mpi\/', '', testlist)
                 if match_states(cond, G.states):
                     cond = re.sub(r'\s\s+', ' ', cond)
                     if testlist not in G.disable_enable:
@@ -91,6 +95,7 @@ def load_xfail_conf():
             elif RE.match(r'\s*(.*?)\s*\/(.*)\/\s*xfail=([-\/#\w]*)\s*(\S+)\s*$', line):
                 # -- new direct pattern
                 cond, pat, reason, testlist = RE.m.group(1, 2, 3, 4)
+                testlist = re.sub(r'^test\/mpi\/', '', testlist)
                 if match_states(cond, G.states):
                     cond = re.sub(r'\s\s+', ' ', cond)
                     if testlist not in G.xfails:
