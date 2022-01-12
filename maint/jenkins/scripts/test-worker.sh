@@ -1201,6 +1201,10 @@ if [ "$build_mpich" == "yes" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/verbs-dynamic/lib/:$LD_LIBRARY_PATH
     fi
 
+    if [ "$ofi_prov" = "all" ]; then
+        export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$LD_LIBRARY_PATH
+    fi
+
     if [ "${compiler}" = "gnu" ]; then
         module load gnu9
     fi
