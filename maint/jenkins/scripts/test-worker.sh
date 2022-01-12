@@ -1054,12 +1054,20 @@ SetConfigOpt() {
             else
                 prov_config+=( --disable-cxi)
             fi
+
+            if [ "$ofi_prov" = "all" ]; then
+                prov_config+=( --disable-psm)
+            fi
         fi
 
         prov_config+=( --enable-embedded)
 
         ofi_dir="embedded"
         config_opt+=( ${prov_config[@]})
+    else
+        if [ "$ofi_prov" = "all" ]; then
+            config_opt+=( --disable-psm)
+        fi
     fi
 
     if [ "$direct" = "auto" -o "$direct" = "no-odd-even" ]; then
