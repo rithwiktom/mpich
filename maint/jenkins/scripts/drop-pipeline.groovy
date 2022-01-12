@@ -237,13 +237,6 @@ srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}
 srun --chdir="\$BUILD_SCRIPT_DIR" "\$BUILD_SCRIPT_DIR/generate_drop_files.sh" "\$REMOTE_WS" \
     "\$JENKINS_DIR" "${provider}" "${compiler}" "${config}" "${pmix}" "${flavor}"
 
-provider_string="${provider}"
-if [ "${provider}" == "verbs" ]; then
-    provider_string="verbs;ofi_rxm"
-elif [ "${provider}" == "all" ]; then
-    provider_string=""
-fi
-
 srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -h \${REMOTE_WS}/_build \
     -i \${OFI_DIR} \
@@ -253,7 +246,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -d noam \
     -b drop \
     -s auto \
-    -p "\${provider_string}" \
+    -p ${provider} \
     -m \${n_jobs} \
     -N "\${neo_dir}" \
     -r \$REL_WORKSPACE/${config_name} \
