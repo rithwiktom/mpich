@@ -201,7 +201,7 @@ NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string
 if [ "${flavor}" == "nogpu" ]; then
     # empty ze since it is not needed on skl6
     ze_dir=""
-    embedded_ofi="yes"
+    embedded_ofi="no"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
