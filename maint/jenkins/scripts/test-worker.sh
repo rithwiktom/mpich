@@ -1149,7 +1149,7 @@ if [ "$build_mpich" == "yes" ]; then
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
 
         # Check if this is an ATS build not running on jfcst-xe
-        if [ "$neo_dir" == "$GENGBIN_NEO_ATS" && ! -d "$GENGBIN_NEO_ATS" ]; then
+        if [ "$neo_dir" == "$GENGBIN_NEO_ATS" -a ! -d "$GENGBIN_NEO_ATS" ]; then
             neo_dir=/usr
         fi
 

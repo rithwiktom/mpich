@@ -109,7 +109,7 @@ pushenv("PSM3_MULTI_EP", "1")
 EOF
     fi
 
-    if [ "$provider" == "psm2" && "$flavor" == "regular" ]; then
+    if [ "$provider" == "psm2" -a "$flavor" == "regular" ]; then
         cat >> $filename << EOF
 pushenv("MPIR_CVAR_ENABLE_GPU", "0")
 EOF
@@ -221,7 +221,7 @@ EOF
     fi
 
 
-    if [ "$provider" == "psm2" && "$flavor" == "regular" ]; then
+    if [ "$provider" == "psm2" -a "$flavor" == "regular" ]; then
         cat >> $filename << EOF
 setenv {MPIR_CVAR_ENABLE_GPU} {0}
 EOF
