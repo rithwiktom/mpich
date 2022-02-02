@@ -16,6 +16,7 @@ direct="auto"
 config_opts=
 test_opts=
 ofi_prov="all"
+ofi_prov_string=""
 ofi_dir="/opt/intel/csr"
 psm2_dir="/usr"
 psm2_dir_list="/opt/intel/csr /home/sys_csr1/software/psm2" # list of locations where we might have libpsm2
@@ -193,8 +194,11 @@ while getopts ":a:A:b:B:c:d:D:e:E:f:F:G:h:H:i:I:j:J:k:l:m:M:n:N:o:O:p:P:q:r:s:t:
 done
 
 # Convert the provider string to proper form
+ofi_prov_string="$ofi_prov"
 if [ "$ofi_prov" = "verbs" ]; then
-    ofi_prov="verbs;ofi_rxm"
+    ofi_prov_string="verbs;ofi_rxm"
+elif [ "$ofi_prov" = "all" ]; then
+    ofi_prov_string=""
 fi
 
 cd $WORKSPACE
@@ -900,8 +904,8 @@ SetConfigOpt() {
 
     if [ "$jenkins_configure" = "debug" ]; then
         device_caps=""
-    elif [ "x$ofi_prov" != "x" ]; then
-        device_caps=":$ofi_prov"
+    elif [ "x$ofi_prov_string" != "x" ]; then
+        device_caps=":$ofi_prov_string"
     fi
     if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
         config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
@@ -976,8 +980,8 @@ SetConfigOpt() {
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
             config_opt+=( -enable-timing=none )
-            if [ "$ofi_prov" != "psm2" -a "$ofi_prov" != "verbs;ofi_rxm"]; then
-                config_opt+=( --enable-direct=$ofi_prov)
+            if [ "$ofi_prov" != "psm2" -a "$ofi_prov" != "verbs" -a "$ofi_prov" != "all" ]; then
+                config_opt+=( --enable-direct=$ofi_prov_string)
                 netmod_opt+=(:direct-provider)
             fi
             MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS_OPTS"
@@ -1009,7 +1013,7 @@ SetConfigOpt() {
         prov_config+=( --disable-usnic)
 
         # Add OFI config options
-        if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
+        if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
             # "$jenkins_configure" = "debug" => runtime capability sets => OFI subconfigure will
             # build in all possible providers, so we must specify psm2 location here regardless
             # of the provider the user specified. Otherwise this libfabric build will detect
@@ -1029,7 +1033,7 @@ SetConfigOpt() {
                 prov_config+=( --disable-psm2)
             fi
 
-            if [ "$ofi_prov" = "verbs;ofi_rxm" -o "$ofi_prov" = "all" ]; then
+            if [ "$ofi_prov" = "verbs" -o "$ofi_prov" = "all" ]; then
                 if [ -f "${verbs_dir}/lib64/libibverbs.so" ]; then
                     enable_verbs=${verbs_dir}
                 else
@@ -1050,12 +1054,20 @@ SetConfigOpt() {
             else
                 prov_config+=( --disable-cxi)
             fi
+
+            if [ "$ofi_prov" = "all" ]; then
+                prov_config+=( --disable-psm)
+            fi
         fi
 
         prov_config+=( --enable-embedded)
 
         ofi_dir="embedded"
         config_opt+=( ${prov_config[@]})
+    else
+        if [ "$ofi_prov" = "all" ]; then
+            config_opt+=( --disable-psm)
+        fi
     fi
 
     if [ "$direct" = "auto" -o "$direct" = "no-odd-even" ]; then
@@ -1137,7 +1149,7 @@ if [ "$build_mpich" == "yes" ]; then
         export LD_LIBRARY_PATH=${ze_dir}/lib64:$LD_LIBRARY_PATH
 
         # Check if this is an ATS build not running on jfcst-xe
-        if [ "$neo_dir" == "$GENGBIN_NEO_ATS" && ! -d "$GENGBIN_NEO_ATS" ]; then
+        if [ "$neo_dir" == "$GENGBIN_NEO_ATS" -a ! -d "$GENGBIN_NEO_ATS" ]; then
             neo_dir=/usr
         fi
 
@@ -1185,8 +1197,12 @@ if [ "$build_mpich" == "yes" ]; then
 
     # This combination with ze and verbs is unlikely right now, but can come up in
     # newer systems
-    if [ "$ofi_prov" = "verbs;ofi_rxm" ]; then
+    if [ "$ofi_prov" = "verbs" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/verbs-dynamic/lib/:$LD_LIBRARY_PATH
+    fi
+
+    if [ "$ofi_prov" = "all" ]; then
+        export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$LD_LIBRARY_PATH
     fi
 
     if [ "${compiler}" = "gnu" ]; then
@@ -1351,7 +1367,7 @@ if [ "$run_tests" == "yes" ]; then
     esac
 
     # run only the minimum level of datatype tests when it is per-commit job
-    if [[ "$BUILD_MODE" = "per-commit" || "$BUILD_MODE" = "per-commit-a20" || "$ofi_prov" = "psm2" || "$ofi_prov" = "verbs;ofi_rxm" ]]; then
+    if [[ "$BUILD_MODE" = "per-commit" || "$BUILD_MODE" = "per-commit-a20" || "$ofi_prov" = "psm2" || "$ofi_prov" = "verbs" ]]; then
         MPITEST_DATATYPE_TEST_LEVEL=min
         export MPITEST_DATATYPE_TEST_LEVEL
     fi
@@ -1378,7 +1394,7 @@ if [ "$run_tests" == "yes" ]; then
     # There is a MR Cache Registration issue in libfabric which needs to be resolved before we
     # get rid of this variable. Until then this variable needs to be exported to avoid any
     # collective test failures.
-    if [[ "$ofi_prov" = "verbs;ofi_rxm" ]]; then
+    if [[ "$ofi_prov" = "verbs" ]]; then
         export FI_MR_CACHE_MAX_COUNT=0
     fi
 
