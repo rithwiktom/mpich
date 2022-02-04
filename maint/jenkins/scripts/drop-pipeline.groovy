@@ -359,6 +359,7 @@ srun rpmbuild -bb \
     --define="_configs ${config}" \
     --define="_compiler ${compiler}" \
     --define="_flavor ${flavor}" \
+    --define="_pmix ${pmix}" \
     SPECS/mpich-ofi.spec
 
 rm -rf BUILD/\${NAME}
