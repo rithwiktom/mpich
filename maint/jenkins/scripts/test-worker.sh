@@ -658,8 +658,16 @@ SetCompiler() {
 
             INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
 
-            if [ -f /opt/intel/inteloneapi/compiler/latest/env/vars.sh ]; then
-                . /opt/intel/inteloneapi/compiler/latest/env/vars.sh intel64
+            # This is valid only on SKL32 system for now, it has the newest oneAPI which
+            # provides working ifx compiler.
+            if [ -f /home/tdoodi/intel/oneapi/compiler/latest/env/vars.sh ]; then
+                . /home/tdoodi/intel/oneapi/compiler/latest/env/vars.sh intel64
+                # Starting ICC2019 update 2, FI_PROVIDER_PATH is set to
+                # /opt/intel/compilers_and_libraries_2019.4.243/linux/mpi/intel64/libfabric/lib/prov
+                # We unset it because we dont want the provider to come from this location.
+                unset FI_PROVIDER_PATH
+            elif [ -f /opt/inteloneapi/compiler/latest/env/vars.sh ]; then
+                # This is the location for ICC on A20
                 # Starting ICC2019 update 2, FI_PROVIDER_PATH is set to
                 # /opt/intel/compilers_and_libraries_2019.4.243/linux/mpi/intel64/libfabric/lib/prov
                 # We unset it because we dont want the provider to come from this location.
@@ -680,7 +688,8 @@ SetCompiler() {
             AR=xiar
 
             if [ "$USE_ICX" = "yes" ]; then
-                module load compiler # This assumes the oneAPI module is available
+                # This is probably not needed.
+                #module load compiler # This assumes the oneAPI module is available
                 CC=icx
                 CXX=icpx
                 F77=ifx
@@ -1360,7 +1369,10 @@ if [ "$run_tests" == "yes" ]; then
     export MPITEST_MAXBUFFER=268435456 # Match main with max buffer size for dtpool tests
 
     if [ "$compiler" = "icc" ]; then
-        if [ -d /opt/intel/inteloneapi/compiler ]; then
+        if [ -d /home/tdoodi/intel/oneapi/compiler ]; then
+            export PATH=/home/tdoodi/intel/oneapi/compiler/latest/linux/bin/intel64/:${PATH#*/mpi/intel64/bin:}:/bin
+            export LD_LIBRARY_PATH=/home/tdoodi/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/:${LD_LIBRARY_PATH#*/mpi/intel64/lib:}
+        elif [ -d /opt/intel/inteloneapi/compiler ]; then
             export PATH=/opt/intel/inteloneapi/compiler/latest/linux/bin/intel64/:${PATH#*/mpi/intel64/bin:}:/bin
             export LD_LIBRARY_PATH=/opt/intel/inteloneapi/compiler/latest/linux/compiler/lib/intel64_lin/:${LD_LIBRARY_PATH#*/mpi/intel64/lib:}
         elif [ -d /opt/intel/oneapi/compiler ]; then
