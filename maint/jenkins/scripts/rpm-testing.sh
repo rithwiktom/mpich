@@ -57,9 +57,19 @@ JENKINS_DIR="$WORKSPACE/maint/jenkins"
 BUILD_SCRIPT_DIR="$JENKINS_DIR/scripts"
 if [ "${flavor}" != "ats" ]; then
     OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
+else
+    if [ -d "/opt/intel/csr/ofi/sockets-dynamic" ]; then
+        OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
+    else
+        OFI_DIR="/home/sys_csr1/software/libfabric/sockets"
+    fi
 fi
 if [ "${provider}" == "all" ]; then
-    OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
+    if [ -d "/opt/intel/csr/ofi/sockets-dynamic" ]; then
+        OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
+    else
+        OFI_DIR="/home/sys_csr1/software/libfabric/sockets"
+    fi
 fi
 DAOS_INSTALL_DIR="/opt/daos-34"
 pmix_dir="/opt/openpmix"

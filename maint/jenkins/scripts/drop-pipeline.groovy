@@ -159,6 +159,7 @@ REMOTE_WS=\$(srun --chdir=/tmp mktemp -d /tmp/jenkins.tmp.XXXXXXXX)
 JENKINS_DIR="\$REMOTE_WS/maint/jenkins"
 BUILD_SCRIPT_DIR="\$JENKINS_DIR/scripts"
 
+ofi_domain="yes"
 embedded_ofi="no"
 daos="yes"
 xpmem="yes"
@@ -200,7 +201,7 @@ NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string
 if [ "${flavor}" == "nogpu" ]; then
     # empty ze since it is not needed on skl6
     ze_dir=""
-    embedded_ofi="yes"
+    embedded_ofi="no"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
@@ -236,13 +237,6 @@ srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}
 srun --chdir="\$BUILD_SCRIPT_DIR" "\$BUILD_SCRIPT_DIR/generate_drop_files.sh" "\$REMOTE_WS" \
     "\$JENKINS_DIR" "${provider}" "${compiler}" "${config}" "${pmix}" "${flavor}"
 
-provider_string="${provider}"
-if [ "${provider}" == "verbs" ]; then
-    provider_string="verbs;ofi_rxm"
-elif [ "${provider}" == "all" ]; then
-    provider_string=""
-fi
-
 srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -h \${REMOTE_WS}/_build \
     -i \${OFI_DIR} \
@@ -252,7 +246,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -d noam \
     -b drop \
     -s auto \
-    -p "\${provider_string}" \
+    -p ${provider} \
     -m \${n_jobs} \
     -N "\${neo_dir}" \
     -r \$REL_WORKSPACE/${config_name} \
@@ -265,6 +259,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -D \$daos \
     -E \$xpmem \
     -P ${pmix} \
+    -O \$ofi_domain \
     -y \$CUSTOM_VERSION_STRING \
     -f \$INSTALL_DIR
 
