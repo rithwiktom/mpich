@@ -662,8 +662,16 @@ SetCompiler() {
 
             INTEL_DETERMINISTIC_FLAGS="-fp-model precise -fp-model source -fimf-arch-consistency=true"
 
-            if [ -f /opt/intel/inteloneapi/compiler/latest/env/vars.sh ]; then
-                . /opt/intel/inteloneapi/compiler/latest/env/vars.sh intel64
+            # This is valid only on SKL32 system for now, it has the newest oneAPI which
+            # provides working ifx compiler.
+            if [ -f /home/tdoodi/intel/oneapi/compiler/latest/env/vars.sh ]; then
+                . /home/tdoodi/intel/oneapi/compiler/latest/env/vars.sh intel64
+                # Starting ICC2019 update 2, FI_PROVIDER_PATH is set to
+                # /opt/intel/compilers_and_libraries_2019.4.243/linux/mpi/intel64/libfabric/lib/prov
+                # We unset it because we dont want the provider to come from this location.
+                unset FI_PROVIDER_PATH
+            elif [ -f /opt/inteloneapi/compiler/latest/env/vars.sh ]; then
+                # This is the location for ICC on A20
                 # Starting ICC2019 update 2, FI_PROVIDER_PATH is set to
                 # /opt/intel/compilers_and_libraries_2019.4.243/linux/mpi/intel64/libfabric/lib/prov
                 # We unset it because we dont want the provider to come from this location.
@@ -684,11 +692,12 @@ SetCompiler() {
             AR=xiar
 
             if [ "$USE_ICX" = "yes" ]; then
-                module load compiler # This assumes the oneAPI module is available
+                # This is probably not needed.
+                #module load compiler # This assumes the oneAPI module is available
                 CC=icx
                 CXX=icpx
-                F77=ifort
-                FC=ifort
+                F77=ifx
+                FC=ifx
                 # https://software.intel.com/content/www/us/en/develop/articles/porting-guide-for-icc-users-to-dpcpp-or-icx.html
                 # xild and xiar have been removed from icx/icpx. The above link suggests replacing usage with the native linker/archiver
                 LD=ld
@@ -708,30 +717,30 @@ SetCompiler() {
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
             if [ "$USE_ICX" = "yes" ]; then
-                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu11 -Wall -Wno-header-guard"
-                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu11 -Wall -Wno-header-guard"
-                COMPILER_CXXFLAGS="-ggdb -mtune=generic -Wall -Wno-header-guard"
-                COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wall -Wno-header-guard"
-                COMPILER_FFLAGS="-ggdb -mtune=generic -w"
-                COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
-                COMPILER_FCFLAGS="-ggdb -mtune=generic -w"
-                COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
-                COMPILER_F77FLAGS="-ggdb -mtune=generic -w"
-                COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
-                COMPILER_LDFLAGS="-ggdb -mtune=generic -w"
+                COMPILER_CFLAGS="-mtune=generic -std=gnu11 -Wall -Wno-header-guard"
+                COMPILER_CFLAGS_OPTS="-DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu11 -Wall -Wno-header-guard"
+                COMPILER_CXXFLAGS="-mtune=generic -Wall -Wno-header-guard"
+                COMPILER_CXXFLAGS_OPTS="-DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wall -Wno-header-guard"
+                COMPILER_FFLAGS="-mtune=generic -w"
+                COMPILER_FFLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
+                COMPILER_FCFLAGS=" -mtune=generic -w"
+                COMPILER_FCFLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
+                COMPILER_F77FLAGS=" -mtune=generic -w"
+                COMPILER_F77FLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
+                COMPILER_LDFLAGS=" -mtune=generic -w"
                 COMPILER_LDFLAGS_OPTS="-ipo -qopt-report-phase=ipo -qopt-report=5 -mtune=generic"
             else
-                COMPILER_CFLAGS="-ggdb -mtune=generic -std=gnu99 -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981 -static-intel"
-                COMPILER_CFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu99 -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981"
-                COMPILER_CXXFLAGS="-ggdb -mtune=generic -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981 -static-intel"
-                COMPILER_CXXFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981"
-                COMPILER_FFLAGS="-ggdb -mtune=generic -w -static-intel"
-                COMPILER_FFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
-                COMPILER_FCFLAGS="-ggdb -mtune=generic -w -static-intel"
-                COMPILER_FCFLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
-                COMPILER_F77FLAGS="-ggdb -mtune=generic -w -static-intel"
-                COMPILER_F77FLAGS_OPTS="-ggdb -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
-                COMPILER_LDFLAGS="-ggdb -mtune=generic -w -static-intel"
+                COMPILER_CFLAGS=" -mtune=generic -std=gnu99 -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981 -static-intel"
+                COMPILER_CFLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -std=gnu99 -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981"
+                COMPILER_CXXFLAGS=" -mtune=generic -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981 -static-intel"
+                COMPILER_CXXFLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -Wcheck -Wall -w3 -wd869 -wd280 -wd593 -wd2259 -wd981"
+                COMPILER_FFLAGS=" -mtune=generic -w -static-intel"
+                COMPILER_FFLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
+                COMPILER_FCFLAGS=" -mtune=generic -w -static-intel"
+                COMPILER_FCFLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
+                COMPILER_F77FLAGS=" -mtune=generic -w -static-intel"
+                COMPILER_F77FLAGS_OPTS=" -DNVALGRIND -DNDEBUG -falign-functions=16 -ipo -inline-factor=10000 -inline-min-size=0 -ansi-alias -mtune=generic -w"
+                COMPILER_LDFLAGS=" -mtune=generic -w -static-intel"
                 COMPILER_LDFLAGS_OPTS="-ipo -qopt-report-phase=ipo -qopt-report=5 -mtune=generic"
             fi
 
@@ -940,10 +949,10 @@ SetConfigOpt() {
             config_opt+=( -enable-ch4-netmod-inline=no )
             config_opt+=( -enable-ch4-shm-inline=no )
             config_opt+=( -enable-mpit-pvars=all )
-            MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
-            MPICHLIB_CXXFLAGS="-ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
-            MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
-            MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
+            MPICHLIB_CFLAGS=" $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
+            MPICHLIB_CXXFLAGS=" $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
+            MPICHLIB_FCFLAGS=" $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
+            MPICHLIB_F77FLAGS=" $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
                 MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
@@ -960,10 +969,10 @@ SetConfigOpt() {
             config_opt+=( -enable-threads=multiple )
             config_opt+=( -without-valgrind )
             config_opt+=( -enable-timing=none )
-            MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
-            MPICHLIB_CXXFLAGS="-ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
-            MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
-            MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
+            MPICHLIB_CFLAGS=" $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS"
+            MPICHLIB_CXXFLAGS=" $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS"
+            MPICHLIB_FCFLAGS=" $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
+            MPICHLIB_F77FLAGS=" $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
                 MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
@@ -984,10 +993,10 @@ SetConfigOpt() {
                 config_opt+=( --enable-direct=$ofi_prov_string)
                 netmod_opt+=(:direct-provider)
             fi
-            MPICHLIB_CFLAGS="-ggdb $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS_OPTS"
-            MPICHLIB_CXXFLAGS="-ggdb $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS_OPTS"
-            MPICHLIB_FCFLAGS="-ggdb $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
-            MPICHLIB_F77FLAGS="-ggdb $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
+            MPICHLIB_CFLAGS=" $EXTRA_MPICHLIB_CFLAGS $COMPILER_CFLAGS_OPTS"
+            MPICHLIB_CXXFLAGS=" $EXTRA_MPICHLIB_CXXFLAGS $COMPILER_CXXFLAGS_OPTS"
+            MPICHLIB_FCFLAGS=" $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
+            MPICHLIB_F77FLAGS=" $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
             if [ "$embed_ofi" != "yes" ]; then
                 MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
@@ -1376,7 +1385,10 @@ if [ "$run_tests" == "yes" ]; then
     export MPITEST_MAXBUFFER=268435456 # Match main with max buffer size for dtpool tests
 
     if [ "$compiler" = "icc" ]; then
-        if [ -d /opt/intel/inteloneapi/compiler ]; then
+        if [ -d /home/tdoodi/intel/oneapi/compiler ]; then
+            export PATH=/home/tdoodi/intel/oneapi/compiler/latest/linux/bin/intel64/:${PATH#*/mpi/intel64/bin:}:/bin
+            export LD_LIBRARY_PATH=/home/tdoodi/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/:${LD_LIBRARY_PATH#*/mpi/intel64/lib:}
+        elif [ -d /opt/intel/inteloneapi/compiler ]; then
             export PATH=/opt/intel/inteloneapi/compiler/latest/linux/bin/intel64/:${PATH#*/mpi/intel64/bin:}:/bin
             export LD_LIBRARY_PATH=/opt/intel/inteloneapi/compiler/latest/linux/compiler/lib/intel64_lin/:${LD_LIBRARY_PATH#*/mpi/intel64/lib:}
         elif [ -d /opt/intel/oneapi/compiler ]; then
