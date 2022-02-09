@@ -19,6 +19,7 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
     skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
+    skip |= ("${provider}" == "psm3" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats"))
 
     return skip
 }
@@ -411,6 +412,10 @@ for (a in providers) {
                     def testgpu = 0
                     /* We don't have a way to automate testing with cxi yet */
                     if ("${provider}" == "cxi") {
+                        continue
+                    }
+                    /* We don't have a way to automate testing with psm3 yet */
+                    if ("${provider}" == "psm3") {
                         continue
                     }
                     if (skip_config(provider, compiler, config, pmix, flavor)) {
