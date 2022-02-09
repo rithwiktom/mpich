@@ -133,6 +133,31 @@ for (a in providers) {
                             sh(script: """
 #!/bin/bash -x
 
+cat > hydra-pmi-proxy-cleanup.sh << "EOF"
+#!/bin/bash -x
+
+set -e
+set -x
+hostname
+
+INSTALL_DIR=\$1
+ls -lhR \$INSTALL_DIR
+
+# Remove unneeded dependencies on hydra_pmi_proxy
+hydra_deps=("libze_loader.so" "libimf.so")
+hydra_path="\$INSTALL_DIR/bin/hydra_pmi_proxy"
+
+for hydra_dep in "\${hydra_deps[@]}"; do
+    dep=\$(ldd \$hydra_path | awk '{ print \$1 }' | sed -n "/\${hydra_dep}/p")
+    if [ "x\${dep}" != "x" ]; then
+        echo "Removing dependence '\${dep}' from hydra_pmi_proxy"
+        patchelf --remove-needed "\${dep}" "\$hydra_path"
+    fi
+done
+EOF
+
+chmod +x hydra-pmi-proxy-cleanup.sh
+
 cat > drop-test-job.sh << "EOF"
 #!/bin/bash -x
 
@@ -269,6 +294,10 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
 
 if [ "${run_tests}" = "yes" ]; then
     srun cp test/mpi/summary.junit.xml ${config_name}/test/mpi/summary.junit.xml
+fi
+
+if [ "${pmix}" = "nopmix" ]; then
+    srun --chdir="\$WORKSPACE" /bin/bash \$WORKSPACE/hydra-pmi-proxy-cleanup.sh "\$INSTALL_DIR"
 fi
 
 srun rm -f \$INSTALL_DIR/lib/pkgconfig/libfabric.pc
