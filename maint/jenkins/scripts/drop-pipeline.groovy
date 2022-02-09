@@ -163,6 +163,7 @@ ofi_domain="yes"
 embedded_ofi="no"
 daos="yes"
 xpmem="yes"
+gpudirect="yes"
 n_jobs=128
 neo_dir=""
 ze_dir=""
@@ -205,6 +206,7 @@ if [ "${flavor}" == "nogpu" ]; then
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
+    gpudirect="no"
     config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
@@ -253,6 +255,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -t 2.0 \
     -x ${run_tests} \
     -k \$embedded_ofi \
+    -H "\${gpudirect}" \
     -Y "\${ze_native}" \
     -Z "\${ze_dir}" \
     -j "--disable-opencl \${config_extra}" \
