@@ -495,7 +495,12 @@ EOF
 chmod +x RPM-testing-drop-job.sh
 tar -xf \$TARBALL
 
-salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600 ./RPM-testing-drop-job.sh
+salloc_conf=
+if [ "${flavor}" = "ats" ]; then
+    salloc_conf="-x ats2"
+fi
+
+salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" \${salloc_conf} -N \${nodes} -t 600 ./RPM-testing-drop-job.sh
 """)
                             junit "**/summary.junit.xml"
                             cleanWs()
