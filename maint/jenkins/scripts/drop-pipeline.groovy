@@ -101,6 +101,7 @@ cp maint/jenkins/release_version .
 cp maint/jenkins/drop_version \$HOME/rpmbuild/drop_version
 cp maint/jenkins/release_version \$HOME/rpmbuild/release_version
 cp maint/jenkins/mpich-ofi.spec \$HOME/rpmbuild/SPECS/mpich-ofi.spec
+cp ${tarball_name} \$HOME/rpmbuild/SOURCES/${tarball_name}
 """
                 stash includes: 'mpich-drops.tar.bz2,mpich-ofi.spec,drop_version,release_version', name: 'drop-tarball'
                 cleanWs()
@@ -620,7 +621,6 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
         parallel rpms_upload
         node('anfedclx8') {
             withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
-                unstash name: 'drop-tarball'
                 sh(script: """
 #!/bin/bash -xe
 
@@ -633,6 +633,7 @@ if [ "\${release}" != "0" ]; then
     tag_string="\${tag_string}.\${release}"
 fi
 
+cp \$HOME/rpmbuild/SOURCES/${tarball_name} .
 mv ${tarball_name} mpich-\${tag_string}.tar.bz2
 
 curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
