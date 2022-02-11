@@ -101,6 +101,7 @@ cp maint/jenkins/release_version .
 cp maint/jenkins/drop_version \$HOME/rpmbuild/drop_version
 cp maint/jenkins/release_version \$HOME/rpmbuild/release_version
 cp maint/jenkins/mpich-ofi.spec \$HOME/rpmbuild/SPECS/mpich-ofi.spec
+mkdir -p \$HOME/rpmbuild/SOURCES/${tarball_name}
 cp ${tarball_name} \$HOME/rpmbuild/SOURCES/${tarball_name}
 """
                 stash includes: 'mpich-drops.tar.bz2,mpich-ofi.spec,drop_version,release_version', name: 'drop-tarball'
