@@ -19,40 +19,54 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
     skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
+    skip |= ("${provider}" == "psm3" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats"))
 
     return skip
 }
 
-node('anfedclx8') {
-    stage('Cleanup RPM Directory') {
-        sh(script: """rm -rf \$HOME/rpmbuild""")
-        sh(script: """mkdir -p \$HOME/rpmbuild/SPECS""")
+def branches = [:]
+
+// The "all" provider means that the build supports all providers. This is normal for the debug
+// build, but using this provider enables it for a default build as well
+def providers = ['sockets', 'psm2', 'cxi', 'all']
+def compilers = ['gnu', 'icc']
+def configs = ['debug', 'default']
+def pmixs = ['pmix', 'nopmix']
+def flavors = ['regular', 'ats', 'nogpu']
+
+def run_tests = "no"
+
+if (params.build_rpms) {
+    node('anfedclx8') {
+        stage('Cleanup RPM Directory') {
+            sh(script: """rm -rf \$HOME/rpmbuild""")
+            sh(script: """mkdir -p \$HOME/rpmbuild/SPECS""")
+        }
     }
-}
 
-node('anfedclx8') {
-    try {
-        stage('Checkout') {
-            cleanWs()
+    node('anfedclx8') {
+        try {
+            stage('Checkout') {
+                cleanWs()
 
-            // Get some code from a GitHub repository
-            checkout([$class: 'GitSCM',
-                      branches: [[name: '*/drops']],
-                      doGenerateSubmoduleConfigurations: false,
-                      extensions: [[$class: 'SubmoduleOption',
-                                    disableSubmodules: false,
-                                    recursiveSubmodules: true]],
-                      submoduleCfg: [],
-                      userRemoteConfigs: [[credentialsId: 'password-sys_csr1_github',
-                                           url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git' ]]
-                     ])
-                    sh(script: """
+                // Get some code from a GitHub repository
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/drops']],
+                          doGenerateSubmoduleConfigurations: false,
+                          extensions: [[$class: 'SubmoduleOption',
+                                        disableSubmodules: false,
+                                        recursiveSubmodules: true]],
+                          submoduleCfg: [],
+                          userRemoteConfigs: [[credentialsId: 'password-sys_csr1_github',
+                                               url: 'https://github.com/intel-innersource/libraries.runtimes.hpc.mpi.mpich-aurora.git' ]]
+                         ])
+                        sh(script: """
 git submodule sync
 git submodule update --init --recursive
 """)
-        }
-        stage('Autogen') {
-            sh label: '', script: """
+            }
+            stage('Autogen') {
+                sh label: '', script: """
 #!/bin/bash
 
 set -ex
@@ -87,50 +101,65 @@ cp maint/jenkins/release_version .
 cp maint/jenkins/drop_version \$HOME/rpmbuild/drop_version
 cp maint/jenkins/release_version \$HOME/rpmbuild/release_version
 cp maint/jenkins/mpich-ofi.spec \$HOME/rpmbuild/SPECS/mpich-ofi.spec
+mkdir -p \$HOME/rpmbuild/SOURCES/${tarball_name}
+cp ${tarball_name} \$HOME/rpmbuild/SOURCES/${tarball_name}
 """
-            stash includes: 'mpich-drops.tar.bz2,mpich-ofi.spec,drop_version,release_version', name: 'drop-tarball'
-            cleanWs()
+                stash includes: 'mpich-drops.tar.bz2,mpich-ofi.spec,drop_version,release_version', name: 'drop-tarball'
+                cleanWs()
+            }
+        } catch (Exception err) {
+            exit
         }
-    } catch (Exception err) {
-        exit
     }
-}
 
-def branches = [:]
+    for (a in providers) {
+        for (b in compilers) {
+            for (c in configs) {
+                for (d in pmixs) {
+                    for (e in flavors) {
+                        def provider = a
+                        def compiler = b
+                        def config = c
+                        def pmix = d
+                        def flavor = e
 
-// The "all" provider means that the build supports all providers. This is normal for the debug
-// build, but using this provider enables it for a default build as well
-def providers = ['sockets', 'psm2', 'cxi', 'all']
-def compilers = ['gnu', 'icc']
-def configs = ['debug', 'default']
-def pmixs = ['pmix', 'nopmix']
-def flavors = ['regular', 'ats', 'nogpu']
+                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                            continue
+                        }
 
-def run_tests = "no"
+                        branches["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
+                            node('anfedclx8') {
+                                def config_name = "${provider}-${compiler}-${config}-${pmix}-${flavor}"
+                                sh "mkdir -p ${config_name}"
+                                unstash name: 'drop-tarball'
 
-for (a in providers) {
-    for (b in compilers) {
-        for (c in configs) {
-            for (d in pmixs) {
-                for (e in flavors) {
-                    def provider = a
-                    def compiler = b
-                    def config = c
-                    def pmix = d
-                    def flavor = e
-
-                    if (skip_config(provider, compiler, config, pmix, flavor)) {
-                        continue
-                    }
-
-                    branches["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
-                        node('anfedclx8') {
-                            def config_name = "${provider}-${compiler}-${config}-${pmix}-${flavor}"
-                            sh "mkdir -p ${config_name}"
-                            unstash name: 'drop-tarball'
-
-                            sh(script: """
+                                sh(script: """
 #!/bin/bash -x
+
+cat > hydra-pmi-proxy-cleanup.sh << "EOF"
+#!/bin/bash -x
+
+set -e
+set -x
+hostname
+
+INSTALL_DIR=\$1
+ls -lhR \$INSTALL_DIR
+
+# Remove unneeded dependencies on hydra_pmi_proxy
+hydra_deps=("libze_loader.so" "libimf.so")
+hydra_path="\$INSTALL_DIR/bin/hydra_pmi_proxy"
+
+for hydra_dep in "\${hydra_deps[@]}"; do
+    dep=\$(ldd \$hydra_path | awk '{ print \$1 }' | sed -n "/\${hydra_dep}/p")
+    if [ "x\${dep}" != "x" ]; then
+        echo "Removing dependence '\${dep}' from hydra_pmi_proxy"
+        patchelf --remove-needed "\${dep}" "\$hydra_path"
+    fi
+done
+EOF
+
+chmod +x hydra-pmi-proxy-cleanup.sh
 
 cat > drop-test-job.sh << "EOF"
 #!/bin/bash -x
@@ -163,6 +192,7 @@ ofi_domain="yes"
 embedded_ofi="no"
 daos="yes"
 xpmem="yes"
+gpudirect="yes"
 n_jobs=128
 neo_dir=""
 ze_dir=""
@@ -205,6 +235,7 @@ if [ "${flavor}" == "nogpu" ]; then
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs on skl6. This version
     # of rpm is used by oneCCL CI testing.
+    gpudirect="no"
     config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
@@ -253,6 +284,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -t 2.0 \
     -x ${run_tests} \
     -k \$embedded_ofi \
+    -H "\${gpudirect}" \
     -Y "\${ze_native}" \
     -Z "\${ze_dir}" \
     -j "--disable-opencl \${config_extra}" \
@@ -265,6 +297,10 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
 
 if [ "${run_tests}" = "yes" ]; then
     srun cp test/mpi/summary.junit.xml ${config_name}/test/mpi/summary.junit.xml
+fi
+
+if [ "${pmix}" = "nopmix" ]; then
+    srun --chdir="\$WORKSPACE" /bin/bash \$WORKSPACE/hydra-pmi-proxy-cleanup.sh "\$INSTALL_DIR"
 fi
 
 srun rm -f \$INSTALL_DIR/lib/pkgconfig/libfabric.pc
@@ -290,45 +326,45 @@ chmod +x drop-test-job.sh
 salloc -J drop:${provider}:${compiler}:${config}:${pmix} -N 1 -t 360 ./drop-test-job.sh
 
 """)
-                            archiveArtifacts "$config_name/**"
-                            if ("${run_tests}" == "yes") {
-                                junit "${config_name}/test/mpi/summary.junit.xml"
+                                archiveArtifacts "$config_name/**"
+                                if ("${run_tests}" == "yes") {
+                                    junit "${config_name}/test/mpi/summary.junit.xml"
+                                }
+                                cleanWs()
                             }
-                            cleanWs()
                         }
                     }
                 }
             }
         }
     }
-}
 
-stage('Build') {
-    parallel branches
-}
+    stage('Build') {
+        parallel branches
+    }
 
-def rpms = [:]
+    def rpms = [:]
 
-for (a in providers) {
-    for (b in compilers) {
-        for (c in configs) {
-            for (d in pmixs) {
-                for (e in flavors) {
-                    def provider = a
-                    def compiler = b
-                    def config = c
-                    def pmix = d
-                    def flavor = e
+    for (a in providers) {
+        for (b in compilers) {
+            for (c in configs) {
+                for (d in pmixs) {
+                    for (e in flavors) {
+                        def provider = a
+                        def compiler = b
+                        def config = c
+                        def pmix = d
+                        def flavor = e
 
-                    if (skip_config(provider, compiler, config, pmix, flavor)) {
-                        continue
-                    }
+                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                            continue
+                        }
 
-                    rpms["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
-                        node('anfedclx8') {
-                            def version = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/drop_version')
-                            def release = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/release_version')
-                            sh(script: """
+                        rpms["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
+                            node('anfedclx8') {
+                                def version = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/drop_version')
+                                def release = sh(returnStdout: true, script: 'cat ${HOME}/rpmbuild/release_version')
+                                sh(script: """
 #!/bin/bash -xe
 
 # Set overlap as default
@@ -359,6 +395,7 @@ srun rpmbuild -bb \
     --define="_configs ${config}" \
     --define="_compiler ${compiler}" \
     --define="_flavor ${flavor}" \
+    --define="_pmix ${pmix}" \
     SPECS/mpich-ofi.spec
 
 rm -rf BUILD/\${NAME}
@@ -369,72 +406,76 @@ popd
 
 cp \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME .
 """)
-                            def rpm_name = "mpich-ofi-${provider}-${compiler}-${config}"
-                            if ("$pmix" == "pmix") {
-                                rpm_name = rpm_name + "-pmix"
+                                def rpm_name = "mpich-ofi-${provider}-${compiler}-${config}"
+                                if ("$pmix" == "pmix") {
+                                    rpm_name = rpm_name + "-pmix"
+                                }
+                                if ("$flavor" != "regular") {
+                                    rpm_name = rpm_name + "-${flavor}"
+                                }
+                                def stash_name = "$rpm_name"
+                                rpm_name = rpm_name + "-drop${version}-${version}-${release}.x86_64.rpm"
+                                stash includes: "*.rpm", name: "$stash_name"
+                                cleanWs()
                             }
-                            if ("$flavor" != "regular") {
-                                rpm_name = rpm_name + "-${flavor}"
-                            }
-                            def stash_name = "$rpm_name"
-                            rpm_name = rpm_name + "-drop${version}-${version}-${release}.x86_64.rpm"
-                            stash includes: "*.rpm", name: "$stash_name"
-                            cleanWs()
                         }
                     }
                 }
             }
         }
     }
-}
 
-stage('Build RPMs') {
-    parallel rpms
-}
+    stage('Build RPMs') {
+        parallel rpms
+    }
 
-def rpm_tests = [:]
+    def rpm_tests = [:]
 
-for (a in providers) {
-    for (b in compilers) {
-        for (c in configs) {
-            for (d in pmixs) {
-                for (e in flavors) {
-                    def provider = a
-                    def compiler = b
-                    def config = c
-                    def pmix = d
-                    def flavor = e
-                    def testgpu = 0
-                    /* We don't have a way to automate testing with cxi yet */
-                    if ("${provider}" == "cxi") {
-                        continue
-                    }
-                    if (skip_config(provider, compiler, config, pmix, flavor)) {
-                        continue
-                    }
-
-                    /* We currently have no way to install an RPM on a verbs cluster */
-                    rpm_tests["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
-                        def node_name = "anfedclx8-admin"
-                        if ("${provider}" == "verbs") {
-                            node_name = "anccskl6"
+    for (a in providers) {
+        for (b in compilers) {
+            for (c in configs) {
+                for (d in pmixs) {
+                    for (e in flavors) {
+                        def provider = a
+                        def compiler = b
+                        def config = c
+                        def pmix = d
+                        def flavor = e
+                        def testgpu = 0
+                        /* We don't have a way to automate testing with cxi yet */
+                        if ("${provider}" == "cxi") {
+                            continue
                         }
-                        if ("${flavor}" == "ats") {
-                            node_name = "jfcst-xe"
-                            testgpu = 1
+                        /* We don't have a way to automate testing with psm3 yet */
+                        if ("${provider}" == "psm3") {
+                            continue
                         }
-                        node("${node_name}") {
-                            cleanWs()
-                            def stash_name = "mpich-ofi-${provider}-${compiler}-${config}"
-                            if ("$pmix" == "pmix") {
-                                stash_name = stash_name + "-pmix"
+                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                            continue
+                        }
+
+                        /* We currently have no way to install an RPM on a verbs cluster */
+                        rpm_tests["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
+                            def node_name = "anfedclx8-admin"
+                            if ("${provider}" == "verbs") {
+                                node_name = "anccskl6"
                             }
-                            if ("$flavor" != "regular") {
-                                stash_name = stash_name + "-${flavor}"
+                            if ("${flavor}" == "ats") {
+                                node_name = "jfcst-xe"
+                                testgpu = 1
                             }
-                            unstash name: 'drop-tarball'
-                            unstash name: "$stash_name"
-                            sh(script: """
+                            node("${node_name}") {
+                                cleanWs()
+                                def stash_name = "mpich-ofi-${provider}-${compiler}-${config}"
+                                if ("$pmix" == "pmix") {
+                                    stash_name = stash_name + "-pmix"
+                                }
+                                if ("$flavor" != "regular") {
+                                    stash_name = stash_name + "-${flavor}"
+                                }
+                                unstash name: 'drop-tarball'
+                                unstash name: "$stash_name"
+                                sh(script: """
 #!/bin/bash -x
 
 # Set overlap as default
@@ -457,20 +498,26 @@ EOF
 chmod +x RPM-testing-drop-job.sh
 tar -xf \$TARBALL
 
-salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600 ./RPM-testing-drop-job.sh
+salloc_conf=
+if [ "${flavor}" = "ats" ]; then
+    salloc_conf="-x ats2"
+fi
+
+salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" \${salloc_conf} -N \${nodes} -t 600 ./RPM-testing-drop-job.sh
 """)
-                            junit "**/summary.junit.xml"
-                            cleanWs()
+                                junit "**/summary.junit.xml"
+                                cleanWs()
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 
-stage('Test RPMs') {
-    parallel rpm_tests
+    stage('Test RPMs') {
+        parallel rpm_tests
+    }
 }
 
 if (params.publish_results) {
@@ -575,7 +622,6 @@ https://af02p-or.devtools.intel.com/artifactory/mpich-aurora-or-local/\$dir/\$su
         parallel rpms_upload
         node('anfedclx8') {
             withCredentials([string(credentialsId: 'artifactory_api_key', variable: 'API_KEY')]) {
-                unstash name: 'drop-tarball'
                 sh(script: """
 #!/bin/bash -xe
 
@@ -588,6 +634,7 @@ if [ "\${release}" != "0" ]; then
     tag_string="\${tag_string}.\${release}"
 fi
 
+cp \$HOME/rpmbuild/SOURCES/${tarball_name} .
 mv ${tarball_name} mpich-\${tag_string}.tar.bz2
 
 curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
@@ -600,8 +647,10 @@ curl -H 'X-JFrog-Art-Api:$API_KEY' -XPUT \
     }
 }
 
-node('anfedclx8') {
-    stage('Cleanup Build Directories') {
-        sh(script: """rm -rf \$HOME/rpmbuild/BUILD \$HOME/rpmbuild/BUILDROOT""")
+if (params.build_rpms) {
+    node('anfedclx8') {
+        stage('Cleanup Build Directories') {
+            sh(script: """rm -rf \$HOME/rpmbuild/BUILD \$HOME/rpmbuild/BUILDROOT""")
+        }
     }
 }

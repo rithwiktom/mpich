@@ -140,10 +140,6 @@ elif [ ${compiler} == "icc" ]; then
 
 fi
 
-if [ ${provider} == "sockets" -o "${provider}" == "all" ]; then
-    export FI_PROVIDER=sockets
-fi
-
 
 # First generate everything and copy it to a tmp workspace
 #cd $BUILD_SCRIPT_DIR
@@ -159,6 +155,11 @@ if [ "$flavor" == "ats" ]; then
 else
     module use /usr/mpi/modulefiles/
     MPI_DIR="/usr/mpi/${MPI}"
+fi
+
+# Need to set FI_PROVIDER after loading the module file, because the modulefile unsets FI_PROVIDER
+if [ ${provider} == "sockets" -o "${provider}" == "all" ]; then
+    export FI_PROVIDER=sockets
 fi
 
 if [ "$compiler" == "icc" ]; then
