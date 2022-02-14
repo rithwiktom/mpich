@@ -401,7 +401,7 @@ SetCompiler() {
             BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
-            NATIVE_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=native"
+            NATIVE_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
 
             GNU_DETERMINISTIC_FLAGS="-fno-associative-math -fno-rounding-math -fno-tree-vectorization"
 
@@ -542,7 +542,7 @@ SetCompiler() {
             BROADWELL_OPT="-msse2 -msse4.2 -mcrc32 -mavx2"
             KNL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
             SKL_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=skylake-avx512"
-            NATIVE_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f -march=native"
+            NATIVE_OPT="-msse2 -msse4.2 -mcrc32 -mavx512f"
 
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
@@ -709,7 +709,7 @@ SetCompiler() {
             BROADWELL_OPT="-xCORE-AVX2"
             KNL_OPT="-xCORE-AVX512"
             SKL_OPT="-xCORE-AVX512"
-            NATIVE_OPT="-xCORE-AVX512 -march=native"
+            NATIVE_OPT="-xCORE-AVX512"
 
             if [ "$embed_ofi" != "yes" ]; then
                 export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
@@ -930,7 +930,7 @@ SetConfigOpt() {
             config_opt+=( -enable-fast=none )
             ;;
         "O3")
-            config_opt+=( -enable-fast=all,O3 )
+            config_opt+=( -enable-fast=all,O3,avx )
             ;;
         *)
             echo "Bad fast option: $fast"
