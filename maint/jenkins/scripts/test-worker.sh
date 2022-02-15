@@ -1059,7 +1059,8 @@ SetConfigOpt() {
                 else
                     enable_cxi="yes"
                 fi
-                prov_config+=( --enable-cxi=${enable_cxi})
+                # don't set this right now, our systems don't have cxi
+                # prov_config+=( --enable-cxi=${enable_cxi})
             else
                 prov_config+=( --disable-cxi)
             fi
