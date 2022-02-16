@@ -38,7 +38,7 @@ def num_optional_groups = num_groups - num_required_groups
 
 /* Required: */
 def all_netmods   = [ "ofi" ]
-def all_providers = [ "sockets", "psm2", "verbs", "cxi" ]
+def all_providers = [ "sockets", "psm2", "verbs", "cxi", "psm3" ]
 def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
@@ -111,7 +111,7 @@ ${netmod}:${provider}/${compiler}/${am}/${direct}/${config}/${gpu}/${test}/${thr
 @NonCPS
 def match_github_phrase() {
     /* Match on the main trigger and any additional configure options */
-    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|cxi|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
+    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|cxi|psm3|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
     try {
         jenkins_config_string = "" + matcher.find() ? matcher.group() : "not found"
         if (jenkins_config_string.split(" ").size() > 1) {
@@ -299,7 +299,7 @@ for (a in netmods) {
                                                     def build_mode = "per-commit"
 
                                                     /* Set the current node and username depending on the configuration */
-                                                    if ("${provider}" == "verbs") {
+                                                    if ("${provider}" == "verbs" || "${provider}" == "psm3") {
                                                         node_name = "anccskl6"
                                                     } else if ("${provider}" == "cxi") {
                                                         node_name = cassini_nodes
@@ -488,19 +488,26 @@ fi
 
 if [ "${provider}" = "psm2" ]; then
     export FI_PSM2_LOCK_LEVEL=1
+elif [ "${provider}" = "psm3" ]; then
+    export PSM3_MULTI_EP=1
 fi
 
 CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 
 # Set the environment for GPU systems
 if [ "$gpu" = "ats" ]; then
-    embedded_ofi="yes"
+    if [ "${provider}" == "psm3" ]; then
+        OFI_DIR="/home/sys_csr1/software/libfabric/psm3-dynamic"
+    else
+        embedded_ofi="yes"
+    fi
     xpmem="no"
     # TODO: Switch back to system-installed neo once memid impl is fixed
     neo_dir=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
     ze_dir=/usr
     ze_native="$gpu"
     disable_psm2="yes"
+    CONFIG_EXTRA="\$CONFIG_EXTRA --enable-psm3"
 elif [ "$gpu" = "nogpu" ]; then
     gpudirect="no"
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
@@ -566,6 +573,10 @@ EOF
 chmod +x per-commit-test-job.sh
 if [ "${provider}" != "cxi" ]; then
     prefix="salloc -J per-commit:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360"
+    if [ "${provider}" == "psm3" -a "${gpu}" == "ats" ]; then
+      #Exclude using ats4 on jfcst since ats4 does not discover IB nics
+      prefix="\${prefix} -x ats4"
+    fi
 else
     prefix=""
 fi
