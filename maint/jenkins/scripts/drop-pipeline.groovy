@@ -198,6 +198,7 @@ neo_dir=""
 ze_dir=""
 ze_native=""
 config_extra=""
+cpu="native"
 
 fast=""
 if [ "${config}" = "debug" ]; then
@@ -239,6 +240,9 @@ if [ "${flavor}" == "nogpu" ]; then
     config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
+    # The nogpu builds are meant for JLSE Iris nodes, which don't have avx512 support.
+    # We should not use -march=native for these builds
+    cpu=""
 elif [ "${flavor}" == "ats" ]; then
     embedded_ofi="no"
     # PSM3 provider is used for testing oneCCL over Mellanox
@@ -291,6 +295,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -D \$daos \
     -E \$xpmem \
     -P ${pmix} \
+    -a "\$cpu" \
     -O \$ofi_domain \
     -y \$CUSTOM_VERSION_STRING \
     -f \$INSTALL_DIR
