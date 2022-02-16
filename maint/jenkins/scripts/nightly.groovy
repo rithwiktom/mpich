@@ -55,6 +55,7 @@ if ("${RUN_TYPE}" == "regular") {
     all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "ats") {
     all_providers = [ "sockets" ]
+    all_compilers = [ "gnu" ]
     all_gpus = [ "ats" ]
     all_tests = [ "gpu" ]
     all_threads = [ "runtime" ]
