@@ -75,6 +75,7 @@ if [ "${provider}" == "all" ]; then
         OFI_DIR="/home/sys_csr1/software/libfabric/sockets"
     fi
 fi
+
 DAOS_INSTALL_DIR="/opt/daos-34"
 pmix_dir="/opt/openpmix"
 prte_dir="/opt/prrte"
@@ -192,6 +193,7 @@ fi
 
 export LD_LIBRARY_PATH=${OFI_DIR}/lib:/opt/intel/csr/lib:/opt/intel/csr/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
 
 # This is used on the anfedclx8 machine
 if [ "$flavor" == "ats" ]; then
