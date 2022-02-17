@@ -709,7 +709,7 @@ SetCompiler() {
             BROADWELL_OPT="-xCORE-AVX2"
             KNL_OPT="-xCORE-AVX512"
             SKL_OPT="-xCORE-AVX512"
-            NATIVE_OPT="-xCORE-AVX512"
+            NATIVE_OPT=""
 
             if [ "$embed_ofi" != "yes" ]; then
                 export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
