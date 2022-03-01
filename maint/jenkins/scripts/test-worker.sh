@@ -951,6 +951,9 @@ SetConfigOpt() {
             config_opt+=( -enable-fast=none )
             ;;
         "O3")
+            config_opt+=( -enable-fast=all,O3 )
+            ;;
+        "avx")
             config_opt+=( -enable-fast=all,O3,avx )
             ;;
         *)

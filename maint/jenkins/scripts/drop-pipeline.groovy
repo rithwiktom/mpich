@@ -207,8 +207,10 @@ cpu="native"
 fast=""
 if [ "${config}" = "debug" ]; then
     fast="none"
-else
+elif [ "${flavor}" = "nogpu" ]; then
     fast="O3"
+else
+    fast="avx"
 fi
 
 pmix_string=""
