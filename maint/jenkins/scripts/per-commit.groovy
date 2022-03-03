@@ -38,7 +38,7 @@ def num_optional_groups = num_groups - num_required_groups
 
 /* Required: */
 def all_netmods   = [ "ofi" ]
-def all_providers = [ "sockets", "psm2", "verbs", "cxi", "psm3" ]
+def all_providers = [ "sockets", "psm2", "verbs", "cxi", "psm3", "tcp"]
 def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]

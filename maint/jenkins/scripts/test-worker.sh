@@ -22,6 +22,8 @@ psm2_dir="/usr"
 psm2_dir_list="/opt/intel/csr /home/sys_csr1/software/psm2" # list of locations where we might have libpsm2
 verbs_dir="/usr"
 verbs_dir_list="/opt/intel/csr /home/sys_csr1/software/verbs" # list of locations where we might have libibverbs
+tcp_dir="/usr"
+tcp_dir_list="/opt/intel/csr /home/sys_csr1/software/tcp" # list of locations where we might have libtcp
 use_pmix="nopmix"
 pmix_dir="/opt/openpmix"
 prte_dir="/opt/prrte"
@@ -197,6 +199,8 @@ done
 ofi_prov_string="$ofi_prov"
 if [ "$ofi_prov" = "verbs" ]; then
     ofi_prov_string="verbs;ofi_rxm"
+elif [ "$ofi_prov" = "tcp" ]; then
+    ofi_prov_string="tcp;ofi_rxm"
 elif [ "$ofi_prov" = "all" ]; then
     ofi_prov_string=""
 fi
@@ -335,6 +339,13 @@ PrepareEnv() {
         fi
     done
 
+    for d in $tcp_dir_list; do
+        if [ -f "$d/lib64/libtcp.so" ]; then
+            tcp_dir=$d
+            break
+        fi
+    done
+
     for d in $cxi_dir_list; do
         if [ -f "$d/lib64/libcxi.so" ]; then
             cxi_dir=$d
@@ -350,7 +361,7 @@ PrepareEnv() {
     fi
 
     if [ "$embed_ofi" != "yes" ]; then
-        LD_LIBRARY_PATH=$ofi_dir/lib:$psm2_dir/lib64:${verbs_dir}/lib64:$LD_LIBRARY_PATH
+        LD_LIBRARY_PATH=$ofi_dir/lib:$psm2_dir/lib64:${verbs_dir}/lib64:${tcp_dir}/lib64:$LD_LIBRARY_PATH
     fi
 
     if [ "$neo_dir" != "" ]; then
@@ -408,7 +419,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -547,7 +558,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -712,7 +723,7 @@ SetCompiler() {
             NATIVE_OPT=""
 
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -892,6 +903,13 @@ SetConfigOpt() {
         fi
         DAOS_OPTS=" --with-daos=$DAOS_INSTALL_DIR --with-cart=$DAOS_INSTALL_DIR"
         config_opt+=( $DAOS_OPTS )
+    elif [ "$ofi_prov" = "tcp" -a "$daos" = "yes" ]; then
+        config_opt+=( -with-file-system=ufs+nfs+daos )
+        if [ -f /opt/daos-34 ]; then
+            DAOS_INSTALL_DIR="/opt/daos-34"
+        fi
+        DAOS_OPTS=" --with-daos=$DAOS_INSTALL_DIR --with-cart=$DAOS_INSTALL_DIR"
+        config_opt+=( $DAOS_OPTS )
     else
         config_opt+=( -with-file-system=ufs+nfs )
     fi
@@ -954,7 +972,7 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS=" $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
             MPICHLIB_F77FLAGS=" $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-O0 -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
                 MPICHLIB_LDFLAGS="-O0 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
@@ -974,7 +992,7 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS=" $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS"
             MPICHLIB_F77FLAGS=" $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
                 MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
@@ -998,7 +1016,7 @@ SetConfigOpt() {
             MPICHLIB_FCFLAGS=" $EXTRA_MPICHLIB_FCFLAGS $COMPILER_FCFLAGS_OPTS"
             MPICHLIB_F77FLAGS=" $EXTRA_MPICHLIB_F77FLAGS $COMPILER_F77FLAGS_OPTS"
             if [ "$embed_ofi" != "yes" ]; then
-                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
+                MPICHLIB_LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 $EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             else
                 MPICHLIB_LDFLAGS="$EXTRA_MPICHLIB_LDFLAGS $COMPILER_LDFLAGS"
             fi
@@ -1022,7 +1040,7 @@ SetConfigOpt() {
         prov_config+=( --disable-usnic)
 
         # Add OFI config options
-        if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
+        if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "verbs" -o "$ofi_prov" = "cxi" -o "$ofi_prov" = "tcp" -o "$ofi_prov" = "all" -o "$jenkins_configure" = "debug" ]; then
             # "$jenkins_configure" = "debug" => runtime capability sets => OFI subconfigure will
             # build in all possible providers, so we must specify psm2 location here regardless
             # of the provider the user specified. Otherwise this libfabric build will detect
@@ -1063,6 +1081,18 @@ SetConfigOpt() {
                 # prov_config+=( --enable-cxi=${enable_cxi})
             else
                 prov_config+=( --disable-cxi)
+            fi
+
+            if [ "$ofi_prov" = "tcp" -o "$ofi_prov" = "all" ]; then
+                if [ -f "${tcp_dir}/lib64/libtcp.so" ]; then
+                    enable_tcp=${tcp_dir}
+                else
+                    enable_tcp="yes"
+                    enable_rxm="yes"
+                fi
+                prov_config+=( --enable-tcp=${enable_tcp})
+            else
+                prov_config+=( --disable-tcp)
             fi
 
             if [ "$ofi_prov" = "all" ]; then
@@ -1184,13 +1214,17 @@ if [ "$build_mpich" == "yes" ]; then
 
     # Set fabric path after L0, so libfabric is picked from here instead of /usr/lib64
     # Lets see if this breaks the ocloc path
-    if [ "$ofi_prov" = "sockets" ]; then
+    if [ "$ofi_prov" = "sockets" -o "$ofi_prov" = "tcp" ]; then
         if [ "$daos" = "yes" ]; then
             # set paths for daos
             export PATH=$DAOS_INSTALL_DIR/bin/:$PATH
             export LD_LIBRARY_PATH=$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
         fi
-        export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$LD_LIBRARY_PATH
+        if [ "$ofi_prov" = "sockets" ]; then
+            export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$LD_LIBRARY_PATH
+        elif [ "$ofi_prov" = "tcp"]; then
+            export LD_LIBRARY_PATH=/opt/intel/csr/ofi/tcp-dynamic/lib/:$LD_LIBRARY_PATH
+        fi
         config_opt+=( --enable-psm2=no )
     fi
 
@@ -1209,6 +1243,10 @@ if [ "$build_mpich" == "yes" ]; then
     # newer systems
     if [ "$ofi_prov" = "verbs" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/verbs-dynamic/lib/:$LD_LIBRARY_PATH
+    fi
+
+    if [ "$ofi_prov" = "tcp" ]; then
+        export LD_LIBRARY_PATH=/opt/intel/csr/ofi/tcp-dynamic/lib/:$LD_LIBRARY_PATH
     fi
 
     if [ "$ofi_prov" = "all" ]; then
@@ -1378,7 +1416,7 @@ if [ "$run_tests" == "yes" ]; then
     esac
 
     # run only the minimum level of datatype tests when it is per-commit job
-    if [[ "$BUILD_MODE" = "per-commit" || "$BUILD_MODE" = "per-commit-a20" || "$ofi_prov" = "psm2" || "$ofi_prov" = "verbs" ]]; then
+    if [[ "$BUILD_MODE" = "per-commit" || "$BUILD_MODE" = "per-commit-a20" || "$ofi_prov" = "psm2" || "$ofi_prov" = "verbs" || "$ofi_prov" = "tcp" ]]; then
         MPITEST_DATATYPE_TEST_LEVEL=min
         export MPITEST_DATATYPE_TEST_LEVEL
     fi
@@ -1400,6 +1438,8 @@ if [ "$run_tests" == "yes" ]; then
     fi
 
     if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
+        export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
+    elif [ "$ofi_prov" = "tcp" -a "$daos" = "yes" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
     else
         export LD_LIBRARY_PATH=${ofi_dir}/lib:${ofi_dir}/lib64:$LD_LIBRARY_PATH
