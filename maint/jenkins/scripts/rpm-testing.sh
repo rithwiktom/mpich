@@ -262,6 +262,8 @@ fi
 
 ldd ${MPI_DIR}/lib/libmpich.so
 
+echo "rpm-testing: test/mpi/configure will run on hostname: ${HOSTNAME}"
+
 ./configure --with-mpi=${MPI_DIR} --disable-perftest --disable-ft-tests ${error_checking} ${config_opts} \
     CC=mpicc CXX=mpicxx F77=mpif77 FC=mpif90
 
@@ -289,6 +291,7 @@ fi
 
 cd test/mpi
 make clean
+echo "rpm-testing: make testing will run on hostname: ${HOSTNAME}"
 if [ "${pmix}" == "pmix" ]; then
     make testing MPIEXEC="/opt/prrte/bin/prte" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE" MPITEST_PPNARG="-ppn 1 "
 else

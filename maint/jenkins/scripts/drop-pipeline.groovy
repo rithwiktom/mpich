@@ -483,6 +483,9 @@ export job="drop\${version}"
 export nodes=1
 export TARBALL="mpich-drops.tar.bz2"
 
+# Print out the hostname for debugging logs
+hostname
+
 cat > RPM-testing-drop-job.sh << "EOF"
 #!/bin/bash -x
 

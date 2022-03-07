@@ -1218,6 +1218,7 @@ if [ "$build_mpich" == "yes" ]; then
         module load gnu9
     fi
 
+    echo "test-worker: ${src_dir}/configure will run on hostname: ${HOSTNAME}"
     $src_dir/configure -C --prefix="$install_dir" ${config_opt[@]} \
         MPICHLIB_CFLAGS="$MPICHLIB_CFLAGS" MPICHLIB_CXXFLAGS="$MPICHLIB_CXXFLAGS" MPICHLIB_FCFLAGS="$MPICHLIB_FCFLAGS" MPICHLIB_F77FLAGS="$MPICHLIB_F77FLAGS" MPICHLIB_LDFLAGS="$MPICHLIB_LDFLAGS" \
         2>&1 | tee c.txt
@@ -1452,6 +1453,7 @@ if [ "$run_tests" == "yes" ]; then
     fi
 
     echo `env | grep MPI`
+    echo "test-worker: make testing will run on hostname: ${HOSTNAME}"
     if [[ "$BUILD_MODE" = "multinode" ]]; then
         make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
     else
