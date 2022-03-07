@@ -23,7 +23,7 @@ jenkins_envs = ""
 jenkins_node_string = ""
 jenkins_node = ""
 def continue_pipeline = true
-BLUEOCEAN_URL = "https://ancoral001.an.intel.com/blue/organizations/jenkins/per-commit-github/detail/per-commit-github"
+BLUEOCEAN_URL = "https://ancoral001.an.intel.com/blue/organizations/jenkins/per-commit-mpich/detail/per-commit-mpich"
 def status_context = ""
 def status_message = "Completed"
 currentBuild.result = "SUCCESS"
@@ -188,7 +188,7 @@ if ("${jenkins_node}" != "") {
 }
 status_context = "per-commit: $status_line"
 
-/* Check if the link should be for per-commit-github or per-commit-github-main */
+/* Check if the link should be for per-commit-mpich or per-commit-github-main */
 if (env['GITHUB_PR_TARGET_BRANCH'].equals("main")) {
     BLUEOCEAN_URL = "https://ancoral001.an.intel.com/blue/organizations/jenkins/per-commit-github-main/detail/per-commit-github-main"
 }
