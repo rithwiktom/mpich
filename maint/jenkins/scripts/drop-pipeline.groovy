@@ -9,6 +9,7 @@ def skip_config(provider, compiler, config, pmix, flavor) {
 
     // Misc
     skip |= ("${pmix}" == "pmix" && "${provider}" == "psm2") // Don't build PMIx with PSM2
+    skip |= ("${pmix}" == "pmix" && "${provider}" == "psm3") // Don't build PMIx with PSM3
     skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
 
     // GPUs
@@ -19,7 +20,6 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
     skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
-    skip |= ("${provider}" == "psm3" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats"))
 
     return skip
 }
@@ -28,7 +28,7 @@ def branches = [:]
 
 // The "all" provider means that the build supports all providers. This is normal for the debug
 // build, but using this provider enables it for a default build as well
-def providers = ['sockets', 'psm2', 'cxi', 'all']
+def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'all']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
@@ -446,10 +446,6 @@ cp \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME .
                         if ("${provider}" == "cxi") {
                             continue
                         }
-                        /* We don't have a way to automate testing with psm3 yet */
-                        if ("${provider}" == "psm3") {
-                            continue
-                        }
                         if (skip_config(provider, compiler, config, pmix, flavor)) {
                             continue
                         }
@@ -486,6 +482,9 @@ export release=\$(<release_version)
 export job="drop\${version}"
 export nodes=1
 export TARBALL="mpich-drops.tar.bz2"
+
+# Print out the hostname for debugging logs
+hostname
 
 cat > RPM-testing-drop-job.sh << "EOF"
 #!/bin/bash -x
