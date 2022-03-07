@@ -58,10 +58,14 @@ BUILD_SCRIPT_DIR="$JENKINS_DIR/scripts"
 if [ "${flavor}" != "ats" ]; then
     OFI_DIR="/opt/intel/csr/ofi/${provider}-dynamic"
 else
-    if [ -d "/opt/intel/csr/ofi/sockets-dynamic" ]; then
-        OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
+    if [ "${provider}" == "psm3" ]; then
+        OFI_DIR="/home/sys_csr1/software/libfabric/psm3-dynamic"
     else
-        OFI_DIR="/home/sys_csr1/software/libfabric/sockets"
+      if [ -d "/opt/intel/csr/ofi/sockets-dynamic" ]; then
+          OFI_DIR="/opt/intel/csr/ofi/sockets-dynamic"
+      else
+          OFI_DIR="/home/sys_csr1/software/libfabric/sockets"
+      fi
     fi
 fi
 if [ "${provider}" == "all" ]; then
@@ -160,6 +164,9 @@ fi
 # Need to set FI_PROVIDER after loading the module file, because the modulefile unsets FI_PROVIDER
 if [ ${provider} == "sockets" -o "${provider}" == "all" ]; then
     export FI_PROVIDER=sockets
+elif [ ${provider} == "psm3" ]; then
+    export FI_PROVIDER=psm3
+    export PSM3_MULTI_EP=1
 fi
 
 if [ "$compiler" == "icc" ]; then
@@ -255,6 +262,8 @@ fi
 
 ldd ${MPI_DIR}/lib/libmpich.so
 
+echo "rpm-testing: test/mpi/configure will run on hostname: ${HOSTNAME}"
+
 ./configure --with-mpi=${MPI_DIR} --disable-perftest --disable-ft-tests ${error_checking} ${config_opts} \
     CC=mpicc CXX=mpicxx F77=mpif77 FC=mpif90
 
@@ -282,6 +291,7 @@ fi
 
 cd test/mpi
 make clean
+echo "rpm-testing: make testing will run on hostname: ${HOSTNAME}"
 if [ "${pmix}" == "pmix" ]; then
     make testing MPIEXEC="/opt/prrte/bin/prte" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE" MPITEST_PPNARG="-ppn 1 "
 else
