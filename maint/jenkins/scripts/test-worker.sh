@@ -1200,7 +1200,7 @@ if [ "$build_mpich" == "yes" ]; then
     fi
 
     # Set the path for psm2 again as well
-    if [ "$ofi_prov" = "psm2" ]; then
+    if [ "$ofi_prov" = "psm2" -o "$ofi_prov" = "psm3" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/$ofi_prov-dynamic/lib/:$LD_LIBRARY_PATH
     fi
 
