@@ -15,7 +15,8 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // GPUs
     skip |= ("${flavor}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
     skip |= ("${flavor}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
-    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
+    skip |= ("${flavor}" == "ats" && "${provider}" == "tcp") // Don't build ATS with tcp
+    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${provider}" == "tcp" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
 
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
@@ -28,7 +29,7 @@ def branches = [:]
 
 // The "all" provider means that the build supports all providers. This is normal for the debug
 // build, but using this provider enables it for a default build as well
-def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'all']
+def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'all', 'tcp']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
@@ -255,7 +256,7 @@ elif [ "\${embedded_ofi}" == "yes" ]; then
     config_extra+=" --disable-psm3"
 fi
 
-if [ "${provider}" != "sockets" ]; then
+if [ "${provider}" != "sockets" || "${provider}" != "tcp" ]; then
     daos="no"
 fi
 
