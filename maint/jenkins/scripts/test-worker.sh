@@ -934,6 +934,9 @@ SetConfigOpt() {
     elif [ "x$ofi_prov_string" != "x" ]; then
         device_caps=":$ofi_prov_string"
     fi
+    if [ "$ofi_prov" = "tcp" ]; then
+        device_caps=""
+    fi
     if [ "x${shm_eager}" != "x" -a "${direct}" != "none" ]; then
         config_opt+=(--with-ch4-posix-eager-modules=${shm_eager})
     fi
