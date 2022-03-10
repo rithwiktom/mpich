@@ -1483,7 +1483,7 @@ if [ "$run_tests" == "yes" ]; then
         export MPIR_CVAR_CH4_OFI_ENABLE_TAGGED=0
     fi
 
-    if [ "$use_pmix" = "pmix" ]; then
+    if [ "$use_pmix" == "pmix" ]; then
         export LD_LIBRARY_PATH=$pmix_dir/lib:$prte_dir/lib:$LD_LIBRARY_PATH
         export PATH=$pmix_dir/bin:$prte_dir/bin:$PATH
     fi
