@@ -37,6 +37,8 @@ function generate_lua_script {
     provider_string="${provider}"
     if [ "$provider" == "verbs" ]; then
         provider_string="verbs;ofi_rxm"
+    elif [ "$provider" == "tcp" ]; then
+        provider_string="tcp;ofi_rxm"
     fi
 
     cat > $filename << EOF
@@ -166,6 +168,8 @@ function generate_tcl_script {
     provider_string="${provider}"
     if [ "$provider" == "verbs" ]; then
         provider_string="verbs;ofi_rxm"
+    elif [ "$provider" == "tcp" ]; then
+        provider_string="tcp;ofi_rxm"
     fi
 
     cat > $filename << EOF
