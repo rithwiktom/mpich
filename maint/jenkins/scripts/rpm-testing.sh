@@ -209,7 +209,7 @@ fi
 
 export PATH=/opt/intel/csr/bin:$PATH
 
-if [ "$provider" == "sockets" ]; then
+if [ "$provider" == "sockets" -o "$provider" == "tcp" ]; then
     # set paths for daos
     export PATH=$DAOS_INSTALL_DIR/bin/:$PATH
     export LD_LIBRARY_PATH=$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
@@ -277,6 +277,8 @@ xfail_file=${WORKSPACE}/maint/jenkins/xfail.conf
 provider_string="${provider}"
 if [ "$provider" == "verbs" ]; then
     provider_string="verbs;ofi_rxm"
+elif [ "$provider" == "tcp" ]; then
+    provider_string="tcp;ofi_rxm"
 elif [ "${provider}" == "all" ]; then # If using a build with no default provider, the sockets provider
                                       # will be selected so use that for testing
     provider_string="sockets"
