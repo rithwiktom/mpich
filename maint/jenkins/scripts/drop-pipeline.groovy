@@ -21,6 +21,7 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
     skip |= ("${provider}" == "sockets" && "${flavor}" == "regular") // The sockets provider builds will only the ats and nogpu)
+    skip |= ("${provider}" == "psm3" && "${flavor}" == "regular") // The psm3 provider builds will only be for ats)
     skip |= ("${provider}" == "sockets" && "${pmix}" == "pmix") // The sockets provider builds will only the ats and nogpu)
     skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
     skip |= ("${provider}" == "tcp" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The TCP+PMIx use the Intel compilers
