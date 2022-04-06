@@ -96,7 +96,6 @@ def skip_config(netmod, provider, compiler, am, direct, config, gpu, test, threa
 
     // GPUs
     skip |= ("${gpu}" != "nogpu" && "${test}" == "cpu-gpu") // Only do GPU testing on GPU systems since its already slow
-    skip |= ("${gpu}" != "nogpu" && "${config}" == "default") // Reduce number of GPU configs
 
     // Threading
     skip |= ("${thread}" == "handoff") // Don't nightly test handoff
