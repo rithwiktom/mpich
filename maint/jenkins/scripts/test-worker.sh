@@ -1294,7 +1294,7 @@ fi
 if [ "${ofi_prov}" == "all" ]; then
     ofi_prov_esp="sockets"
 else
-    printf -v ofi_prov_esp "%q" $ofi_prov
+    printf -v ofi_prov_esp "%q" $ofi_prov_string
 fi
 cat >populate-testlists.sh<<EOF
 #!/bin/bash
