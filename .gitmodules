@@ -3,7 +3,8 @@
 	url = https://github.com/pmodels/izem
 [submodule "modules/libfabric"]
 	path = modules/libfabric
-	url = ssh://git@gitlab.devtools.intel.com:29418/A21/libfabric.git
+	url = git@github.com:intel-sandbox/libfabric-aurora.git
+	branch = intel_2022.02.28.001
 [submodule "modules/hwloc"]
 	path = modules/hwloc
 	url = https://github.com/pmodels/hwloc
