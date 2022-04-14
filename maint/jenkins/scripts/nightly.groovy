@@ -22,7 +22,7 @@ if (day % 2 == 0) {
   If the regex is updated, these also need to be updated
 */
 def all_netmods   = [ "ofi" ]
-def all_providers = [ "sockets", "psm2", "verbs" ]
+def all_providers = [ "sockets", "psm2", "verbs", "psm3" ]
 def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
@@ -54,7 +54,7 @@ if ("${RUN_TYPE}" == "regular") {
     all_vcis = [ "vci1" ]
     all_asyncs = [ "async-single" ]
 } else if ("${RUN_TYPE}" == "ats") {
-    all_providers = [ "sockets" ]
+    all_providers = [ "sockets", "psm3" ]
     all_compilers = [ "gnu" ]
     all_gpus = [ "ats" ]
     all_tests = [ "gpu" ]
@@ -173,7 +173,7 @@ for (a in all_netmods) {
                                                     def build_mode = "nightly"
 
                                                     /* Set the current node and username depending on the configuration */
-                                                    if ("${provider}" == "verbs") {
+                                                    if ("${provider}" == "verbs" || "${provider}" == "psm3") {
                                                         node_name = "anccskl6"
                                                     }
                                                     if ("${gpu}" == "ats") {
@@ -302,6 +302,8 @@ fi
 
 if [ "${provider}" = "psm2" ]; then
     export FI_PSM2_LOCK_LEVEL=1
+elif [ "${provider}" = "psm3" ]; then
+    export PSM3_MULTI_EP=1
 fi
 
 CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
@@ -315,6 +317,7 @@ if [ "$gpu" = "ats" ]; then
     ze_dir=/usr
     ze_native="$gpu"
     disable_psm2="yes"
+    CONFIG_EXTRA="\$CONFIG_EXTRA --enable-psm3"
 elif [ "$gpu" = "nogpu" ]; then
     gpudirect="no"
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
