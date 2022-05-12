@@ -224,8 +224,7 @@ if [ "${flavor}" != "regular" ]; then
     flavor_string="-${flavor}"
 fi
 
-# These directories will probably need to be updated going forward
-neo_dir=/opt/neo/release/2020.10.05
+neo_dir=/usr
 
 #Set ze path for all the builds
 ze_dir=/usr

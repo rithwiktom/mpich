@@ -419,7 +419,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 ${LDFLAGS} -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -558,7 +558,7 @@ SetCompiler() {
             export NM="gcc-nm"
             export RANLIB="gcc-ranlib"
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 ${LDFLAGS} -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
@@ -723,7 +723,7 @@ SetCompiler() {
             NATIVE_OPT=""
 
             if [ "$embed_ofi" != "yes" ]; then
-                export LDFLAGS="${LDFLAGS} -L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 -Wl,-z,now"
+                export LDFLAGS="-L${ofi_dir}/lib -L${ofi_dir}/lib64 -L${psm2_dir}/lib64 -L${verbs_dir}/lib64 -L${cxi_dir}/lib64 -L${tcp_dir}/lib64 ${LDFLAGS} -Wl,-z,now"
             else
                 export LDFLAGS="${LDFLAGS} -Wl,-z,now"
             fi
