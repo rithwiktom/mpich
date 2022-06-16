@@ -75,6 +75,7 @@ if [ "${provider}" == "all" ]; then
         OFI_DIR="/home/sys_csr1/software/libfabric/sockets"
     fi
 fi
+
 DAOS_INSTALL_DIR="/opt/daos-34"
 pmix_dir="/opt/openpmix"
 prte_dir="/opt/prrte"
@@ -190,15 +191,16 @@ else
     module load mpich/${compiler}-${provider}${pmix_string}${flavor_string}/${version}.${release}
 fi
 
-export LD_LIBRARY_PATH=${OFI_DIR}/lib:/opt/intel/csr/lib:/opt/intel/csr/lib64:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 # This is used on the anfedclx8 machine
 if [ "$flavor" == "ats" ]; then
     export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
 else
-    export LD_LIBRARY_PATH=/opt/neo/release/2020.10.05/lib64:/opt/dg1/clan-spir-1.1/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/usr/lib64:/opt/dg1/clan-spir-1.1/lib:$LD_LIBRARY_PATH
 fi
+
+export LD_LIBRARY_PATH=${OFI_DIR}/lib:/opt/intel/csr/lib:/opt/intel/csr/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 # Make sure the patched NEO is in front in LD_LIBRARY_PATH if on ats cluster
 if [ -d "$GENGBIN_NEO" ]; then
@@ -207,7 +209,7 @@ fi
 
 export PATH=/opt/intel/csr/bin:$PATH
 
-if [ "$provider" == "sockets" ]; then
+if [ "$provider" == "sockets" -o "$provider" == "tcp" ]; then
     # set paths for daos
     export PATH=$DAOS_INSTALL_DIR/bin/:$PATH
     export LD_LIBRARY_PATH=$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
@@ -275,6 +277,8 @@ xfail_file=${WORKSPACE}/maint/jenkins/xfail.conf
 provider_string="${provider}"
 if [ "$provider" == "verbs" ]; then
     provider_string="verbs;ofi_rxm"
+elif [ "$provider" == "tcp" ]; then
+    provider_string="tcp;ofi_rxm"
 elif [ "${provider}" == "all" ]; then # If using a build with no default provider, the sockets provider
                                       # will be selected so use that for testing
     provider_string="sockets"

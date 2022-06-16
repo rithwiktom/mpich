@@ -15,11 +15,16 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // GPUs
     skip |= ("${flavor}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
     skip |= ("${flavor}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
-    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "cxi" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
+    skip |= ("${flavor}" == "ats" && "${provider}" == "tcp") // Don't build ATS with tcp
+    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "psm3" || "${provider}" == "cxi" || "${provider}" == "tcp" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
 
     // Provider
     skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
+    skip |= ("${provider}" == "sockets" && "${flavor}" == "regular") // The sockets provider builds will only the ats and nogpu)
+    skip |= ("${provider}" == "psm3" && "${flavor}" == "regular") // The psm3 provider builds will only be for ats)
+    skip |= ("${provider}" == "sockets" && "${pmix}" == "pmix") // The sockets provider builds will only the ats and nogpu)
     skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
+    skip |= ("${provider}" == "tcp" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The TCP+PMIx use the Intel compilers
 
     return skip
 }
@@ -28,7 +33,7 @@ def branches = [:]
 
 // The "all" provider means that the build supports all providers. This is normal for the debug
 // build, but using this provider enables it for a default build as well
-def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'all']
+def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'tcp']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
@@ -198,12 +203,15 @@ neo_dir=""
 ze_dir=""
 ze_native=""
 config_extra=""
+cpu="native"
 
 fast=""
 if [ "${config}" = "debug" ]; then
     fast="none"
-else
+elif [ "${flavor}" = "nogpu" ]; then
     fast="O3"
+else
+    fast="avx"
 fi
 
 pmix_string=""
@@ -216,8 +224,7 @@ if [ "${flavor}" != "regular" ]; then
     flavor_string="-${flavor}"
 fi
 
-# These directories will probably need to be updated going forward
-neo_dir=/opt/neo/release/2020.10.05
+neo_dir=/usr
 
 #Set ze path for all the builds
 ze_dir=/usr
@@ -239,6 +246,9 @@ if [ "${flavor}" == "nogpu" ]; then
     config_extra+=" --enable-psm3 --without-ze"
     daos="no"
     xpmem="no"
+    # The nogpu builds are meant for JLSE Iris nodes, which don't have avx512 support.
+    # We should not use -march=native for these builds
+    cpu=""
 elif [ "${flavor}" == "ats" ]; then
     embedded_ofi="no"
     # PSM3 provider is used for testing oneCCL over Mellanox
@@ -251,7 +261,7 @@ elif [ "\${embedded_ofi}" == "yes" ]; then
     config_extra+=" --disable-psm3"
 fi
 
-if [ "${provider}" != "sockets" ]; then
+if [ "${provider}" != "sockets" || "${provider}" != "tcp" ]; then
     daos="no"
 fi
 
@@ -291,6 +301,7 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
     -D \$daos \
     -E \$xpmem \
     -P ${pmix} \
+    -a "\$cpu" \
     -O \$ofi_domain \
     -y \$CUSTOM_VERSION_STRING \
     -f \$INSTALL_DIR
