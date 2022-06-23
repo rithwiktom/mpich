@@ -253,7 +253,7 @@ mt_model="runtime"
 if [ "${config}" = "debug" ]; then
     fast="none"
 else
-    fast="O3"
+    fast="avx"
 fi
 
 # Set common multi-threading environment (if enabled)

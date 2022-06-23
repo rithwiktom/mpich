@@ -38,7 +38,7 @@ def num_optional_groups = num_groups - num_required_groups
 
 /* Required: */
 def all_netmods   = [ "ofi" ]
-def all_providers = [ "sockets", "psm2", "verbs", "cxi", "psm3" ]
+def all_providers = [ "sockets", "psm2", "verbs", "cxi", "psm3", "tcp"]
 def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
@@ -111,7 +111,7 @@ ${netmod}:${provider}/${compiler}/${am}/${direct}/${config}/${gpu}/${test}/${thr
 @NonCPS
 def match_github_phrase() {
     /* Match on the main trigger and any additional configure options */
-    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|psm2|verbs|cxi|psm3|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
+    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|tcp|psm2|verbs|cxi|psm3|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
     try {
         jenkins_config_string = "" + matcher.find() ? matcher.group() : "not found"
         if (jenkins_config_string.split(" ").size() > 1) {
@@ -423,7 +423,7 @@ mt_model="runtime"
 if [ "${config}" = "debug" ]; then
     fast="none"
 else
-    fast="O3"
+    fast="avx"
 fi
 
 # Set common multi-threading environment (if enabled)
