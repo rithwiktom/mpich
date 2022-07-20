@@ -240,11 +240,19 @@ fi
 
 echo "checking automake..."
 echo $PATH
-which automake
-./autogen.sh --without-ucx
+
+AUTOTOOLS_DIR="/home/sys_csr1/software/autotools/bin"
+export PATH=$AUTOTOOLS_DIR:$PATH
+
+if [ ! -d /home/sys_csr1/software ] ; then
+    exit 1;
+fi
+
+which ${AUTOTOOLS_DIR}/automake
+./autogen.sh --with-autotools=${AUTOTOOLS_DIR} --without-ucx
 #from test dir
 cd test/mpi
-./autogen.sh
+./autogen.sh --with-autotools=${AUTOTOOLS_DIR}
 
 if [ "$testgpu" == "0" ]; then
     find . -name testlist.gpu -exec rm '{}' \; -and -exec touch '{}' \;
