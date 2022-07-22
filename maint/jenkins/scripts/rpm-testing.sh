@@ -266,6 +266,7 @@ fi
 
 ldd ${MPI_DIR}/lib/libmpich.so
 
+echo "rpm-testing: slurm allocated node is: "`srun -N 1 -n 1 hostname`
 echo "rpm-testing: test/mpi/configure will run on hostname: ${HOSTNAME}"
 
 ./configure --with-mpi=${MPI_DIR} --disable-perftest --disable-ft-tests ${error_checking} ${config_opts} \
