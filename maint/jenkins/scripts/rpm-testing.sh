@@ -20,7 +20,6 @@ force_am=noam
 
 MPI_DIR=""
 ze_dir=""
-GENGBIN_NEO=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
 if [ "$flavor" == "gpu" ]; then
     ze_dir="/usr"
 fi
@@ -201,11 +200,6 @@ fi
 
 export LD_LIBRARY_PATH=${OFI_DIR}/lib:/opt/intel/csr/lib:/opt/intel/csr/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-# Make sure the patched NEO is in front in LD_LIBRARY_PATH if on ats cluster
-if [ -d "$GENGBIN_NEO" ]; then
-    export LD_LIBRARY_PATH=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/bin:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/neo/build/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/igc/lib:/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021/gmmlib/lib:$LD_LIBRARY_PATH
-fi
 
 export PATH=/opt/intel/csr/bin:$PATH
 
