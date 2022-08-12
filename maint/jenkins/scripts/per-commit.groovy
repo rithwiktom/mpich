@@ -498,6 +498,7 @@ CONFIG_EXTRA="\$CONFIG_EXTRA --disable-spawn --with-ch4-max-vcis=\${nvcis}"
 if [ "$gpu" = "ats" ]; then
     if [ "${provider}" == "psm3" ]; then
         OFI_DIR="/home/sys_csr1/software/libfabric/psm3-dynamic"
+        CONFIG_EXTRA="\$CONFIG_EXTRA --enable-psm3"
     else
         embedded_ofi="yes"
     fi
@@ -507,7 +508,6 @@ if [ "$gpu" = "ats" ]; then
     ze_dir=/usr
     ze_native="12.1.0"
     disable_psm2="yes"
-    CONFIG_EXTRA="\$CONFIG_EXTRA --enable-psm3"
 elif [ "$gpu" = "nogpu" ]; then
     gpudirect="no"
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
