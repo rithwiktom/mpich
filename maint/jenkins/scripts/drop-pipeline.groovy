@@ -10,19 +10,19 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     // Misc
     skip |= ("${pmix}" == "pmix" && "${provider}" == "psm2") // Don't build PMIx with PSM2
     skip |= ("${pmix}" == "pmix" && "${provider}" == "psm3") // Don't build PMIx with PSM3
-    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "ats")) // The build that supports all providers with a default configuration is heavily restricted
+    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "gpu")) // The build that supports all providers with a default configuration is heavily restricted
 
     // GPUs
-    skip |= ("${flavor}" == "ats" && "${pmix}" == "pmix") // Don't build ATS with PMIx
-    skip |= ("${flavor}" == "ats" && "${provider}" == "psm2") // Don't build ATS with PSM2
-    skip |= ("${flavor}" == "ats" && "${provider}" == "tcp") // Don't build ATS with tcp
+    skip |= ("${flavor}" == "gpu" && "${pmix}" == "pmix") // Don't build gpu with PMIx
+    skip |= ("${flavor}" == "gpu" && "${provider}" == "psm2") // Don't build gpu with PSM2
+    skip |= ("${flavor}" == "gpu" && "${provider}" == "tcp") // Don't build gpu with tcp
     skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "psm3" || "${provider}" == "cxi" || "${provider}" == "tcp" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
 
     // Provider
-    skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the ats or non-gpu builds)
-    skip |= ("${provider}" == "sockets" && "${flavor}" == "regular") // The sockets provider builds will only the ats and nogpu)
-    skip |= ("${provider}" == "psm3" && "${flavor}" == "regular") // The psm3 provider builds will only be for ats)
-    skip |= ("${provider}" == "sockets" && "${pmix}" == "pmix") // The sockets provider builds will only the ats and nogpu)
+    skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the gpu or nogpu builds)
+    skip |= ("${provider}" == "sockets" && "${flavor}" == "regular") // The sockets provider builds will only the gpu and nogpu)
+    skip |= ("${provider}" == "psm3" && "${flavor}" == "regular") // The psm3 provider builds will only be for gpu)
+    skip |= ("${provider}" == "sockets" && "${pmix}" == "pmix") // The sockets provider builds will only the gpu and nogpu)
     skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
     skip |= ("${provider}" == "tcp" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The TCP+PMIx use the Intel compilers
 
@@ -37,7 +37,7 @@ def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'tcp']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
-def flavors = ['regular', 'ats', 'nogpu']
+def flavors = ['regular', 'gpu', 'nogpu']
 
 def run_tests = "no"
 
@@ -229,8 +229,8 @@ neo_dir=/usr
 #Set ze path for all the builds
 ze_dir=/usr
 # Build with native support for GPU-specific RPMs
-if [ "${flavor}" == "ats" ]; then
-    ze_native="${flavor}"
+if [ "${flavor}" == "gpu" ]; then
+    ze_native="12.1.0,12.4.0,12.4.1"
 fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
@@ -249,7 +249,7 @@ if [ "${flavor}" == "nogpu" ]; then
     # The nogpu builds are meant for JLSE Iris nodes, which don't have avx512 support.
     # We should not use -march=native for these builds
     cpu=""
-elif [ "${flavor}" == "ats" ]; then
+elif [ "${flavor}" == "gpu" ]; then
     embedded_ofi="no"
     # PSM3 provider is used for testing oneCCL over Mellanox
     # so that we can use multiple NICs. This is needed for
@@ -467,7 +467,7 @@ cp \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME .
                             if ("${provider}" == "verbs") {
                                 node_name = "anccskl6"
                             }
-                            if ("${flavor}" == "ats") {
+                            if ("${flavor}" == "gpu") {
                                 node_name = "jfcst-xe"
                                 testgpu = 1
                             }

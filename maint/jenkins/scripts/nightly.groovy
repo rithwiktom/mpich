@@ -315,7 +315,7 @@ if [ "$gpu" = "ats" ]; then
     # TODO: Switch back to system-installed neo once memid impl is fixed
     neo_dir=/home/gengbinz/drivers.gpu.compute.runtime/workspace-09-10-2021
     ze_dir=/usr
-    ze_native="$gpu"
+    ze_native="12.1.0"
     disable_psm2="yes"
     CONFIG_EXTRA="\$CONFIG_EXTRA --enable-psm3"
 elif [ "$gpu" = "nogpu" ]; then
