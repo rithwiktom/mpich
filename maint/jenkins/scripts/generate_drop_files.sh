@@ -78,17 +78,6 @@ EOF
         cat >> $filename << EOF
 pushenv("ZE_ENABLE_PCI_ID_DEVICE_ORDER", "1")
 pushenv("EngineInstancedSubDevices", "0")
-pushenv("MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD", "-1")
-
-LmodMessage("########################################## WARNING ###########################################")
-LmodMessage("  GPU IPC and GPU fast-copy are not compatible with Level Zero Implicit Scaling.")
-LmodMessage("  If you would like to enable these features, please disable Implicit Scaling and")
-LmodMessage("  enable GPU IPC by doing the following:")
-LmodMessage("")
-LmodMessage("  export EnableWalkerPartition=0")
-LmodMessage("  export EnableImplicitScaling=0")
-LmodMessage("  export MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD=1")
-LmodMessage("##############################################################################################")
 
 EOF
     fi
@@ -210,18 +199,6 @@ EOF
         cat >> $filename << EOF
 setenv {ZE_ENABLE_PCI_ID_DEVICE_ORDER} {1}
 setenv {EngineInstancedSubDevices} {0}
-setenv {MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD} {-1}
-
-puts stderr "########################################## WARNING ###########################################"
-puts stderr "  GPU IPC and GPU fast-copy are not compatible with Level Zero Implicit Scaling."
-puts stderr "  If you would like to enable these features, please disable Implicit Scaling and"
-puts stderr "  enable GPU IPC by doing the following:"
-puts stderr ""
-puts stderr "  export EnableWalkerPartition=0"
-puts stderr "  export EnableImplicitScaling=0"
-puts stderr "  export MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD=1"
-puts stderr "##############################################################################################"
-
 EOF
     fi
 
