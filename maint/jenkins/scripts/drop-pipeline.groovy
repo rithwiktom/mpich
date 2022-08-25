@@ -261,7 +261,7 @@ elif [ "\${embedded_ofi}" == "yes" ]; then
     config_extra+=" --disable-psm3"
 fi
 
-if [ "${provider}" != "sockets" || "${provider}" != "tcp" ]; then
+if [ "${provider}" != "sockets" || "${provider}" != "tcp" || "${provider}" != "cxi" ]; then
     daos="no"
 fi
 
