@@ -365,7 +365,12 @@ srun --chdir="\$REMOTE_WS" /bin/bash \${BUILD_SCRIPT_DIR}/test-worker.sh \
 EOF
 
 chmod +x nightly-test-job.sh
-salloc -J nightly:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360 ./nightly-test-job.sh
+prefix="salloc -J nightly:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360"
+if [ "${node_name}" == "jfcst-xe" ]; then
+  #Use mpich queue on jfcst-xe which was specifically created with ats nodes compatible to build and test mpich
+  prefix="\${prefix} -p mpich"
+fi
+\${prefix} ./nightly-test-job.sh
 """)
                                                         archiveArtifacts "$config_name/**"
                                                         junit skipPublishingChecks: true, testResults: "${config_name}/test/mpi/summary.junit.xml"
