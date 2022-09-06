@@ -573,9 +573,9 @@ EOF
 chmod +x per-commit-test-job.sh
 if [ "${provider}" != "cxi" ]; then
     prefix="salloc -J per-commit:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360"
-    if [ "${provider}" == "psm3" -a "${gpu}" == "ats" ]; then
-      #Exclude using ats4 on jfcst since ats4 does not discover IB nics
-      prefix="\${prefix} -x ats4"
+    if [ "${node_name}" == "jfcst-xe" ]; then
+      #Use mpich queue on jfcst-xe which was specifically created with ats nodes compatible to build and test mpich
+      prefix="\${prefix} -p mpich"
     fi
 else
     prefix=""
