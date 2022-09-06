@@ -228,9 +228,10 @@ neo_dir=/usr
 
 #Set ze path for all the builds
 ze_dir=/usr
-# Build with native support for GPU-specific RPMs
-if [ "${flavor}" == "gpu" ]; then
-    ze_native="12.1.0,12.4.0,12.4.1"
+# Build with native support for GPU-specific RPMs for Power-On
+# Table: https://github.com/intel-innersource/drivers.gpu.specification.platforms/blob/generated_cs/gen/templates/doc/listing.md
+if [ "${flavor}" == "regular" ]; then
+    ze_native="12.60.3,12.60.6"
 fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
