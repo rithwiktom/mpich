@@ -512,7 +512,7 @@ tar -xf \$TARBALL
 prefix="salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600"
 if [ "${node_name}" == "jfcst-xe" ]; then
     #Use mpich queue on jfcst-xe which was specifically created with ats nodes compatible to build and test mpich
-    prefix="\${prefix} -p mpich"
+    prefix="\${prefix} -w ats8"
 fi
 
 \${prefix} ./RPM-testing-drop-job.sh
