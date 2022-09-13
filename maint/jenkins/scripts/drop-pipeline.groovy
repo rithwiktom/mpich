@@ -13,7 +13,6 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "gpu")) // The build that supports all providers with a default configuration is heavily restricted
 
     // GPUs
-    skip |= ("${flavor}" == "gpu" && "${pmix}" == "pmix") // Don't build gpu with PMIx
     skip |= ("${flavor}" == "gpu" && "${provider}" == "psm2") // Don't build gpu with PSM2
     skip |= ("${flavor}" == "gpu" && "${provider}" == "tcp") // Don't build gpu with tcp
     skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "psm3" || "${provider}" == "cxi" || "${provider}" == "tcp" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
