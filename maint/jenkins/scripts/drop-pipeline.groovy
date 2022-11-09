@@ -13,7 +13,6 @@ def skip_config(provider, compiler, config, pmix, flavor) {
     skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "gpu")) // The build that supports all providers with a default configuration is heavily restricted
 
     // GPUs
-    skip |= ("${flavor}" == "gpu" && "${pmix}" == "pmix") // Don't build gpu with PMIx
     skip |= ("${flavor}" == "gpu" && "${provider}" == "psm2") // Don't build gpu with PSM2
     skip |= ("${flavor}" == "gpu" && "${provider}" == "tcp") // Don't build gpu with tcp
     skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "psm3" || "${provider}" == "cxi" || "${provider}" == "tcp" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
@@ -198,7 +197,7 @@ embedded_ofi="no"
 daos="yes"
 xpmem="yes"
 gpudirect="yes"
-n_jobs=128
+n_jobs=32
 neo_dir=""
 ze_dir=""
 ze_native=""
@@ -228,9 +227,10 @@ neo_dir=/usr
 
 #Set ze path for all the builds
 ze_dir=/usr
-# Build with native support for GPU-specific RPMs
-if [ "${flavor}" == "gpu" ]; then
-    ze_native="12.1.0,12.4.0,12.4.1"
+# Build with native support for GPU-specific RPMs for Power-On
+# Table: https://github.com/intel-innersource/drivers.gpu.specification.platforms/blob/generated_cs/gen/templates/doc/listing.md
+if [ "${flavor}" == "regular" ]; then
+    ze_native="pvc-xt-a0,pvc-xt-b1"
 fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
@@ -261,7 +261,7 @@ elif [ "\${embedded_ofi}" == "yes" ]; then
     config_extra+=" --disable-psm3"
 fi
 
-if [ "${provider}" != "sockets" || "${provider}" != "tcp" ]; then
+if [ "${provider}" != "sockets" || "${provider}" != "tcp" || "${provider}" != "cxi" ]; then
     daos="no"
 fi
 
@@ -511,7 +511,7 @@ tar -xf \$TARBALL
 prefix="salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600"
 if [ "${node_name}" == "jfcst-xe" ]; then
     #Use mpich queue on jfcst-xe which was specifically created with ats nodes compatible to build and test mpich
-    prefix="\${prefix} -p mpich"
+    prefix="\${prefix} -w ats8"
 fi
 
 \${prefix} ./RPM-testing-drop-job.sh

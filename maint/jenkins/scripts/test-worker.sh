@@ -896,14 +896,7 @@ SetConfigOpt() {
     fi
 
     config_opt+=( -with-fwrapname=mpigf )
-    if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
-        config_opt+=( -with-file-system=ufs+nfs+daos )
-        if [ -f /opt/daos-34 ]; then
-            DAOS_INSTALL_DIR="/opt/daos-34"
-        fi
-        DAOS_OPTS=" --with-daos=$DAOS_INSTALL_DIR --with-cart=$DAOS_INSTALL_DIR"
-        config_opt+=( $DAOS_OPTS )
-    elif [ "$ofi_prov" = "tcp" -a "$daos" = "yes" ]; then
+    if [ "$daos" = "yes" ]; then
         config_opt+=( -with-file-system=ufs+nfs+daos )
         if [ -f /opt/daos-34 ]; then
             DAOS_INSTALL_DIR="/opt/daos-34"
@@ -1220,13 +1213,13 @@ if [ "$build_mpich" == "yes" ]; then
 
     # Set fabric path after L0, so libfabric is picked from here instead of /usr/lib64
     # Lets see if this breaks the ocloc path
-    if [ "$ofi_prov" = "sockets" -o "$ofi_prov" = "tcp" ]; then
+    if [ "$ofi_prov" = "sockets" -o "$ofi_prov" = "tcp" -o "$ofi_prov" = "cxi"  ]; then
         if [ "$daos" = "yes" ]; then
             # set paths for daos
             export PATH=$DAOS_INSTALL_DIR/bin/:$PATH
             export LD_LIBRARY_PATH=$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
         fi
-        if [ "$ofi_prov" = "sockets" ]; then
+        if [ "$ofi_prov" = "sockets" -o "$ofi_prov" = "cxi" ]; then
             export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$LD_LIBRARY_PATH
         elif [ "$ofi_prov" = "tcp"]; then
             export LD_LIBRARY_PATH=/opt/intel/csr/ofi/tcp-dynamic/lib/:$LD_LIBRARY_PATH
@@ -1443,7 +1436,7 @@ if [ "$run_tests" == "yes" ]; then
         fi
     fi
 
-    if [ "$ofi_prov" = "sockets" -a "$daos" = "yes" ]; then
+    if [ "$ofi_prov" = "sockets" -o "$ofi_prov" = "cxi" -a "$daos" = "yes" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
     elif [ "$ofi_prov" = "tcp" -a "$daos" = "yes" ]; then
         export LD_LIBRARY_PATH=/opt/intel/csr/ofi/sockets-dynamic/lib/:$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH

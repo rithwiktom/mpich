@@ -233,6 +233,7 @@ if [ "${job}" != "nightly" ]; then
 fi
 
 echo "checking automake..."
+PATH=$HOME/software/autotools/bin:/bin:$PATH
 echo $PATH
 
 AUTOTOOLS_DIR="/home/sys_csr1/software/autotools/bin"
