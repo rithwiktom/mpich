@@ -1492,6 +1492,14 @@ if [ "$run_tests" == "yes" ]; then
         export MTEST_GPU_VISIBILITY_SUBDEVICE_COUNT=$subdevice_count
     fi
 
+    # setting for GPU
+    export NEOReadDebugKeys=1
+    export EnableWalkerPartition=0
+    export EnableImplicitScaling=0
+    # ULLS is buggy on ATS cluster, turning it off for now
+    export EnableDirectSubmission=0
+
+
     echo `env | grep MPI`
     echo "test-worker: make testing will run on hostname: ${HOSTNAME}"
     if [[ "$BUILD_MODE" = "multinode" ]]; then
