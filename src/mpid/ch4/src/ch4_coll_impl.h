@@ -1266,9 +1266,15 @@ MPL_STATIC_INLINE_PREFIX int MPIDI_Alltoall_intra_composition_beta(const void *s
                                   recvcount, recvtype, comm_ptr, errflag);
         MPIR_ERR_CHECK(mpi_errno);
     } else {
+#ifndef MPIDI_CH4_DIRECT_NETMOD
         mpi_errno =
             MPIDI_SHM_mpi_alltoall(sendbuf, sendcount, sendtype, recvbuf,
                                    recvcount, recvtype, comm_ptr, errflag);
+#else
+        mpi_errno =
+            MPIDI_NM_mpi_alltoall(sendbuf, sendcount, sendtype, recvbuf,
+                                  recvcount, recvtype, comm_ptr, errflag);
+#endif /* MPIDI_CH4_DIRECT_NETMOD */
         MPIR_ERR_CHECK(mpi_errno);
     }
 
