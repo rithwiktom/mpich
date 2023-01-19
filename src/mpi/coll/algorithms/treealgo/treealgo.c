@@ -31,32 +31,38 @@ int MPII_Treealgo_comm_cleanup(MPIR_Comm * comm)
 }
 
 
-int MPIR_Treealgo_tree_create(int rank, int nranks, int tree_type, int k, int root,
+int MPIR_Treealgo_tree_create(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
                               MPIR_Treealgo_tree_t * ct)
 {
     int mpi_errno = MPI_SUCCESS;
 
     MPIR_FUNC_ENTER;
 
-    switch (tree_type) {
+    switch (params->tree_type) {
         case MPIR_TREE_TYPE_KARY:
-            mpi_errno = MPII_Treeutil_tree_kary_init(rank, nranks, k, root, ct);
+            mpi_errno =
+                MPII_Treeutil_tree_kary_init(params->rank, params->nranks, params->k, params->root,
+                                             ct);
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
         case MPIR_TREE_TYPE_KNOMIAL_1:
-            mpi_errno = MPII_Treeutil_tree_knomial_1_init(rank, nranks, k, root, ct);
+            mpi_errno =
+                MPII_Treeutil_tree_knomial_1_init(params->rank, params->nranks, params->k,
+                                                  params->root, ct);
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
         case MPIR_TREE_TYPE_KNOMIAL_2:
-            mpi_errno = MPII_Treeutil_tree_knomial_2_init(rank, nranks, k, root, ct);
+            mpi_errno =
+                MPII_Treeutil_tree_knomial_2_init(params->rank, params->nranks, params->k,
+                                                  params->root, ct);
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
         default:
             MPIR_ERR_SETANDJUMP1(mpi_errno, MPI_ERR_OTHER, "**treetype", "**treetype %d",
-                                 tree_type);
+                                 params->tree_type);
     }
 
     MPIR_FUNC_EXIT;

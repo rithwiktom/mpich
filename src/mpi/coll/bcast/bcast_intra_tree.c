@@ -73,9 +73,15 @@ int MPIR_Bcast_intra_tree(void *buffer,
         num_children = branching_factor;
     } else {
         /*construct the knomial tree */
+        MPIR_Treealgo_params_t tree_params = {
+            .rank = rank,
+            .nranks = comm_size,
+            .k = branching_factor,
+            .tree_type = tree_type,
+            .root = root
+        };
         my_tree.children = NULL;
-        mpi_errno =
-            MPIR_Treealgo_tree_create(rank, comm_size, tree_type, branching_factor, root, &my_tree);
+        mpi_errno = MPIR_Treealgo_tree_create(comm_ptr, &tree_params, &my_tree);
         MPIR_ERR_CHECK(mpi_errno);
         num_children = my_tree.num_children;
         parent = my_tree.parent;
