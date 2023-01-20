@@ -225,6 +225,7 @@ cvars:
         kary      - kary tree type
         knomial_1 - knomial_1 tree type
         knomial_2 - knomial_2 tree type
+        topology_aware - topology_aware tree type
 
     - name        : MPIR_CVAR_BCAST_IS_NON_BLOCKING
       category    : COLLECTIVE
@@ -303,6 +304,7 @@ cvars:
         kary      - kary tree type
         knomial_1 - knomial_1 tree type
         knomial_2 - knomial_2 tree type
+        topology_aware - topology_aware tree type
 
     - name        : MPIR_CVAR_IBCAST_TREE_PIPELINE_CHUNK_SIZE
       category    : COLLECTIVE
@@ -1161,6 +1163,7 @@ cvars:
         kary      - kary tree
         knomial_1 - knomial_1 tree
         knomial_2 - knomial_2 tree
+        topology_aware - topology_aware tree type
 
     - name        : MPIR_CVAR_IREDUCE_TREE_PIPELINE_CHUNK_SIZE
       category    : COLLECTIVE
@@ -1283,6 +1286,7 @@ cvars:
         kary      - kary tree type
         knomial_1 - knomial_1 tree type (tree grows starting from the left of the root)
         knomial_2 - knomial_2 tree type (tree grows starting from the right of the root)
+        topology_aware - topology_aware tree type
 
     - name        : MPIR_CVAR_ALLREDUCE_TREE_KVAL
       category    : COLLECTIVE
@@ -1397,6 +1401,7 @@ cvars:
         kary      - kary tree type
         knomial_1 - knomial_1 tree type
         knomial_2 - knomial_2 tree type
+        topology_aware - topology_aware tree type
 
     - name        : MPIR_CVAR_IALLREDUCE_TREE_PIPELINE_CHUNK_SIZE
       category    : COLLECTIVE

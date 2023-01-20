@@ -241,3 +241,12 @@ int MPII_Treeutil_tree_knomial_2_init(int rank, int nranks, int k, int root,
   fn_fail:
     goto fn_exit;
 }
+
+int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
+                                           MPIR_Treealgo_params_t * params,
+                                           MPIR_Treealgo_tree_t * ct)
+{
+    int mpi_errno = MPI_SUCCESS;
+    /* TODO: implementation of Topology Aware algorithm */
+    return mpi_errno;
+}
