@@ -467,7 +467,7 @@ MPL_STATIC_INLINE_PREFIX int MPIDI_POSIX_mpi_alltoall(const void *sendbuf, MPI_A
                                                       MPI_Aint recvcount, MPI_Datatype recvtype,
                                                       MPIR_Comm * comm, MPIR_Errflag_t * errflag)
 {
-    int mpi_errno;
+    int mpi_errno = MPI_SUCCESS;
 
     MPIR_FUNC_ENTER;
 
