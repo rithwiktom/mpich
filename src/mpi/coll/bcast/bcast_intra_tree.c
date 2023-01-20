@@ -87,6 +87,12 @@ int MPIR_Bcast_intra_tree(void *buffer,
         parent = my_tree.parent;
     }
 
+    if (MPIR_CVAR_BCAST_INTRA_TREE_SKIP_COMM) {
+        if (tree_type != MPIR_TREE_TYPE_KARY)
+            MPIR_Treealgo_tree_free(&my_tree);
+        goto fn_exit;
+    }
+
     if (is_nb) {
         MPIR_CHKLMEM_MALLOC(reqs, MPIR_Request **, sizeof(MPIR_Request *) * num_children,
                             mpi_errno, "request array", MPL_MEM_COLL);

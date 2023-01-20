@@ -13,21 +13,31 @@ except ImportError as e:
 
 def main():
     args = parse_args()
+    input_tree = load_tree(args.node_files)
+    render_tree(input_tree, args.format)
 
-    input_tree = json.load(sys.stdin)
 
+def load_tree(node_files):
+    result = []
+    for filename in node_files:
+        with open(filename) as the_file:
+            result.append(json.load(the_file))
+    return result
+
+
+def render_tree(input_tree, format):
     dot = Digraph('Tree')
     for node in input_tree:
         dot.node(str(node['rank']))
     for node in input_tree:
         dot.edges([[str(node["rank"]), str(child)] for child in node['children']])
-
-    dot.render(format=args.format, view=True)
+    dot.render(format=format, view=True)
 
 
 def parse_args():
-    description = 'Render a topology-aware collective tree in json format (streamed on stdin) as a graphical tree.'
+    description = 'Render a topology-aware collective tree as a graphical tree.'
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('node_files', metavar='FILE', nargs='+', help='File(s) containing the JSON-formatted tree nodes to be rendered (e.g. tree-node-*.json).')
     parser.add_argument('--format', '-f', default='svg', help='Output format. Can be any format supported by graphviz. Default: svg.')
     return parser.parse_args()
 

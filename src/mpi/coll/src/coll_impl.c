@@ -115,6 +115,17 @@ cvars:
       description : >-
         This cvar enables yaksa based reduction for local reduce.
 
+    - name        : MPIR_CVAR_TREE_DUMP_FILE_PREFIX
+      category    : COLLECTIVE
+      type        : string
+      default     : ""
+      class       : device
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        Defines the prefix for the set of filenames receive the collective dump of the generated tree in JSON format.
+        If not set, the tree will not be dumped.
+
 === END_MPI_T_CVAR_INFO_BLOCK ===
 */
 

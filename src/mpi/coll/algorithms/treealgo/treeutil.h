@@ -65,7 +65,7 @@ static const UT_icd tree_ut_hierarchy_icd =
 
 
 /* Specific defines for treealgo API of utarray_* content */
-#define MAX_HIERARCHY_DEPTH 3
+#define MAX_HIERARCHY_DEPTH 4
 
 /* Common defines */
 #define tree_ut_int_elt(a, i) (*(int *)(utarray_eltptr((a), (i))))

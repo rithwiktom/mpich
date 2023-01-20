@@ -7,6 +7,9 @@
 #include "treealgo.h"
 #include "treeutil.h"
 
+static void dump_node(MPIR_Treealgo_tree_t * node, FILE * output_stream);
+
+
 int MPII_Treealgo_init(void)
 {
     int mpi_errno = MPI_SUCCESS;
@@ -78,6 +81,15 @@ int MPIR_Treealgo_tree_create(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
     MPIR_FUNC_EXIT;
 
   fn_exit:
+    {
+        if (0 < strlen(MPIR_CVAR_TREE_DUMP_FILE_PREFIX)) {
+            char outfile_name[PATH_MAX];
+            sprintf(outfile_name, "%s%d.json", MPIR_CVAR_TREE_DUMP_FILE_PREFIX, params->rank);
+            FILE *outfile = fopen(outfile_name, "w");
+            dump_node(ct, outfile);
+            fclose(outfile);
+        }
+    }
     return mpi_errno;
 
   fn_fail:
@@ -88,4 +100,18 @@ int MPIR_Treealgo_tree_create(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
 void MPIR_Treealgo_tree_free(MPIR_Treealgo_tree_t * tree)
 {
     utarray_free(tree->children);
+}
+
+
+static void dump_node(MPIR_Treealgo_tree_t * node, FILE * output_stream)
+{
+    fprintf(output_stream, "{ \"rank\": %d, \"nranks\": %d, \"parent\": %d, \"children\": [",
+            node->rank, node->nranks, node->parent);
+    for (int child = 0; child < node->num_children; child++) {
+        if (child > 0) {
+            fprintf(output_stream, ",");
+        }
+        fprintf(output_stream, "%d", tree_ut_int_elt(node->children, child));
+    }
+    fprintf(output_stream, "] }\n");
 }

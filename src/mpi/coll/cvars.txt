@@ -258,6 +258,16 @@ cvars:
       description : >-
         If set to true, MPI_Bcast will pre-post all the receives.
 
+    - name        : MPIR_CVAR_BCAST_INTRA_TREE_SKIP_COMM
+      category    : COLLECTIVE
+      type        : boolean
+      default     : false
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        If set to true and the selected algo is intra tree, MPI_Bcast will skip communications.
+
     - name        : MPIR_CVAR_BCAST_INTER_ALGORITHM
       category    : COLLECTIVE
       type        : enum
