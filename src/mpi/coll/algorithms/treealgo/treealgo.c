@@ -65,6 +65,11 @@ int MPIR_Treealgo_tree_create(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
+        case MPIR_TREE_TYPE_TOPOLOGY_WAVE:
+            mpi_errno = MPII_Treeutil_tree_topology_wave_init(comm, params, ct);
+            MPIR_ERR_CHECK(mpi_errno);
+            break;
+
         default:
             MPIR_ERR_SETANDJUMP1(mpi_errno, MPI_ERR_OTHER, "**treetype", "**treetype %d",
                                  params->tree_type);

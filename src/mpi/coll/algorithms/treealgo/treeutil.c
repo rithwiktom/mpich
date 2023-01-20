@@ -443,6 +443,16 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     goto fn_exit;
 }
 
+int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
+                                          MPIR_Treealgo_params_t * params,
+                                          MPIR_Treealgo_tree_t * ct)
+{
+    int mpi_errno = MPI_SUCCESS;
+    /* TODO: implementation of Topology Wave algorithm */
+
+    return mpi_errno;
+}
+
 static void tree_topology_print_hierarchy(UT_array hierarchy[], int myrank)
 {
     for (int lvl = MPIR_Process.coords_dims; lvl >= 0; --lvl) {

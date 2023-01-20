@@ -79,6 +79,8 @@ int MPII_Coll_init(void)
         MPIR_Iallreduce_tree_type = MPIR_TREE_TYPE_KNOMIAL_2;
     else if (0 == strcmp(MPIR_CVAR_IALLREDUCE_TREE_TYPE, "topology_aware"))
         MPIR_Iallreduce_tree_type = MPIR_TREE_TYPE_TOPOLOGY_AWARE;
+    else if (0 == strcmp(MPIR_CVAR_IALLREDUCE_TREE_TYPE, "topology_wave"))
+        MPIR_Iallreduce_tree_type = MPIR_TREE_TYPE_TOPOLOGY_WAVE;
 
     /* Allreduce */
     if (0 == strcmp(MPIR_CVAR_ALLREDUCE_TREE_TYPE, "knomial_1"))
@@ -87,6 +89,8 @@ int MPII_Coll_init(void)
         MPIR_Allreduce_tree_type = MPIR_TREE_TYPE_KNOMIAL_2;
     else if (0 == strcmp(MPIR_CVAR_ALLREDUCE_TREE_TYPE, "topology_aware"))
         MPIR_Allreduce_tree_type = MPIR_TREE_TYPE_TOPOLOGY_AWARE;
+    else if (0 == strcmp(MPIR_CVAR_ALLREDUCE_TREE_TYPE, "topology_wave"))
+        MPIR_Allreduce_tree_type = MPIR_TREE_TYPE_TOPOLOGY_WAVE;
     else
         MPIR_Allreduce_tree_type = MPIR_TREE_TYPE_KARY;
 
@@ -97,6 +101,8 @@ int MPII_Coll_init(void)
         MPIR_Barrier_tree_type = MPIR_TREE_TYPE_KNOMIAL_2;
     else if (0 == strcmp(MPIR_CVAR_BARRIER_TREE_TYPE, "topology_aware"))
         MPIR_Barrier_tree_type = MPIR_TREE_TYPE_TOPOLOGY_AWARE;
+    else if (0 == strcmp(MPIR_CVAR_BARRIER_TREE_TYPE, "topology_wave"))
+        MPIR_Barrier_tree_type = MPIR_TREE_TYPE_TOPOLOGY_WAVE;
     else
         MPIR_Barrier_tree_type = MPIR_TREE_TYPE_KARY;
 
@@ -109,6 +115,8 @@ int MPII_Coll_init(void)
         MPIR_Ibcast_tree_type = MPIR_TREE_TYPE_KNOMIAL_2;
     else if (0 == strcmp(MPIR_CVAR_IBCAST_TREE_TYPE, "topology_aware"))
         MPIR_Ibcast_tree_type = MPIR_TREE_TYPE_TOPOLOGY_AWARE;
+    else if (0 == strcmp(MPIR_CVAR_IBCAST_TREE_TYPE, "topology_wave"))
+        MPIR_Ibcast_tree_type = MPIR_TREE_TYPE_TOPOLOGY_WAVE;
     else
         MPIR_Ibcast_tree_type = MPIR_TREE_TYPE_KARY;
 
@@ -121,6 +129,8 @@ int MPII_Coll_init(void)
         MPIR_Bcast_tree_type = MPIR_TREE_TYPE_KNOMIAL_2;
     else if (0 == strcmp(MPIR_CVAR_BCAST_TREE_TYPE, "topology_aware"))
         MPIR_Bcast_tree_type = MPIR_TREE_TYPE_TOPOLOGY_AWARE;
+    else if (0 == strcmp(MPIR_CVAR_BCAST_TREE_TYPE, "topology_wave"))
+        MPIR_Bcast_tree_type = MPIR_TREE_TYPE_TOPOLOGY_WAVE;
     else
         MPIR_Bcast_tree_type = MPIR_TREE_TYPE_KARY;
 
@@ -133,6 +143,8 @@ int MPII_Coll_init(void)
         MPIR_Ireduce_tree_type = MPIR_TREE_TYPE_KNOMIAL_2;
     else if (0 == strcmp(MPIR_CVAR_IREDUCE_TREE_TYPE, "topology_aware"))
         MPIR_Ireduce_tree_type = MPIR_TREE_TYPE_TOPOLOGY_AWARE;
+    else if (0 == strcmp(MPIR_CVAR_IREDUCE_TREE_TYPE, "topology_wave"))
+        MPIR_Ireduce_tree_type = MPIR_TREE_TYPE_TOPOLOGY_WAVE;
     else
         MPIR_Ireduce_tree_type = MPIR_TREE_TYPE_KARY;
 

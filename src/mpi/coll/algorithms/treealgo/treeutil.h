@@ -78,4 +78,8 @@ int MPII_Treeutil_tree_knomial_2_init(int rank, int nranks, int k, int root,
 int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
                                            MPIR_Treealgo_tree_t * ct);
 
+/* Generate topology_wave tree information */
+int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
+                                          MPIR_Treealgo_tree_t * ct);
+
 #endif /* TREEUTIL_H_INCLUDED */
