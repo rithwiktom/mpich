@@ -32,7 +32,7 @@ def branches = [:]
 
 // The "all" provider means that the build supports all providers. This is normal for the debug
 // build, but using this provider enables it for a default build as well
-def providers = ['sockets', 'psm2', 'cxi', 'psm3', 'tcp']
+def providers = ['all', 'sockets', 'psm2', 'cxi', 'psm3', 'tcp']
 def compilers = ['gnu', 'icc']
 def configs = ['debug', 'default']
 def pmixs = ['pmix', 'nopmix']
@@ -216,7 +216,7 @@ fi
 pmix_string=""
 if [ "${pmix}" == "pmix" ]; then
     pmix_string="-pmix"
-    export LD_LIBRARY_PATH=/opt/openpmix/lib:\$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/opt/pmix-4.2.2/lib:\$LD_LIBRARY_PATH
 fi
 flavor_string=""
 if [ "${flavor}" != "regular" ]; then
@@ -320,6 +320,7 @@ srun --chdir="\$REMOTE_WS" install -m 0644 'COPYRIGHT' \$INSTALL_DIR/share/doc/m
 srun --chdir="\$REMOTE_WS" install -m 0644 'CHANGES' \$INSTALL_DIR/share/doc/mpich
 srun --chdir="\$REMOTE_WS" install -m 0644 README \$INSTALL_DIR/share/doc/mpich
 srun --chdir="\$REMOTE_WS" install -m 0644 README.envvar \$INSTALL_DIR/share/doc/mpich
+srun --chdir="\$REMOTE_WS" install -m 0644 doc/mpich/tuning_parameters.md \$INSTALL_DIR/share/doc/mpich
 srun mkdir -p /tmp/\${NAME}/usr/mpi/modulefiles/
 srun cp -r \${REMOTE_WS}/modulefiles/mpich/ /tmp/\${NAME}/usr/mpi/modulefiles/
 srun cp -r \${JENKINS_DIR}/json-files \$INSTALL_DIR
@@ -457,10 +458,17 @@ cp \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME .
                         if ("${provider}" == "cxi") {
                             continue
                         }
+                        /* We don't have a way to test GPU with psm3 on Boris yet */
+                        if ("${provider}" == "psm3" && "${flavor}" == "gpu") {
+                            continue
+                        }
+                        /* Sockets provider is not stable on Boris. */
+                        if ("${provider}" == "sockets" && "${flavor}" == "gpu") {
+                            continue
+                        }
                         if (skip_config(provider, compiler, config, pmix, flavor)) {
                             continue
                         }
-
                         /* We currently have no way to install an RPM on a verbs cluster */
                         rpm_tests["${provider}-${compiler}-${config}-${pmix}-${flavor}"] = {
                             def node_name = "anfedclx8-admin"
@@ -468,7 +476,7 @@ cp \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME .
                                 node_name = "anccskl6"
                             }
                             if ("${flavor}" == "gpu") {
-                                node_name = "jfcst-xe"
+                                node_name = "boris"
                                 testgpu = 1
                             }
                             node("${node_name}") {
@@ -509,9 +517,9 @@ chmod +x RPM-testing-drop-job.sh
 tar -xf \$TARBALL
 
 prefix="salloc -J "\$job-${provider}-${compiler}-${config}-${pmix}-${flavor}" -N \${nodes} -t 600"
-if [ "${node_name}" == "jfcst-xe" ]; then
-    #Use mpich queue on jfcst-xe which was specifically created with ats nodes compatible to build and test mpich
-    prefix="\${prefix} -w ats8"
+if [ "${node_name}" == "boris" ]; then
+    # Boris requires reservation of GPU nodes before testing. Make sure you reserve the node with reservation name "mpich_drop_pipeline" before the drop!
+    prefix="\${prefix} --reservation=mpich_drop_pipeline"
 fi
 
 \${prefix} ./RPM-testing-drop-job.sh
@@ -607,9 +615,9 @@ if [ "${flavor}" != "regular" ]; then
 fi
 if [ "${flavor}" == "regular" ]; then
     subdir="regular/${pmix}"
-    if [ "${pmix}" == "pmix" ]; then
-        pmix_string="-pmix"
-    fi
+fi
+if [ "${pmix}" == "pmix" ]; then
+    pmix_string="-pmix"
 fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-drop\${version}"
