@@ -660,31 +660,52 @@ As of now, Intel GPUs do not support operations for all datatypes. For example, 
 
 MPICH now supports GPU-to-GPU Interprocess Communication (IPC) with builtin datatypes. This is enabled by default for message sizes above a given threshold. We have added an environment variable to allow the user to modify this threshold:
 
-* `MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD`: Specifies the data size threshold (in bytes) for which GPU IPC is used.
+* `MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD`: Specifies the data size threshold (in bytes) for which GPU IPC is used. Default is 1. Use -1 to disable IPC.
 
 * `MPIR_CVAR_CH4_IPC_ZE_SHAREABLE_HANDLE`: Selects an implementation for ZE shareable IPC handle, it can be `drmfd` (the default) which uses device fd-based shareable IPC handle, or `pidfd`, which uses an implementation based on pidfd_getfd syscall (only available after Linux kernel 5.6.0).
 
+* `MPIR_CVAR_CH4_IPC_GPU_ENGINE_TYPE`: select engine type to do the IPC copying, can be 0|1|2|auto. Default is using main copy engine. "auto" mode will use main copy engine when two buffers are on the same root device, otherwise use link copy engine.
+
+* `MPIR_CVAR_CH4_IPC_GPU_READ_WRITE_PROTOCOL`:  choose read/write/auto protocol for IPC. Default is read. Auto will prefer write protocol when remote device is visible, otherwise fallback to read.
+
 MPICH supports fast memory copying using mmap mechanism (bypassing kernel launching), which is optimized for very small messages:
 
-* `MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD`: set to 1 to enable IPC. Fast memory copy is used with IPC.
+* `MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD`: make sure this CVAR is set to 1 to enable IPC. Fast memory copy depends on IPC enabled.
 
-* `MPIR_CVAR_CH4_IPC_GPU_FAST_COPY_MAX_SIZE`: set the message size threshold (in bytes) to use fast memory copying.
+* `MPIR_CVAR_CH4_IPC_GPU_FAST_COPY_MAX_SIZE`: set the max message size (in bytes) to use fast memory copying.
 
 GPU pipeline uses host buffer and pipelining technique to send internode messages instead of GPU RDMA. To enable this mode, use the following two CVARs:
 
 * `MPIR_CVAR_CH4_OFI_ENABLE_GPU_PIPELINE`: This CVAR enables GPU pipeline for inter-node pt2pt messages
 
-* `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_SZ`: Specifies the chunk size (in bytes) for GPU pipeline data transfer.
+* `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_THRESHOLD`: The threshold to start using GPU pipelining. Default is 1MB.
+
+* `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_BUFFER_SZ`: Specifies the chunk size (in bytes) for GPU pipeline data transfer.
 
 * `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_NUM_BUFFERS_PER_CHUNK`: Specifies the number of buffers for GPU pipeline data transfer in each block/chunk of the pool.
 
 * `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_MAX_NUM_BUFFERS`: Specifies the maximum total number of buffers MPICH buffer pool can allocate.
 
+* `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_D2H_ENGINE_TYPE`: Specify engine type for copying from device to host (sender side), default 0
+
+* `MPIR_CVAR_CH4_OFI_GPU_PIPELINE_H2D_ENGINE_TYPE`: Specify engine type for copying from host to device (receiver side), default 0
+
 To enable GPU Direct RDMA support for pt2pt communication, use the following CVARs:
-* `MPIR_CVAR_CH4_OFI_ENABLE_HMEM`: This CVAR with a value of `1` enables inter-node GPU Direct RDMA communication.
-* `MPIR_CVAR_CH4_OFI_GPU_RDMA_THRESHOLD`: This is the message size threshold for using GPU Direct RDMA. The default value of this CVAR is 256KB. Messages  >= 256KB will go through GPU Direct RDMA.
-* `MPIR_CVAR_CH4_OFI_ENABLE_GDR_HOST_REG`: This CVAR with a value of `0` disables memory registration for host to host communication when GPU RDMA is enabled.
+* `MPIR_CVAR_CH4_OFI_ENABLE_HMEM`: This CVAR with a value of `1` enables inter-node GPU Direct RDMA pt2pt communication.
+* `MPIR_CVAR_CH4_OFI_GPU_RDMA_THRESHOLD`: This is the message size threshold for using GPU Direct RDMA. The default value of this CVAR is 0B. Messages  >= 0B will go through GPU Direct RDMA. The users can tune this threshold for different providers.
+
+The fallback path is used when GPU messages are copied to host buffer for communication:
+
+* `MPIR_CVAR_CH4_OFI_GPU_SEND_ENGINE_TYPE`: can be -1|0|1|2. Default is 1, which is the main copy engine. -1 will use yaksa for copying
+
+* `MPIR_CVAR_CH4_OFI_GPU_RECEIVE_ENGINE_TYPE`:  can be -1|0|1|2. Default is 1, which is the main copy engine. -1 will use yaksa for copying
 
 In some circumstances, one may want to disable the GPU support:
 
 * `MPIR_CVAR_ENABLE_GPU`: The default value of this CVAR is 1. Set to 0 to disable GPU support including GPU initialization.
+
+Misc:
+
+* `MPIR_CVAR_GPU_USE_IMMEDIATE_COMMAND_LIST`:  to use immediate command lists, instead of normal command lists plus command queues
+
+* `MPIR_CVAR_GPU_DEBUG_INFO`: when enabled, print GPU hardware information
