@@ -282,11 +282,10 @@ echo "rpm-testing: slurm allocated node is: "`srun -N 1 -n 1 hostname`
 echo "rpm-testing: test/mpi/configure will run on hostname: ${HOSTNAME}"
 
 # setting for GPU
-export NEOReadDebugKeys=1
-export EnableWalkerPartition=0
-export EnableImplicitScaling=0
+#export NEOReadDebugKeys=1
+#export EnableImplicitScaling=0
 # ULLS is buggy on ATS cluster, turning it off for now
-export EnableDirectSubmission=0
+#export EnableDirectSubmission=0
 
 ./configure --with-mpi=${MPI_DIR} --disable-perftest --disable-ft-tests ${error_checking} ${config_opts} \
     CC=mpicc CXX=mpicxx F77=mpif77 FC=mpif90
