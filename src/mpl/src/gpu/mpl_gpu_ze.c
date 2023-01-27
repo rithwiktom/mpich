@@ -1233,7 +1233,11 @@ static int MPL_event_pool_add_new_pool(void)
     ZE_ERR_CHECK(ret);
 
     MPL_ze_event_pool *ep =
-        (MPL_ze_event_pool *) MPL_calloc(0, sizeof(MPL_ze_event_pool), MPL_MEM_OTHER);
+        (MPL_ze_event_pool *) MPL_calloc(1, sizeof(MPL_ze_event_pool), MPL_MEM_OTHER);
+    if (ep == NULL) {
+        mpl_err = MPL_ERR_GPU_NOMEM;
+        goto fn_exit;
+    }
     ep->pool = event_pool;
     DL_APPEND(ze_event_pools, ep);
 
@@ -1248,7 +1252,11 @@ static int MPL_event_pool_add_new_pool(void)
         };
         ret = zeEventCreate(event_pool, &event_desc, &event);
         ZE_ERR_CHECK(ret);
-        MPL_gpu_event *e = (MPL_gpu_event *) MPL_calloc(0, sizeof(MPL_gpu_event), MPL_MEM_OTHER);
+        MPL_gpu_event *e = (MPL_gpu_event *) MPL_calloc(1, sizeof(MPL_gpu_event), MPL_MEM_OTHER);
+        if (e == NULL) {
+            mpl_err = MPL_ERR_GPU_NOMEM;
+            goto fn_exit;
+        }
         e->event = event;
         DL_APPEND(ze_events, e);
     }
