@@ -680,13 +680,17 @@ static inline void split_size(size_t size, size_t sizes[2])
     size_t mask = alignment - 1;
     size = (size + mask) & ~mask;
     size_t n = size >> 16;
-    if (n % 2) {
+    if (size < alignment) {
+        sizes[0] = size;
+        sizes[1] = 0;
+    } else if (n % 2) {
         sizes[0] = (n + 1) / 2 * alignment;
+        sizes[1] = size - sizes[0];
     } else {
         sizes[0] = n / 2 * alignment;
+        sizes[1] = size - sizes[0];
     }
-    sizes[1] = size - sizes[0];
-    assert(sizes[0] && sizes[1]);
+    assert(sizes[0]);
 }
 
 /* map two allocations into one contigous buffer */
@@ -723,7 +727,7 @@ static int mmapFunction(int nfds, int *fds, size_t size, void **ptr)
         if (split_sizes[1]) {
             char *p2 = (char *) buf + split_sizes[0];
             p = mmap(p2, split_sizes[1], PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fds[1], 0);
-            if (p != (void *) p) {
+            if (p != (void *) p2) {
                 mpl_err = MPL_ERR_GPU_INTERNAL;
                 perror("mmap 2nd tile");
                 printf("mmapFunction failed when mapping second tile \n");
