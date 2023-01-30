@@ -2663,6 +2663,7 @@ int MPL_ze_mmap_device_pointer(void *dptr, MPL_gpu_device_attr * attr,
         base = cache_entry->mapped_ptr;
     } else {
         if (zexMemGetIpcHandles) {
+            nfds = 0;   /* must be initialized to 0 */
             ret = zexMemGetIpcHandles(ze_context, pbase, &nfds, NULL);
             ZE_ERR_CHECK(ret);
             assert(nfds <= 2);
