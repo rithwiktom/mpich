@@ -1070,8 +1070,14 @@ static int gpu_ze_init_driver(void)
             fprintf(stderr, "maxMemAllocSize: %ld\n", device_properties.maxMemAllocSize);
             fprintf(stderr, "maxHardwareContexts: %d\n", device_properties.maxHardwareContexts);
             fprintf(stderr, "numThreadsPerEU: %d\n", device_properties.numThreadsPerEU);
-            fprintf(stderr, "uuid: 0x%x 0x%x 0x%x\n", device_properties.uuid.id[2],
-                    device_properties.uuid.id[1], device_properties.uuid.id[0]);
+            char uuid_str[1024];
+            strcpy(uuid_str, "uuid: ");
+            for (int j = 0; j < ZE_MAX_DRIVER_UUID_SIZE; j++) {
+                char s[128];
+                sprintf(s, "%x ", device_properties.uuid.id[j]);
+                strcat(uuid_str, s);
+            }
+            fprintf(stderr, "%s\n", uuid_str);
 #ifdef ZE_PCI_PROPERTIES_EXT_NAME
             if (device_state->pci_avail)
                 fprintf(stderr, "BDF: domain:%x B:%x D:%x F:%x\n", device_state->pci.domain,
