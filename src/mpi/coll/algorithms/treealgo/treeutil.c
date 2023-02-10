@@ -381,7 +381,7 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
  * r.id|  0   1 2    3  4   5  7   6
  *
  * [0]leaders: [0, 1, 2] [3, 4, 5] [7, 6] switch
- * [1]leaders:   [1, 2]   [3, 5]     [6]  group
+ * [1]leaders:   [1, 2]   [3, 5]   [7, 6] group
  * [2]leaders:     [1]      [3]      [6]  world
  */
 
