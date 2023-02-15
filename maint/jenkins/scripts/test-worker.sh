@@ -25,8 +25,9 @@ verbs_dir_list="/opt/intel/csr /home/sys_csr1/software/verbs" # list of location
 tcp_dir="/usr"
 tcp_dir_list="/opt/intel/csr /home/sys_csr1/software/tcp" # list of locations where we might have libtcp
 use_pmix="nopmix"
-pmix_dir="/opt/openpmix"
-prte_dir="/opt/prrte"
+pmix_dir="/opt/pmix-4.2.2"
+hwloc_dir="/opt/hwloc-2.8.0"
+prte_dir="/opt/prrte-3.0.0"
 cxi_dir="/usr"
 cxi_dir_list="/opt/intel/csr /home/sys_csr1/software/cxi" # list of locations where we might have libcxi
 ofi_sockets_def_conn_map_sz=4096
@@ -60,7 +61,7 @@ if [ -f "$JENKINS_DIR/drop_version" ]; then
     custom_version_string=drop$(<$JENKINS_DIR/drop_version)
 fi
 core_dir="/tmp/jenkins-core-files" # Directory to store core files
-use_xpmem="yes"
+use_xpmem="no"
 use_gpudirect="yes"
 use_json="yes"
 xpmem_dir="/usr/local"
@@ -1175,6 +1176,12 @@ SetConfigOpt() {
 PrepareEnv
 
 SetCompiler "$compiler"
+
+if [ "$use_pmix" == "pmix" ]; then
+    export LD_LIBRARY_PATH=$pmix_dir/lib:$prte_dir/lib:$LD_LIBRARY_PATH
+    export PATH=$pmix_dir/bin:$prte_dir/bin:$PATH
+fi
+
 if [ "$build_mpich" == "yes" ]; then
     SetConfigOpt $jenkins_configure
 
@@ -1479,11 +1486,6 @@ if [ "$run_tests" == "yes" ]; then
         export MPIR_CVAR_CH4_OFI_ENABLE_TAGGED=0
     fi
 
-    if [ "$use_pmix" == "pmix" ]; then
-        export LD_LIBRARY_PATH=$pmix_dir/lib:$prte_dir/lib:$LD_LIBRARY_PATH
-        export PATH=$pmix_dir/bin:$prte_dir/bin:$PATH
-    fi
-
     # Get the device and subdevice count if clinfo exists
     if [ -x $(command -v clinfo &> /dev/null) ]; then
         ParseCLINFO < <(clinfo)
@@ -1506,7 +1508,11 @@ if [ "$run_tests" == "yes" ]; then
         make testing MPITEST_PROGRAM_WRAPPER="-ppn 1 "
     else
         if [ "$use_pmix" = "pmix" ]; then
-            make testing MPIEXEC="/opt/prrte/bin/prte" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE"
+            prte &
+            export prte_pid=$!
+            echo $prte_pid
+            make testing MPIEXEC="/opt/prrte-3.0.0/bin/prun --pid=$prte_pid" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE"
+            pterm --pid=$prte_pid
         else
             make testing
         fi

@@ -76,8 +76,9 @@ if [ "${provider}" == "all" ]; then
 fi
 
 DAOS_INSTALL_DIR="/opt/daos-34"
-pmix_dir="/opt/openpmix"
-prte_dir="/opt/prrte"
+pmix_dir="/opt/pmix-4.2.2"
+prte_dir="/opt/prrte-3.0.0"
+hwloc_dir="/opt/hwloc-2.8.0"
 
 count=1
 #while [[ "$is_there" != 0 && "$count" -lt 10 ]]; do
@@ -94,6 +95,8 @@ rpm -qpR ${WORKSPACE}/$RPM.rpm
 
 set -e
 if [ "$flavor" == "gpu" ]; then
+    # Boris has default MPICH installed. We need to unload it from environment to use our latest build.
+    module unload mpich
     set +e
     rpm --initdb --dbpath /tmp/rpmdb
     rpm --dbpath /tmp/rpmdb --nodeps -ihv --prefix /tmp/inst ${WORKSPACE}/$RPM.rpm
@@ -162,8 +165,10 @@ else
 fi
 
 # Need to set FI_PROVIDER after loading the module file, because the modulefile unsets FI_PROVIDER
-if [ ${provider} == "sockets" -o "${provider}" == "all" ]; then
+if [ ${provider} == "sockets" ]; then
     export FI_PROVIDER=sockets
+elif [ ${provider} == "all" -o "${provider}" == "cxi" ]; then
+    export FI_PROVIDER=cxi
 elif [ ${provider} == "psm3" ]; then
     export FI_PROVIDER=psm3
     export PSM3_MULTI_EP=1
@@ -203,17 +208,23 @@ export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 export PATH=/opt/intel/csr/bin:$PATH
 
+# PMIX related options
+if [ "$pmix" == "pmix" ]; then
+    export LD_LIBRARY_PATH=$pmix_dir/lib:$prte_dir/lib:$LD_LIBRARY_PATH
+    export PATH=$pmix_dir/bin:$prte_dir/bin:$PATH
+    if [ "$flavor" == "gpu" ]; then
+        # GPU testing purpose, currently it is hard-coded to Qiao's home folder for testing PMix/GPU.
+        export LD_LIBRARY_PATH=/home/qkang/opt/prte-3.0.0/lib:/home/qkang/opt/pmix-4.2.2/lib:$LD_LIBRARY_PATH
+        export PATH=/home/qkang/opt/prte-3.0.0/bin:/home/qkang/opt/pmix-4.2.2/bin:$PATH
+    fi
+fi
+
 if [ "$provider" == "sockets" -o "$provider" == "tcp" ]; then
     # set paths for daos
     export PATH=$DAOS_INSTALL_DIR/bin/:$PATH
     export LD_LIBRARY_PATH=$DAOS_INSTALL_DIR/lib/:$DAOS_INSTALL_DIR/lib64/:$LD_LIBRARY_PATH
     # daos has its own libfabric in lib, need to overwrite
     export LD_LIBRARY_PATH=$OFI_DIR/lib/:$LD_LIBRARY_PATH
-    # PMIX related options
-    if [ "$pmix" == "pmix" ]; then
-        export LD_LIBRARY_PATH=$pmix_dir/lib:$prte_dir/lib:$LD_LIBRARY_PATH
-        export PATH=$pmix_dir/bin:$prte_dir/bin:$PATH
-    fi
 fi
 
 # print json files paths
@@ -270,6 +281,12 @@ ldd ${MPI_DIR}/lib/libmpich.so
 echo "rpm-testing: slurm allocated node is: "`srun -N 1 -n 1 hostname`
 echo "rpm-testing: test/mpi/configure will run on hostname: ${HOSTNAME}"
 
+# setting for GPU
+#export NEOReadDebugKeys=1
+#export EnableImplicitScaling=0
+# ULLS is buggy on ATS cluster, turning it off for now
+#export EnableDirectSubmission=0
+
 ./configure --with-mpi=${MPI_DIR} --disable-perftest --disable-ft-tests ${error_checking} ${config_opts} \
     CC=mpicc CXX=mpicxx F77=mpif77 FC=mpif90
 
@@ -301,12 +318,20 @@ cd test/mpi
 make clean
 echo "rpm-testing: make testing will run on hostname: ${HOSTNAME}"
 if [ "${pmix}" == "pmix" ]; then
-    make testing MPIEXEC="/opt/prrte/bin/prte" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE" MPITEST_PPNARG="-ppn 1 "
+    prte &
+    export prte_pid=$!
+    echo $prte_pid
+    sleep 2
+    make testing MPIEXEC="prun --pid=$prte_pid" MPITEST_PROGRAM_WRAPPER="--map-by :OVERSUBSCRIBE" MPITEST_PPNARG="-ppn 1 "
+    if [ $? != 0 ]; then
+        fail=1
+    fi
+    pterm --pid=$prte_pid
 else
     make testing
-fi
-if [ $? != 0 ]; then
-    fail=1
+    if [ $? != 0 ]; then
+        fail=1
+    fi
 fi
 cp summary.junit.xml ${WORKSPACE}
 
