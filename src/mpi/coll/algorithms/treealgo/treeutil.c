@@ -605,7 +605,7 @@ static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int *grou
         int exp = 0;
         for (int r_idx = *switch_idx; r_idx < utarray_len(&sw_level->ranks); r_idx++) {
             if (r_idx == 0 && gr_r_idx == 0) {
-                /* Skip the switch ROOT's leader int its group */
+                /* Skip the switch ROOT's leader in its group */
                 exp++;
                 continue;
             }
@@ -733,7 +733,11 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     heap_vector_init(&minHeaps);
 
     /* To build hierarchy of ranks, swiches and groups */
-    if (MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
+    int dim = MPIR_Process.coords_dims;
+    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
+        tree_ut_hierarchy_init(&hierarchy[dim]);
+
+    if (0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
         goto fn_fallback;
 
     UT_icd intpair_icd = { sizeof(pair), NULL, NULL, NULL };
@@ -784,15 +788,13 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
             MPIR_ERR_CHECK(mpi_errno);
         }
 
-        /* Add overheads to best_u/v */
-        pair_elt(unv_set, best_u)->reach_time = glob_reach_time;
-        minHeaps.heap[best_v].elem->reach_time += overhead;
-
-        /* Update reach_time of visited node, adding +overhead,
+        /* Update reach_time of visited node (best_v), adding overhead,
          * and heapify the main heap with the updated values */
+        minHeaps.heap[best_v].elem->reach_time += overhead;
         heapify(&minHeaps.heap[best_v], best_v);
 
-        /* Insert the best visited node into the main heap and heapify it */
+        /* Update reach_time of unvisited node (best_u), then insert it into the main heap */
+        pair_elt(unv_set, best_u)->reach_time = glob_reach_time;
         if (minHeaps.total - 1 != 0)    /* skip the 1st switch */
             insertNode(&minHeaps.heap[minHeaps.total - 1], pair_elt(unv_set, best_u));
 
