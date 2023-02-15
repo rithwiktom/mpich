@@ -18,11 +18,12 @@ struct hierarchy_t {
     int relative_idx;
     int child_idx;
     int root_idx, myrank_idx;
+    int has_root;
     UT_array ranks;
 };
 
 typedef struct {
-    int num_rank;
+    int rank;
     int reach_time;
 } pair;
 
@@ -52,6 +53,7 @@ static void tree_ut_hierarchy_init(void *elt)
     ((struct hierarchy_t *) elt)->relative_idx = -1;
     ((struct hierarchy_t *) elt)->root_idx = -1;
     ((struct hierarchy_t *) elt)->myrank_idx = -1;
+    ((struct hierarchy_t *) elt)->has_root = 0;
     tree_ut_int_init(&((struct hierarchy_t *) elt)->ranks);
 }
 

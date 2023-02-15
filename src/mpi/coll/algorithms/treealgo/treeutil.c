@@ -338,6 +338,10 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
                                        cur_level->relative_idx);
             }
 
+            if (r == params->root) {
+                cur_level->has_root = 1;
+            }
+
             if (upper_level->child_idx == -1) {
                 upper_level->child_idx = level_idx;
             }
@@ -507,7 +511,7 @@ static void insertNode(minHeap * hp, pair * data)
     }
     MPIR_Assert(hp->elem != NULL);
     pair nd;
-    nd.num_rank = data->num_rank;
+    nd.rank = data->rank;
     nd.reach_time = data->reach_time;
 
     int i = (hp->size)++;
@@ -582,35 +586,37 @@ static inline void take_children(const UT_array * hierarchy, int lead, UT_array 
             continue;
         }
         pair p;
-        p.num_rank = tree_ut_int_elt(&rank_level->ranks, r);
+        p.rank = tree_ut_int_elt(&rank_level->ranks, r);
         p.reach_time = 0;
         utarray_push_back(unv_set, &p, MPL_MEM_COLL);
     }
 }
 
-static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int *group_idx,
-                       int *switch_idx, heap_vector * minHeaps)
+static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int root, int root_group_idx,
+                       int root_switch_idx, int *group_offset, int *switch_offset,
+                       heap_vector * minHeaps)
 {
     /* find_leader() finds a switch leader and its children, filling array of heaps
-     * and unvisited set. Maintain two vars 'group_idx' and 'switch_idx', they saves
-     * coordinates, where the search of a leader stops, and continue the next call of
+     * and unvisited set. Maintain two vars 'group_offset' and 'switch_offset', they saves
+     * relative coordinates, where the search of a leader stops, and continue the next call of
      * find_leader() with the saved coordinates. */
 
     /* To reach world level use 0 for element ptr */
     struct hierarchy_t *wr_level = tree_ut_hierarchy_eltptr(&hierarchy[2], 0);
     MPIR_Assert(wr_level != NULL);
-    for (int gr_r_idx = *group_idx; gr_r_idx < utarray_len(&wr_level->ranks); gr_r_idx++) {
-        struct hierarchy_t *sw_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_r_idx);
+    for (int gr_offset = *group_offset; gr_offset < utarray_len(&wr_level->ranks); gr_offset++) {
+        int gr_idx = (root_group_idx + gr_offset) % utarray_len(&wr_level->ranks);
+        struct hierarchy_t *sw_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_idx);
         MPIR_Assert(sw_level != NULL);
-        int exp = 0;
-        for (int r_idx = *switch_idx; r_idx < utarray_len(&sw_level->ranks); r_idx++) {
-            if (r_idx == 0 && gr_r_idx == 0) {
+        for (int sw_offset = *switch_offset; sw_offset < utarray_len(&sw_level->ranks); sw_offset++) {
+            int sw_idx = (root_switch_idx + sw_offset) % utarray_len(&sw_level->ranks);
+            int cur_rank = tree_ut_int_elt(&sw_level->ranks, sw_idx);
+            if (cur_rank == root) {
                 /* Skip the switch ROOT's leader in its group */
-                exp++;
                 continue;
             }
             pair p;
-            p.num_rank = tree_ut_int_elt(&sw_level->ranks, r_idx);
+            p.rank = cur_rank;
             p.reach_time = 0;
             utarray_push_back(unv_set, &p, MPL_MEM_COLL);
 
@@ -619,24 +625,24 @@ static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int *grou
             MPL_free(heap);
 
             /* Take children of the lead in the switch */
-            take_children(hierarchy, sw_level->child_idx + r_idx, unv_set);
+            take_children(hierarchy, sw_level->child_idx + sw_idx, unv_set);
 
-            /* When there is not any switch insdie the current group,
+            /* When there is not any switch inside the current group,
              * shift to the next group and start with the 1st switch */
-            if (utarray_len(&sw_level->ranks) - exp == r_idx) {
-                *group_idx = *group_idx + 1;
-                *switch_idx = 0;
+            if (utarray_len(&sw_level->ranks) == sw_idx) {
+                *group_offset = *group_offset + 1;
+                *switch_offset = 0;
             } else {
                 /* If there're more switches in the current group,
                  * shift to the next switch and keep the current group id */
-                *group_idx = gr_r_idx;
-                *switch_idx = r_idx + 1;
+                *group_offset = gr_offset;
+                *switch_offset = sw_offset + 1;
             }
             return 0;
         }
-        *switch_idx = 0;
+        *switch_offset = 0;
     }
-    *group_idx = 0;
+    *group_offset = 0;
     return -1;
 }
 
@@ -649,8 +655,8 @@ static inline void take_earliest_time(UT_array * unvisited_set, const heap_vecto
     pair_elt(unvisited_set, unvisited_node_idx)->reach_time =
         MPL_MIN(pair_elt(unvisited_set, unvisited_node_idx)->reach_time,
                 minHeaps->heap[visited_sw_idx].elem->reach_time +
-                latency(pair_elt(unvisited_set, unvisited_node_idx)->num_rank,
-                        minHeaps->heap[visited_sw_idx].elem->num_rank) + 2 * overhead);
+                latency(pair_elt(unvisited_set, unvisited_node_idx)->rank,
+                        minHeaps->heap[visited_sw_idx].elem->rank) + 2 * overhead);
     if (*glob_reach_time > pair_elt(unvisited_set, unvisited_node_idx)->reach_time) {
         /* Update global reach time by current reach time of node */
         *glob_reach_time = pair_elt(unvisited_set, unvisited_node_idx)->reach_time;
@@ -660,10 +666,10 @@ static inline void take_earliest_time(UT_array * unvisited_set, const heap_vecto
     }
 }
 
-static int init_root_switch(const UT_array * hierarchy, heap_vector * minHeaps,
-                            UT_array * unv_set, const int root)
+static int init_root_switch(const UT_array * hierarchy, heap_vector * minHeaps, UT_array * unv_set,
+                            const int root, int *root_group_idx, int *root_switch_idx)
 {
-    /* init_root_switch() adds the first switch in a heap vector (array of heaps).
+    /* init_root_switch() adds the root's switch in a heap vector (array of heaps).
      * Origionally, inserts ROOT in the first created heap, then looks for ROOT's
      * children and also inserts them into the heap, push its children into the
      * unvisited set. If there are not ROOT's children, it falls back. */
@@ -672,25 +678,46 @@ static int init_root_switch(const UT_array * hierarchy, heap_vector * minHeaps,
     /* Create the first heap for ROOT */
     minHeap *init_heap = initMinHeap();
     MPIR_ERR_CHKANDJUMP(!init_heap, mpi_errno, MPI_ERR_OTHER, "**nomem");
-    struct hierarchy_t *sw_level = tree_ut_hierarchy_eltptr(&hierarchy[1], root);
-    MPIR_Assert(sw_level != NULL && root < utarray_len(&sw_level->ranks));
+    /* Get the root's switch */
+    struct hierarchy_t *wr_level = tree_ut_hierarchy_eltptr(&hierarchy[2], 0);
+    struct hierarchy_t *sw_level = NULL;
+    struct hierarchy_t *rank_level = NULL;
+    MPIR_Assert(wr_level != NULL);
+    bool break_now = false;
+    for (int gr_idx = 0; gr_idx < utarray_len(&wr_level->ranks); gr_idx++) {
+        if (break_now) {
+            break;
+        }
+        sw_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_idx);
+        MPIR_Assert(sw_level != NULL);
+        if (sw_level->has_root) {
+            for (int sw_idx = 0; sw_idx < utarray_len(&sw_level->ranks); sw_idx++) {
+                rank_level = tree_ut_hierarchy_eltptr(&hierarchy[0], sw_level->child_idx + sw_idx);
+                if (rank_level->has_root) {
+                    *root_group_idx = gr_idx;
+                    *root_switch_idx = sw_idx;
+                    break_now = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    /* Insert the ROOT's pair into the first heap of switches */
     pair p;
-    p.num_rank = tree_ut_int_elt(&sw_level->ranks, root);
+    p.rank = root;
     p.reach_time = 0;
-    /*Insert the ROOT's pair into the first heap of switches */
     insertNode(init_heap, &p);
-    /* Take ROOTS's children */
-    struct hierarchy_t *rank_level =
-        tree_ut_hierarchy_eltptr(&hierarchy[0], sw_level->child_idx + root);
-    MPIR_Assert(rank_level != NULL);
+
     /* Check if there are children (except ROOT) */
     if (utarray_len(&rank_level->ranks) > 1) {
         /*If yes, fill the ROOT's heap by children and push them into unvisited set */
         for (int r = 0; r < utarray_len(&rank_level->ranks); r++) {
-            if (r == 0)
+            int cur_rank = tree_ut_int_elt(&rank_level->ranks, r);
+            if (cur_rank == root)
                 continue;
             pair p_ch;
-            p_ch.num_rank = tree_ut_int_elt(&rank_level->ranks, r);
+            p_ch.rank = cur_rank;
             p_ch.reach_time = 0;
             insertNode(init_heap, &p_ch);
             utarray_push_back(unv_set, &p_ch, MPL_MEM_COLL);
@@ -723,8 +750,10 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     int nranks = params->nranks;
     int root = params->root;
     int overhead = MPIR_CVAR_NETWORK_TOPO_OVERHEAD;
-    int group_idx = 0;
-    int switch_idx = 0;
+    int root_group_idx = 0;
+    int root_switch_idx = 0;
+    int group_offset = 0;
+    int switch_offset = 0;
     int size_comm = 0;
     UT_array hierarchy[MAX_HIERARCHY_DEPTH];
     UT_array *unv_set = NULL;
@@ -743,7 +772,7 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     UT_icd intpair_icd = { sizeof(pair), NULL, NULL, NULL };
     utarray_new(unv_set, &intpair_icd, MPL_MEM_COLL);
 
-    if (init_root_switch(hierarchy, &minHeaps, unv_set, root))
+    if (init_root_switch(hierarchy, &minHeaps, unv_set, root, &root_group_idx, &root_switch_idx))
         goto fn_fallback;
 
     ct->rank = rank;
@@ -780,11 +809,11 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
 
         MPIR_Assert(best_u < utarray_len(unv_set));
         /* Connect best_v--->best_u */
-        if (rank == pair_elt(unv_set, best_u)->num_rank) {
+        if (rank == pair_elt(unv_set, best_u)->rank) {
             MPIR_Assert(ct->parent == -1);
-            ct->parent = minHeaps.heap[best_v].elem->num_rank;
-        } else if (rank == minHeaps.heap[best_v].elem->num_rank) {
-            mpi_errno = tree_add_child(ct, pair_elt(unv_set, best_u)->num_rank);
+            ct->parent = minHeaps.heap[best_v].elem->rank;
+        } else if (rank == minHeaps.heap[best_v].elem->rank) {
+            mpi_errno = tree_add_child(ct, pair_elt(unv_set, best_u)->rank);
             MPIR_ERR_CHECK(mpi_errno);
         }
 
@@ -805,7 +834,8 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
         if (utarray_len(unv_set) == 0) {
             /* Find switch leaders and keep updating coordinates of
              * group/switch idx'es for next search */
-            int ret = find_leader(hierarchy, unv_set, &group_idx, &switch_idx, &minHeaps);
+            int ret = find_leader(hierarchy, unv_set, root, root_switch_idx, root_switch_idx,
+                                  &group_offset, &switch_offset, &minHeaps);
             if (ret == -1 && utarray_len(unv_set) == 0) {
                 /* If there is not any element to be added break the main while () */
                 break;
@@ -868,7 +898,7 @@ static void tree_topology_print_heaps_built(heap_vector * minHeaps)
     fprintf(stderr, "total of array heap: %d\n", minHeaps->total);
     for (int i = 0; i < minHeaps->total; i++) {
         for (int j = 0; j < minHeaps->heap[i].size; j++) {
-            fprintf(stderr, "heap[%d]: %d %d\n", i, minHeaps->heap[i].elem[j].num_rank,
+            fprintf(stderr, "heap[%d]: %d %d\n", i, minHeaps->heap[i].elem[j].rank,
                     minHeaps->heap[i].elem[j].reach_time);
         }
         fprintf(stderr, "\n");
