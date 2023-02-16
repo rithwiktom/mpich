@@ -7,6 +7,9 @@
 #include "treealgo.h"
 #include "treeutil.h"
 
+static void dump_node(MPIR_Treealgo_tree_t * node, FILE * output_stream);
+
+
 int MPII_Treealgo_init(void)
 {
     int mpi_errno = MPI_SUCCESS;
@@ -31,37 +34,62 @@ int MPII_Treealgo_comm_cleanup(MPIR_Comm * comm)
 }
 
 
-int MPIR_Treealgo_tree_create(int rank, int nranks, int tree_type, int k, int root,
+int MPIR_Treealgo_tree_create(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
                               MPIR_Treealgo_tree_t * ct)
 {
     int mpi_errno = MPI_SUCCESS;
 
     MPIR_FUNC_ENTER;
 
-    switch (tree_type) {
+    switch (params->tree_type) {
         case MPIR_TREE_TYPE_KARY:
-            mpi_errno = MPII_Treeutil_tree_kary_init(rank, nranks, k, root, ct);
+            mpi_errno =
+                MPII_Treeutil_tree_kary_init(params->rank, params->nranks, params->k, params->root,
+                                             ct);
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
         case MPIR_TREE_TYPE_KNOMIAL_1:
-            mpi_errno = MPII_Treeutil_tree_knomial_1_init(rank, nranks, k, root, ct);
+            mpi_errno =
+                MPII_Treeutil_tree_knomial_1_init(params->rank, params->nranks, params->k,
+                                                  params->root, ct);
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
         case MPIR_TREE_TYPE_KNOMIAL_2:
-            mpi_errno = MPII_Treeutil_tree_knomial_2_init(rank, nranks, k, root, ct);
+            mpi_errno =
+                MPII_Treeutil_tree_knomial_2_init(params->rank, params->nranks, params->k,
+                                                  params->root, ct);
+            MPIR_ERR_CHECK(mpi_errno);
+            break;
+
+        case MPIR_TREE_TYPE_TOPOLOGY_AWARE:
+            mpi_errno = MPII_Treeutil_tree_topology_aware_init(comm, params, ct);
+            MPIR_ERR_CHECK(mpi_errno);
+            break;
+
+        case MPIR_TREE_TYPE_TOPOLOGY_WAVE:
+            mpi_errno = MPII_Treeutil_tree_topology_wave_init(comm, params, ct);
             MPIR_ERR_CHECK(mpi_errno);
             break;
 
         default:
             MPIR_ERR_SETANDJUMP1(mpi_errno, MPI_ERR_OTHER, "**treetype", "**treetype %d",
-                                 tree_type);
+                                 params->tree_type);
     }
 
     MPIR_FUNC_EXIT;
 
   fn_exit:
+    {
+        if (0 < strlen(MPIR_CVAR_TREE_DUMP_FILE_PREFIX)) {
+            char outfile_name[PATH_MAX];
+            sprintf(outfile_name, "%s%d.json", MPIR_CVAR_TREE_DUMP_FILE_PREFIX, params->rank);
+            FILE *outfile = fopen(outfile_name, "w");
+            dump_node(ct, outfile);
+            fclose(outfile);
+        }
+    }
     return mpi_errno;
 
   fn_fail:
@@ -72,4 +100,18 @@ int MPIR_Treealgo_tree_create(int rank, int nranks, int tree_type, int k, int ro
 void MPIR_Treealgo_tree_free(MPIR_Treealgo_tree_t * tree)
 {
     utarray_free(tree->children);
+}
+
+
+static void dump_node(MPIR_Treealgo_tree_t * node, FILE * output_stream)
+{
+    fprintf(output_stream, "{ \"rank\": %d, \"nranks\": %d, \"parent\": %d, \"children\": [",
+            node->rank, node->nranks, node->parent);
+    for (int child = 0; child < node->num_children; child++) {
+        if (child > 0) {
+            fprintf(output_stream, ",");
+        }
+        fprintf(output_stream, "%d", tree_ut_int_elt(node->children, child));
+    }
+    fprintf(output_stream, "] }\n");
 }
