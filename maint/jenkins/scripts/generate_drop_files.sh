@@ -101,7 +101,7 @@ prepend_path("CPATH","/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_stri
 
 pushenv("MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/CH4_coll_tuning.json")
 pushenv("MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/MPIR_Coll_tuning.json")
-pushenv("MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/POSIX_coll_tuning.json")
+pushenv("MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/POSIX_coll_tuning.json")
 EOF
 
     if [ "$provider" != "all" ]; then
@@ -221,7 +221,7 @@ prepend-path {CPATH} "${MPI_DIR}/include"
 
 setenv {MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/CH4_coll_tuning.json"
 setenv {MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/MPIR_Coll_tuning.json"
-setenv {MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/POSIX_coll_tuning.json"
+setenv {MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/POSIX_coll_tuning.json"
 EOF
 
     if [ "$provider" != "all" ]; then
