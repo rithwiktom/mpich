@@ -1469,7 +1469,7 @@ if [ "$run_tests" == "yes" ]; then
     fi
 
     if [ "$use_json" == "yes" ]; then
-        export MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/CH4_coll_tuning.json"
+        export MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/CH4_coll_tuning.json"
         export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
         export MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE="${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
     fi

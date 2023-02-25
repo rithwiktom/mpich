@@ -99,7 +99,7 @@ prepend_path("LD_LIBRARY_PATH","/usr/mpi/mpich-ofi-$provider-$compiler-$configs$
 prepend_path("PATH","/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/bin")
 prepend_path("CPATH","/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/include")
 
-pushenv("MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/CH4_coll_tuning.json")
+pushenv("MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/CH4_coll_tuning.json")
 pushenv("MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/MPIR_Coll_tuning.json")
 pushenv("MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE", "/usr/mpi/mpich-ofi-$provider-$compiler-$configs${pmix_string}${flavor_string}-$DROP_VERSION/json-files/POSIX_coll_tuning.json")
 EOF
@@ -219,7 +219,7 @@ prepend-path {LD_LIBRARY_PATH} "${MPI_DIR}/lib"
 prepend-path {PATH} "${MPI_DIR}/bin"
 prepend-path {CPATH} "${MPI_DIR}/include"
 
-setenv {MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/CH4_coll_tuning.json"
+setenv {MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/CH4_coll_tuning.json"
 setenv {MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/MPIR_Coll_tuning.json"
 setenv {MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE} "${MPI_DIR}/json-files/POSIX_coll_tuning.json"
 EOF
@@ -286,7 +286,7 @@ export LIBRARY_PATH=/usr/mpi/mpich-ofi-$provider-$compiler-default-$drop/lib${LI
 export PATH=/usr/mpi/mpich-ofi-$provider-$compiler-default-$drop/bin:$PATH
 export LD_LIBRARY_PATH=/usr/mpi/mpich-ofi-$provider-$compiler-default-$drop/lib:$LD_LIBRARY_PATH
 
-export MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE=/usr/mpi/mpich-ofi-$provider-$compiler-default-$drop/json-files/CH4_coll_tuning.json
+export MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE=/usr/mpi/mpich-ofi-$provider-$compiler-default-$drop/json-files/CH4_coll_tuning.json
 export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE=/usr/mpi/mpich-ofi-$provider-$compiler-default-$drop/json-files/MPIR_Coll_tuning.json
 EOF
 
