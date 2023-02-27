@@ -431,8 +431,9 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
 
             MPIR_Treealgo_tree_t tmp_tree;
             mpi_errno =
-                MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks), 1,
-                                             level->root_idx, &tmp_tree);
+                MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks),
+                                             MPIR_CVAR_TOPOLOGY_AWARE_KVAL, level->root_idx,
+                                             &tmp_tree);
             MPIR_ERR_CHECK(mpi_errno);
 
             int children_number = utarray_len(tmp_tree.children);

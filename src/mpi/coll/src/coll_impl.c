@@ -53,6 +53,16 @@ cvars:
       description : >-
         Defines the location of tuning file.
 
+    - name        : MPIR_CVAR_TOPOLOGY_AWARE_KVAL
+      category    : COLLECTIVE
+      type        : int
+      default     : 1
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar controls the branching factor in topology aware tree
+
     - name        : MPIR_CVAR_NETWORK_TOPO_OVERHEAD
       category    : COLLECTIVE
       type        : int
