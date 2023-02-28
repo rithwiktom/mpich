@@ -4,28 +4,65 @@ import org.jenkinsci.plugins.workflow.steps.*
 
 def tarball_name='mpich-drops.tar.bz2'
 
-def skip_config(provider, compiler, config, pmix, flavor) {
-    skip = false
+def Taranis_build(provider, compiler, config, pmix, flavor) {
+    check = false
+    // Taranis Builds
+    check |= ("${provider}" == "psm2" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "psm2" && "${compiler}" == "icc" && "${config}" == "debug" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "psm2" && "${compiler}" == "gnu" && "${config}" == "default" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "psm2" && "${compiler}" == "gnu" && "${config}" == "debug" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
 
-    // Misc
-    skip |= ("${pmix}" == "pmix" && "${provider}" == "psm2") // Don't build PMIx with PSM2
-    skip |= ("${pmix}" == "pmix" && "${provider}" == "psm3") // Don't build PMIx with PSM3
-    skip |= ("${provider}" == "all" && ("${compiler}" != "icc" || "${config}" != "default" || "${flavor}" != "gpu")) // The build that supports all providers with a default configuration is heavily restricted
+    check |= ("${provider}" == "tcp" && "${compiler}" == "icc" && "${config}" == "debug" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "tcp" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "tcp" && "${compiler}" == "gnu" && "${config}" == "debug" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "tcp" && "${compiler}" == "gnu" && "${config}" == "default" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
 
-    // GPUs
-    skip |= ("${flavor}" == "gpu" && "${provider}" == "psm2") // Don't build gpu with PSM2
-    skip |= ("${flavor}" == "gpu" && "${provider}" == "tcp") // Don't build gpu with tcp
-    skip |= ("${flavor}" == "nogpu" && ("${provider}" == "psm2" || "${provider}" == "psm3" || "${provider}" == "cxi" || "${provider}" == "tcp" || "${pmix}" == "pmix")) // The nogpu build is very specific and should be sockets with gnu/icc and nopmix
+    check |= ("${provider}" == "cxi" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "cxi" && "${compiler}" == "icc" && "${config}" == "debug" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "cxi" && "${compiler}" == "gnu" && "${config}" == "default" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "cxi" && "${compiler}" == "gnu" && "${config}" == "debug" && "${flavor}" == "regular" && "${pmix}" == "nopmix")
 
-    // Provider
-    skip |= ("${provider}" == "cxi" && "${flavor}" != "regular") // The CXI provider builds will only be with the "regular" versions (not the gpu or nogpu builds)
-    skip |= ("${provider}" == "sockets" && "${flavor}" == "regular") // The sockets provider builds will only the gpu and nogpu)
-    skip |= ("${provider}" == "psm3" && "${flavor}" == "regular") // The psm3 provider builds will only be for gpu)
-    skip |= ("${provider}" == "sockets" && "${pmix}" == "pmix") // The sockets provider builds will only the gpu and nogpu)
-    skip |= ("${provider}" == "cxi" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The CXI+PMIx use the Intel compilers
-    skip |= ("${provider}" == "tcp" && "${pmix}" == "pmix" && "${compiler}" == "gnu") // The TCP+PMIx use the Intel compilers
+    return check
+}
 
-    return skip
+def Sunspot_builds(provider, compiler, config, pmix, flavor) {
+    check = false
+    // Sunspot Builds (no XPMEM, external libfabric, with GPU, all providers, PMIX is optional)
+    check |= ("${provider}" == "all" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "gpu" && "${pmix}" == "pmix")
+    check |= ("${provider}" == "all" && "${compiler}" == "icc" && "${config}" == "debug" && "${flavor}" == "gpu" && "${pmix}" == "pmix")
+    check |= ("${provider}" == "all" && "${compiler}" == "gnu" && "${config}" == "default" && "${flavor}" == "gpu" && "${pmix}" == "pmix")
+    check |= ("${provider}" == "all" && "${compiler}" == "gnu" && "${config}" == "debug" && "${flavor}" == "gpu" && "${pmix}" == "pmix")
+    return check
+}
+
+def JLSE_builds(provider, compiler, config, pmix, flavor) {
+    check = false
+
+    // JLSE Builds (no XPMEM, external libfabric)
+    // Sockets Provider
+    check |= ("${provider}" == "sockets" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "gpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "sockets" && "${compiler}" == "icc" && "${config}" == "debug" && "${flavor}" == "gpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "sockets" && "${compiler}" == "gnu" && "${config}" == "default" && "${flavor}" == "gpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "sockets" && "${compiler}" == "gnu" && "${config}" == "debug" && "${flavor}" == "gpu" && "${pmix}" == "nopmix")
+    // NoGPU Builds (GPU disabled, no XPMEM, external libfabric)
+    check |= ("${provider}" == "sockets" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "nogpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "sockets" && "${compiler}" == "icc" && "${config}" == "debug" && "${flavor}" == "nogpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "sockets" && "${compiler}" == "gnu" && "${config}" == "default" && "${flavor}" == "nogpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "sockets" && "${compiler}" == "gnu" && "${config}" == "debug" && "${flavor}" == "nogpu" && "${pmix}" == "nopmix")
+
+    return check
+}
+
+def check_config(provider, compiler, config, pmix, flavor) {
+    check = false
+    check |= Taranis_build(provider, compiler, config, pmix, flavor)
+    check |= Sunspot_builds(provider, compiler, config, pmix, flavor)
+    check |= JLSE_builds(provider, compiler, config, pmix, flavor)
+    // Also need these build for testing references.
+    check |= ("${provider}" == "all" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "gpu" && "${pmix}" == "nopmix")
+    check |= ("${provider}" == "cxi" && "${compiler}" == "icc" && "${config}" == "default" && "${flavor}" == "gpu" && "${pmix}" == "nopmix")
+
+    return check
 }
 
 def branches = [:]
@@ -127,7 +164,7 @@ cp ${tarball_name} \$HOME/rpmbuild/SOURCES/${tarball_name}
                         def pmix = d
                         def flavor = e
 
-                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                        if (check_config(provider, compiler, config, pmix, flavor) == false) {
                             continue
                         }
 
@@ -255,13 +292,17 @@ elif [ "${flavor}" == "gpu" ]; then
     # so that we can use multiple NICs. This is needed for
     # JLSE builds where we provide embedded libfabric
     config_extra+=" --enable-psm3"
-    daos="no"
+    # daos = no when provider = psm2 or psm3 or socket
+    # daos = yes when provider = cxi or tcp or all
+    if [ "${provider}" == "psm2" ] || [ "${provider}" == "psm3" ] || [ "${provider}" == "socket" ]; then
+        daos="no"
+    fi
     xpmem="no"
 elif [ "\${embedded_ofi}" == "yes" ]; then
     config_extra+=" --disable-psm3"
 fi
 
-if [ "${provider}" != "sockets" || "${provider}" != "tcp" || "${provider}" != "cxi" ]; then
+if [ "${provider}" == "psm2" ] || [ "${provider}" == "psm3" ]; then
     daos="no"
 fi
 
@@ -368,7 +409,7 @@ salloc -J drop:${provider}:${compiler}:${config}:${pmix} -N 1 -t 360 ./drop-test
                         def pmix = d
                         def flavor = e
 
-                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                        if (check_config(provider, compiler, config, pmix, flavor) == false) {
                             continue
                         }
 
@@ -454,19 +495,19 @@ cp \$HOME/rpmbuild/RPMS/x86_64/\$RPM_NAME .
                         def pmix = d
                         def flavor = e
                         def testgpu = 0
-                        /* We don't have a way to automate testing with cxi yet */
-                        if ("${provider}" == "cxi") {
+                        /* We test cxi provider with GPU on Boris */
+                        if ("${provider}" != "cxi" && "${provider}" != "all" && "${flavor}" == "gpu") {
                             continue
                         }
-                        /* We don't have a way to test GPU with psm3 on Boris yet */
-                        if ("${provider}" == "psm3" && "${flavor}" == "gpu") {
+                        /* For GPU test, we only test default config */
+                        if ("${config}" != "default" && "${flavor}" == "gpu") {
                             continue
                         }
-                        /* Sockets provider is not stable on Boris. */
-                        if ("${provider}" == "sockets" && "${flavor}" == "gpu") {
+                        /* We don't have a way to automate testing with cxi for non GPU yet */
+                        if ("${provider}" == "cxi" && "${flavor}" != "gpu") {
                             continue
                         }
-                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                        if (check_config(provider, compiler, config, pmix, flavor) == false) {
                             continue
                         }
                         /* We currently have no way to install an RPM on a verbs cluster */
@@ -591,7 +632,7 @@ git push --tags origin
                         def pmix = d
                         def flavor = e
 
-                        if (skip_config(provider, compiler, config, pmix, flavor)) {
+                        if (check_config(provider, compiler, config, pmix, flavor) == false) {
                             continue
                         }
 
