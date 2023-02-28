@@ -64,13 +64,52 @@ int MPIR_Treealgo_tree_create(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
             break;
 
         case MPIR_TREE_TYPE_TOPOLOGY_AWARE:
-            mpi_errno = MPII_Treeutil_tree_topology_aware_init(comm, params, ct);
-            MPIR_ERR_CHECK(mpi_errno);
+            if (!comm->coll.topo_aware_tree || params->root != comm->coll.topo_aware_tree_root) {
+                if (comm->coll.topo_aware_tree) {
+                    MPIR_Treealgo_tree_free(comm->coll.topo_aware_tree);
+                } else {
+                    comm->coll.topo_aware_tree =
+                        (MPIR_Treealgo_tree_t *) MPL_malloc(sizeof(MPIR_Treealgo_tree_t),
+                                                            MPL_MEM_BUFFER);
+                }
+                mpi_errno =
+                    MPII_Treeutil_tree_topology_aware_init(comm, params,
+                                                           comm->coll.topo_aware_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+                *ct = *comm->coll.topo_aware_tree;
+                comm->coll.topo_aware_tree_root = params->root;
+            }
+            *ct = *comm->coll.topo_aware_tree;
+            utarray_new(ct->children, &ut_int_icd, MPL_MEM_COLL);
+            for (int i = 0; i < ct->num_children; i++) {
+                utarray_push_back(ct->children,
+                                  &ut_int_array(comm->coll.topo_aware_tree->children)[i],
+                                  MPL_MEM_COLL);
+            }
             break;
 
         case MPIR_TREE_TYPE_TOPOLOGY_WAVE:
-            mpi_errno = MPII_Treeutil_tree_topology_wave_init(comm, params, ct);
-            MPIR_ERR_CHECK(mpi_errno);
+            if (!comm->coll.topo_wave_tree || params->root != comm->coll.topo_wave_tree_root) {
+                if (comm->coll.topo_wave_tree) {
+                    MPIR_Treealgo_tree_free(comm->coll.topo_wave_tree);
+                } else {
+                    comm->coll.topo_wave_tree =
+                        (MPIR_Treealgo_tree_t *) MPL_malloc(sizeof(MPIR_Treealgo_tree_t),
+                                                            MPL_MEM_BUFFER);
+                }
+                mpi_errno = MPII_Treeutil_tree_topology_wave_init(comm, params,
+                                                                  comm->coll.topo_wave_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+                *ct = *comm->coll.topo_wave_tree;
+                comm->coll.topo_wave_tree_root = params->root;
+            }
+            *ct = *comm->coll.topo_wave_tree;
+            utarray_new(ct->children, &ut_int_icd, MPL_MEM_COLL);
+            for (int i = 0; i < ct->num_children; i++) {
+                utarray_push_back(ct->children,
+                                  &ut_int_array(comm->coll.topo_wave_tree->children)[i],
+                                  MPL_MEM_COLL);
+            }
             break;
 
         default:
