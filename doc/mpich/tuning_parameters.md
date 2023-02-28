@@ -217,6 +217,7 @@ To use the same algorithm for both, blocking and non-blocking versions of the co
 + ---------- + ---------------------------- + ---------------------------------- + ------------------- +
 ```
 
+MPIR_CVAR_CH4_GPU_COLL_SWAP_BUFFER_SZ determines the size of the swap buffer used for GPU collective operations. Currently, it only supports MPI_Bcast and MPI_Allreduce. If the message size is smaller or equal to this swap buffer size, MPICH will transfer the data to the host and perform the collective operation there. If the message size exceeds this buffer size, MPICH will perform the collective operation directly on the GPU.
 
 **2.4. Non Blocking collective algorithms**
 
@@ -466,10 +467,8 @@ The persistent collectives API use the schedule created with DAG based scheduler
 MPICH uses the environment variable `MPIR_CVAR_<collname>_POSIX_INTRA_ALGORITHM` to indicate the algorithms that can be used for intra-node collectives. The possible options for this CVAR are:
 * `auto`: Auto selection by using the JSON file. This is the default value.
 * `mpir`  : Implements the algorithm specified for the blocking/non-blocking collectives in Section 2.3 and 2.4. With this option, the same algorithm and parameter values are used for both the intra-node and inter-node portion of the collective. Notice that with non-blocking collectives, only the algorithms using the linear scheduler are supported for intra-node collectives.
-* `release-gather`: Implements optimized intra-node collectives taking advantage of the shared memory in the node, as described in the paper by Jain et al. (https://dl.acm.org/doi/10.5555/3291656.3291695)
-
-
-When the CVAR is set to use release-gather algorithms, additional CVARS can be used to tune some of the parameter values utilized by these collectives, as shown in Table IV.
+* `release_gather`: Implements optimized intra-node collectives taking advantage of the shared memory in the node, as described in the paper by Jain et al. (https://dl.acm.org/doi/10.5555/3291656.3291695). When the CVAR is set to use release-gather algorithms, additional CVARS can be used to tune some of the parameter values utilized by these collectives, as shown in Table IV.
+* `stream_read`: Implements optimized intra-node collectives utilizing the XeLinks between the Intel GPUs. Currently, this algorithm only supports MPI_Bcast and MPI_Alltoall. When the CVAR is set to use stream-read algorithms, additional CVARS is available to tune performance, as shown in Table V.
 
 **Table IV: Algorithms available for release-gather collectives**
 
@@ -498,6 +497,17 @@ When the CVAR is set to use release-gather algorithms, additional CVARS can be u
 + ---------- + ----------------------------------------------- + ------------------------------------ +
 ```
 
+**Table V: Parameters available for stream-read GPU collectives**
+
+```
++ ========== + =============================================== + ==================================== +
+| Collective | Name of CVAR                                    |  Notes                               |
++ ========== + =============================================== + ==================================== +
+| BCAST      | MPIR_CVAR_BCAST_STREAM_READ_MSG_SIZE_THRESHOLD  | Invoke stream read bcast only when   |
+|            |                                                 | the messages are larger than this    |
+|            |                                                 | threshold. Default: 1024 B           |
++ ---------- + ----------------------------------------------- + ------------------------------------ +
+```
 
 **3. Multi-threading**
 
@@ -585,9 +595,9 @@ In general, if a rank wants messages sent with different communicators to go thr
 **6.3 MPI_T Performance Variables (PVARs) Support**
 
 Performance variables (PVARs) related to Multi-NIC usage have been added in MPICH and the appropriate instrumentation has
-been added to keep track of the number of bytes sent and received through each Network Interface Card (NIC). Notice that PVARS are currently only available through our debug build. The new PVARs to track the amount of bytes sent and received are shown Table V.
+been added to keep track of the number of bytes sent and received through each Network Interface Card (NIC). Notice that PVARS are currently only available through our debug build. The new PVARs to track the amount of bytes sent and received are shown Table VI.
 
-**Table V: PVARS to track bytes sent and received**
+**Table VI: PVARS to track bytes sent and received**
 
 ```
 + ================================ + ================ + ================= + ==== + ======= +
@@ -598,10 +608,10 @@ been added to keep track of the number of bytes sent and received through each N
 + -------------------------------- + ---------------- + ------------------------ + ------- +
 ```
 
-The new PVARs to track the amount of data sent using the striping optimization (when messages are sufficiently large) are shown in Table VI. Notice that with striping, an initial handshake and small data transfer is sent via fi_send whereas most of the data transfer takes place through fi_read call.
-Hence, the sum of the two PVARS in Table VI represent the total amount of data transferred through striping.
+The new PVARs to track the amount of data sent using the striping optimization (when messages are sufficiently large) are shown in Table VII. Notice that with striping, an initial handshake and small data transfer is sent via fi_send whereas most of the data transfer takes place through fi_read call.
+Hence, the sum of the two PVARS in Table VII represent the total amount of data transferred through striping.
 
-**Table VI: PVARS to track amount of data sent through striping**
+**Table VII: PVARS to track amount of data sent through striping**
 
 ```
 + ================================ + ================ + ================= + ==== + ======= +
@@ -612,9 +622,9 @@ Hence, the sum of the two PVARS in Table VI represent the total amount of data t
 + -------------------------------- + ---------------- + ------------------------ + ------- +
 ```
 
-The new PVARs to track number of bytes sent and received through RMA calls are shown in Table VII.
+The new PVARs to track number of bytes sent and received through RMA calls are shown in Table VIII.
 
-**Table VII: PVARS to track amount of data sent through RMA calls**
+**Table VIII: PVARS to track amount of data sent through RMA calls**
 
 ```
 + ================================ + ================ + ================= + ==== + ======= +
@@ -709,3 +719,5 @@ Misc:
 * `MPIR_CVAR_GPU_USE_IMMEDIATE_COMMAND_LIST`:  to use immediate command lists, instead of normal command lists plus command queues
 
 * `MPIR_CVAR_GPU_DEBUG_INFO`: when enabled, print GPU hardware information
+
+* CVARs related to the intra-node GPU collectives are introduced in Section 2.6.
