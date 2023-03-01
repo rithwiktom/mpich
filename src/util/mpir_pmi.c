@@ -218,7 +218,22 @@ int MPIR_pmi_init(void)
             }
         }
     }
-
+    /* rank 0 dumps coordinates for debugging */
+    if (rank == 0) {
+        if (0 < strlen(MPIR_CVAR_TREE_DUMP_COORDINATES_FILE)) {
+            char outfile_name[PATH_MAX];
+            sprintf(outfile_name, "%s", MPIR_CVAR_TREE_DUMP_COORDINATES_FILE);
+            FILE *outfile = fopen(outfile_name, "w");
+            for (int i = 0; i < nranks; i++) {
+                fprintf(outfile, "%d:", i);
+                for (int j = 0; j < MPIR_Process.coords_dims; j++) {
+                    fprintf(outfile, " %d", MPIR_Process.coords[i * MPIR_Process.coords_dims + j]);
+                }
+                fprintf(outfile, "\n");
+            }
+            fclose(outfile);
+        }
+    }
     /* appnum, has_parent is not set for now */
   singleton_out:
     appnum = 0;
