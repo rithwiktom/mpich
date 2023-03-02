@@ -19,11 +19,14 @@ This is an evaluation release of mpich provided by Intel Corporation.
 2. NEW FEATURES
 -------------------------------------------------------------------------------
 
+Release 1
   1. Added intra-node GPU Bcast and Alltoall
   2. Fixed the leak check in parent communicator
   3. Fixed bugs in Alltoallw
   4. Generated new RPMs required by user
   5. Added required support for Agama 549
+Release 2
+  1. Fixed bugs in event pool initialization
 
 -------------------------------------------------------------------------------
 2.1 DETAILS
