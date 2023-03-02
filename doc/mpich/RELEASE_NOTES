@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
-MPICH DROP 50 - Release Notes
+MPICH DROP 51 - Release Notes
 -------------------------------------------------------------------------------
 
 CONTENTS:
@@ -18,78 +18,22 @@ This is an evaluation release of mpich provided by Intel Corporation.
 -------------------------------------------------------------------------------
 2. NEW FEATURES
 -------------------------------------------------------------------------------
-Release 1
-  1.  Fixed GPU RDMA
-  2.  Added CVARs to change IPC read/write protocols and engine types
-  3.  Fixed PMix shm bug with a missing byte count for '\0' in strlen count
-  4.  RPMs are now compatible with PMix 4.2.2 and prte 3.0
-Release 2
-  1. Bug fix for cache with fast GPU memcpy
-  2. Using immediate command lists in MPL layer
-  3. Optimizing GPU pipeline for bidirectional communication
-  4. Fix the call to zexMemGetIpcHandles
-  5. Add CVAR to specify if using command queues in round robin or not
-  6. Add dynamic expanding of event pools
-  7. DAOS compilation bug fix
+
+  1. Added intra-node GPU Bcast and Alltoall
+  2. Fixed the leak check in parent communicator
+  3. Fixed bugs in Alltoallw
+  4. Generated new RPMs required by user
+  5. Added required support for Agama 549
+
 -------------------------------------------------------------------------------
 2.1 DETAILS
 -------------------------------------------------------------------------------
 
-* Features merged from upstream mpich on Sep 12 2022
-  1. pmi: fix MPIR_pmi_barrier using PMI2_KVS_Fence pmodels/mpich#6112
-  2. init: set MPIR_CVAR_ENABLE_GPU to 0 if no device found pmodels/mpich#6116
-  3. test: enhance runtests xml report pmodels/mpich#6111
-  4. env: rewrite mpichvesion to use MPI_Get_library_version pmodels/mpich#6123
-  5. util/mpir_pmi: use PMIX byte object type for put_ex pmodels/mpich#6115
-  6. hydra: import libpmi pmodels/mpich#6107
-  7. romio: change internal int count type to MPI_Aint pmodels/mpich#6114
-  8. test/mpi: Remove runtime configure check for MPI_Publish_name pmodels/mpich#6134
-  9. ADI: fix large count support for RMA and pt2pt pmodels/mpich#6125
-  10. romio: actually set status in MPI_File_read_all pmodels/mpich#6117
-  11. ROMIO: Preliminary support for MPI-4 large-count user-defined datatypes pmodels/mpich#6137
-  12. stream/gpu: remove the synchronize requirement pmodels/mpich#6128
-  13. ch4/ucx: Only set window base pointer when allocating pmodels/mpich#6140
-  14. ROMIO: check error class instead of error string pmodels/mpich#4670
-  15. binding/c: Update short descriptions for MPI_COMM_DUP[_WITH_INFO] pmodels/mpich#6144
-  16. coll: fix large count conversion warnings pmodels/mpich#6126
-  17. mpi4: Add large count MPI_STATUS_SET_ELEMENTS pmodels/mpich#6146
-  18. debugger: fix typo in dll_mpich.c pmodels/mpich#6147
-  19. stream: implement stream_workq pmodels/mpich#6062
-  20. test/xfail: Enable cmsplit_type test on FreeBSD pmodels/mpich#6152
-  21. test/mpi: Silence output during python3 check pmodels/mpich#6153
-  22. mpir/pmi: Fix singleton init with PMI-2 and PMIx pmodels/mpich#6135
-  23. romio: Dev romio visibility hint pmodels/mpich#6148
-  24. ch4/ofi: Changes to get MPICH RMA working with CXI 2.0 pmodels/mpich#6127
-  25. mpir/pmi: Add PMIx implementation of publish/lookup functionality pmodels/mpich#6130
-  26. hydra: use struct PMIU_cmd from pmi_wire.h pmodels/mpich#6132
-  27. Update gitignore pmodels/mpich#6151
-  28. hydra/pmi: fix memory leak pmodels/mpich#6159
-  29. Fix pmi warnings pmodels/mpich#6160
-  30. test/configure: Improve runtime check for MPI_THREAD_MULTIPLE pmodels/mpich#6155
-  31. datatype: Fix MPI_GET_ELEMENTS error case pmodels/mpich#6149
-  32. hydra: refactor mpiexec pmi name service handlers pmodels/mpich#6156
-  33. shm/ipc: IPC send takes syncflag and errflag from attr pmodels/mpich#6162 (reverted)
-      * reverted reason: this PR will cause Bcast test to time-out on our pipeline at the GPU testing stage. We will investigate reasons and add it later.
-  34. modules: Update libfabric to v1.15.2 pmodels/mpich#6163
-  25. hydra: refactor pmi message handling pmodels/mpich#5860
-  36. mpir: add safe type casting to int and MPI_Aint pmodels/mpich#6145
+* Features merged from upstream mpich on Jan 9 2023
+  1. comm: only free comm_parent in finalize pmodels/mpich#6321
+  2. comm: set comm_parent to NULL upon freeing pmodels/mpich#6322
+  3. datatype: fix builtin_element_size at MPIR_Typerep_unflatten
 
-* Fixed GPU RDMA
-  1. fix check to use fi_inject() with HMEM
-  2. add buffer type check before registration
-  3. enable HMEM capability for cxi: The capability is turned ON by default. But there is also a CVAR to control the enabling of GPU RDMA.
-  4. setting the gpu-rdma threshold to zero: Setting the threshold to 0 for simplicity. Whenever HMEM is enabled by the user, all messages will use GPU RDMA.
-
-* Using immediate command lists in MPL layer
-  1. MPL_gpu_imemcpy has an option to use immediate command list
-  2. add extra parameter for copying direction to MPIR_Localcopy_gpu
-  3. add GPU copy direction parameter
-  4. send and recv bypass yaksa for contiguous GPU buffers
-
-* Optimizing GPU pipeline for bidirectional communication
-  1. optimize GPU pipeline for bi-directional communication
-  2. fix a bug in GPU pipelining that causes memory corruption
-  3. always get pointer attributes for sender/recv buffers
 -------------------------------------------------------------------------------
 2.2 KNOWN ISSUES
 -------------------------------------------------------------------------------
@@ -99,6 +43,8 @@ Release 2
 * Allowing compute engines as subdevices when defining ZE_AFFINITY_MASK is not
   currently supported. EngineInstancedSubDevices=0 is set in the modulefiles to
   ensure this feature is disabled.
+
+* MPI_Allreduce fails when message size is greater than 16 MB on GPU. 
 
 -------------------------------------------------------------------------------
 3. RPM PACKAGE DETAILS
