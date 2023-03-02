@@ -267,7 +267,7 @@ ze_dir=/usr
 # Build with native support for GPU-specific RPMs for Power-On
 # Table: https://github.com/intel-innersource/drivers.gpu.specification.platforms/blob/generated_cs/gen/templates/doc/listing.md
 if [ "${flavor}" == "regular" ]; then
-    ze_native="pvc-xt-a0,pvc-xt-b1"
+    ze_native="pvc"
 fi
 
 NAME="mpich-ofi-${provider}-${compiler}-${config}\${pmix_string}\${flavor_string}-\$VERSION"
