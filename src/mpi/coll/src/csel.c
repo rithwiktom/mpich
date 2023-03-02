@@ -46,6 +46,7 @@ typedef enum {
     CSEL_NODE_TYPE__OPERATOR__COUNT_LE,
     CSEL_NODE_TYPE__OPERATOR__COUNT_LT_POW2,
     CSEL_NODE_TYPE__OPERATOR__COUNT_ANY,
+    CSEL_NODE_TYPE__OPERATOR__COUNT_LT_NUMLEADS,
 
     CSEL_NODE_TYPE__OPERATOR__IS_SBUF_INPLACE,
     CSEL_NODE_TYPE__OPERATOR__IS_BLOCK_REGULAR,
@@ -118,6 +119,9 @@ typedef struct csel_node {
         struct {
             MPIR_Comm_hierarchy_kind_t val;
         } comm_hierarchy;
+        struct {
+            int val;
+        } is_multi_leader_available;
         struct {
             void *container;
         } cnt;
@@ -219,6 +223,9 @@ static void print_tree(csel_node_s * node)
             break;
         case CSEL_NODE_TYPE__OPERATOR__COUNT_ANY:
             nprintf("count is anything\n");
+            break;
+        case CSEL_NODE_TYPE__OPERATOR__COUNT_LT_NUMLEADS:
+            nprintf("count < number of leaders \n");
             break;
         case CSEL_NODE_TYPE__OPERATOR__IS_SBUF_INPLACE:
             nprintf("source buffer is MPI_IN_PLACE\n");
@@ -488,6 +495,8 @@ static csel_node_s *parse_json_tree(struct json_object *obj,
             tmp->type = CSEL_NODE_TYPE__OPERATOR__COUNT_LT_POW2;
         } else if (!strcmp(ckey, "count=any")) {
             tmp->type = CSEL_NODE_TYPE__OPERATOR__COUNT_ANY;
+        } else if (!strcmp(ckey, "count<numleads")) {
+            tmp->type = CSEL_NODE_TYPE__OPERATOR__COUNT_LT_NUMLEADS;
         } else if (!strcmp(ckey, "avg_msg_size=any")) {
             tmp->type = CSEL_NODE_TYPE__OPERATOR__AVG_MSG_SIZE_ANY;
         } else if (!strncmp(ckey, "avg_msg_size<=", strlen("avg_msg_size<="))) {
@@ -996,6 +1005,30 @@ static inline MPI_Aint get_count(MPIR_Csel_coll_sig_s coll_info)
     return count;
 }
 
+static inline int is_multi_leader_available(MPIR_Csel_coll_sig_s coll_info) ATTRIBUTE((unused));
+static inline int is_multi_leader_available(MPIR_Csel_coll_sig_s coll_info)
+{
+    int val = false;
+    switch (coll_info.coll_type) {
+        case MPIR_CSEL_COLL_TYPE__ALLREDUCE:
+            return MPIDI_COMM_ALLREDUCE(coll_info.comm_ptr, use_multi_leads);
+            break;
+
+        case MPIR_CSEL_COLL_TYPE__ALLTOALL:
+            return MPIDI_COMM_ALLTOALL(coll_info.comm_ptr, use_multi_leads);
+            break;
+
+        case MPIR_CSEL_COLL_TYPE__ALLGATHER:
+            return MPIDI_COMM_ALLGATHER(coll_info.comm_ptr, use_multi_leads);
+            break;
+
+        default:
+            MPIR_Assert(0);
+            break;
+    }
+    return val;
+}
+
 static inline MPI_Aint get_total_msgsize(MPIR_Csel_coll_sig_s coll_info)
 {
     MPI_Aint total_bytes = 0, i = 0, count = 0, typesize = 0;
@@ -1324,6 +1357,16 @@ void *MPIR_Csel_search(void *csel_, MPIR_Csel_coll_sig_s coll_info)
 
             case CSEL_NODE_TYPE__OPERATOR__COUNT_ANY:
                 node = node->success;
+                break;
+
+            case CSEL_NODE_TYPE__OPERATOR__COUNT_LT_NUMLEADS:
+                if (coll_info.comm_ptr->node_comm &&
+                    get_count(coll_info) <
+                    MPL_round_closest_multiple(MPIR_Comm_size(coll_info.comm_ptr->node_comm),
+                                               MPIR_CVAR_NUM_MULTI_LEADS, 15))
+                    node = node->success;
+                else
+                    node = node->failure;
                 break;
 
             case CSEL_NODE_TYPE__OPERATOR__IS_COMMUTATIVE:
