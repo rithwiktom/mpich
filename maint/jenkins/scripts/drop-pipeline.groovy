@@ -292,9 +292,9 @@ elif [ "${flavor}" == "gpu" ]; then
     # so that we can use multiple NICs. This is needed for
     # JLSE builds where we provide embedded libfabric
     config_extra+=" --enable-psm3"
-    # daos = no when provider = psm2 or psm3 or socket
+    # daos = no when provider = psm2 or psm3 or sockets
     # daos = yes when provider = cxi or tcp or all
-    if [ "${provider}" == "psm2" ] || [ "${provider}" == "psm3" ] || [ "${provider}" == "socket" ]; then
+    if [ "${provider}" == "psm2" ] || [ "${provider}" == "psm3" ] || [ "${provider}" == "sockets" ]; then
         daos="no"
     fi
     xpmem="no"
