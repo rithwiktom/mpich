@@ -7,7 +7,7 @@
 === BEGIN_MPI_T_CVAR_INFO_BLOCK ===
 
 cvars:
-    - name        : MPIR_CVAR_BCAST_STREAMER_READ_MSG_SIZE_THRESHOLD
+    - name        : MPIR_CVAR_BCAST_STREAM_READ_MSG_SIZE_THRESHOLD
       category    : COLLECTIVE
       type        : int
       default     : 1024
@@ -15,7 +15,7 @@ cvars:
       verbosity   : MPI_T_VERBOSITY_USER_BASIC
       scope       : MPI_T_SCOPE_ALL_EQ
       description : >-
-        Use gpu streamer read bcast only when the message size is more than this
+        Use gpu stream read bcast only when the message size is larger than this
         threshold.
 
 === END_MPI_T_CVAR_INFO_BLOCK ===
@@ -48,7 +48,7 @@ MPL_STATIC_INLINE_PREFIX int MPIDI_POSIX_mpi_bcast_gpu_stream_read(void *buffer,
     /* fallback if datatype is not contigous or data size is not large enough or data has been
      * switched to CPU buffer in MPIDI_Bcast_intra_composition_*
      */
-    if (!dt_contig || data_sz <= MPIR_CVAR_BCAST_STREAMER_READ_MSG_SIZE_THRESHOLD ||
+    if (!dt_contig || data_sz <= MPIR_CVAR_BCAST_STREAM_READ_MSG_SIZE_THRESHOLD ||
         data_sz <= MPIR_CVAR_CH4_GPU_COLL_SWAP_BUFFER_SZ) {
         goto fallback;
     }
