@@ -16,13 +16,14 @@ def main():
 
     edges = set()
 
-    for line in sys.stdin:
-        rank_label, coord_node_labels = parse_line(line)
-        dot.node(rank_label)
-        [dot.node(label) for label in coord_node_labels]
-        for index in range(len(coord_node_labels) - 1):
-            edges.add((coord_node_labels[index], coord_node_labels[index+1]))
-        edges.add((coord_node_labels[-1], rank_label))
+    with open(args.filename) as coords_file:
+        for line in coords_file:
+            rank_label, coord_node_labels = parse_line(line)
+            dot.node(rank_label)
+            [dot.node(label) for label in coord_node_labels]
+            for index in range(len(coord_node_labels) - 1):
+                edges.add((coord_node_labels[index], coord_node_labels[index+1]))
+            edges.add((coord_node_labels[-1], rank_label))
 
     dot.edges(edges)
     dot.render(format=args.format, view=True)
@@ -31,6 +32,7 @@ def main():
 def parse_args():
     description = 'Render a per-rank coordinates topology file (streamed on stdin) as a graphical set of trees.'
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('filename', help='The file contains the coordinates.')
     parser.add_argument('--format', '-f', default='svg', help='Output format. Can be any format supported by graphviz. Default: svg.')
     return parser.parse_args()
 
