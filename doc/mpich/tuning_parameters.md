@@ -47,9 +47,9 @@ MPICH is now GPU-aware, that is, it supports MPI calls that pass pointers to buf
 **2.1. JSON file**
 
 MPICH comes with a default JSON tuning file. The file settings determine which algorithms a collective will use for a particular message and communicator size. There are 3 types/levels of JSON tuning files:
-1. Composition: It determines the algorithm to partition a communicator for hierarchical algorithms that take into account the ranks on the same node and on different nodes. This JSON file is used by setting `MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE=/path/to/ch4_selection_tuning.json`.
+1. Composition: It determines the algorithm to partition a communicator for hierarchical algorithms that take into account the ranks on the same node and on different nodes. This JSON file is used by setting `MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE=/path/to/ch4_selection_tuning.json`.
 2. Coll: This file determines which algorithm used for inter or intra algorithms, depending on the composition. This JSON file can be used by setting `MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE=/path/to/coll_selection_tuning.json`. This file contains algorithm covered in the blocking collectives section (Section 2.3).
-3. Posix: This file determines algorithms to be used for intra node cases. This JSON file can be used by setting `MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE=/path/to/posix_selection_tuning.json`. The files contains algorithms covered in the intra node section (Section 2.6).
+3. Posix: This file determines algorithms to be used for intra node cases. This JSON file can be used by setting `MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE=/path/to/posix_selection_tuning.json`. The files contains algorithms covered in the intra node section (Section 2.6).
 
 These environment variables should be loaded when the user loads the MPICH module. It is possible for the user to submit their own tuning JSON files, but a detailed explanation of the content of the JSON files is beyond the scope of this documentation. As mentioned above, selecting specific algorithms with CVARs will override the algorithm selection specified in the JSON files.
 

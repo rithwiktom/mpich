@@ -309,9 +309,9 @@ fi
 INSTALL_DIR="/tmp/\${NAME}/usr/mpi/\${NAME}/"
 
 # set json files paths
-export MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/CH4_coll_tuning.json"
+export MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/CH4_coll_tuning.json"
 export MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/MPIR_Coll_tuning.json"
-export MPIR_CVAR_COLL_POSIX_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
+export MPIR_CVAR_CH4_POSIX_COLL_SELECTION_TUNING_JSON_FILE="\${JENKINS_DIR}/json-files/POSIX_coll_tuning.json"
 
 sbcast ${tarball_name} "\${REMOTE_WS}/${tarball_name}"
 srun --chdir="\$REMOTE_WS" tar -xf ${tarball_name}

@@ -228,7 +228,7 @@ if [ "$provider" == "sockets" -o "$provider" == "tcp" ]; then
 fi
 
 # print json files paths
-echo $MPIR_CVAR_COLL_CH4_SELECTION_TUNING_JSON_FILE
+echo $MPIR_CVAR_CH4_COLL_SELECTION_TUNING_JSON_FILE
 echo $MPIR_CVAR_COLL_SELECTION_TUNING_JSON_FILE
 
 export MPITEST_DATATYPE_TEST_LEVEL=min
