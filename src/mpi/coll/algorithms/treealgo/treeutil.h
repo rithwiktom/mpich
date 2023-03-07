@@ -16,10 +16,11 @@ struct coord_t {
 struct hierarchy_t {
     struct coord_t coord;
     int relative_idx;
-    int child_idx;
-    int root_idx, myrank_idx;
     int has_root;
+    int root_idx;
+    int myrank_idx;
     UT_array ranks;
+    UT_array child_idxs;
 };
 
 typedef struct {
@@ -49,17 +50,18 @@ static void tree_ut_hierarchy_init(void *elt)
 {
     ((struct hierarchy_t *) elt)->coord.id = -1;
     ((struct hierarchy_t *) elt)->coord.parent_idx = -1;
-    ((struct hierarchy_t *) elt)->child_idx = -1;
     ((struct hierarchy_t *) elt)->relative_idx = -1;
+    ((struct hierarchy_t *) elt)->has_root = 0;
     ((struct hierarchy_t *) elt)->root_idx = -1;
     ((struct hierarchy_t *) elt)->myrank_idx = -1;
-    ((struct hierarchy_t *) elt)->has_root = 0;
     tree_ut_int_init(&((struct hierarchy_t *) elt)->ranks);
+    tree_ut_int_init(&((struct hierarchy_t *) elt)->child_idxs);
 }
 
 static void tree_ut_hierarchy_dtor(void *elt)
 {
     utarray_done(&((struct hierarchy_t *) elt)->ranks);
+    utarray_done(&((struct hierarchy_t *) elt)->child_idxs);
 }
 
 static const UT_icd tree_ut_hierarchy_icd =
