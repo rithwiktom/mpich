@@ -43,7 +43,7 @@ def all_compilers = [ "gnu", "icc" ]
 def all_ams       = [ "am", "noam" ]
 def all_directs   = [ "netmod", "auto", "no-odd-even" ]
 def all_configs   = [ "debug", "default" ]
-def all_gpus      = [ "nogpu", "ats" ]
+def all_gpus      = [ "nogpu", "ats", "pvc" ]
 /* Optional: */
 def all_tests     = [ "cpu-gpu", "gpu" ]
 def all_threads   = [ "runtime", "handoff", "direct", "lockless" ]
@@ -111,7 +111,7 @@ ${netmod}:${provider}/${compiler}/${am}/${direct}/${config}/${gpu}/${test}/${thr
 @NonCPS
 def match_github_phrase() {
     /* Match on the main trigger and any additional configure options */
-    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|tcp|psm2|verbs|cxi|psm3|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
+    def matcher = ("" + env['GITHUB_PR_COMMENT_BODY'] =~ /(test(-main)?:(:?(:?ofi|all),?)+\/(:?(:?sockets|tcp|psm2|verbs|cxi|psm3|all),?)+\/(:?(:?gnu|icc|all),?)+\/(:?(:?am|noam|all),?)+\/(:?(:?netmod|auto|no-odd-even|all),?)+\/(:?(:?debug|default|opt|all),?)+\/(:?(:?nogpu|ats|pvc|all),?)+(:?\/(:?gpu|cpu-gpu),?)?(\/(:?(:?runtime|handoff|direct|lockless|all),?)+)?(\/(:?(:?vci1|vci4|all),?)+)?(\/(:?(:?async-single|async-multiple|all),?)+)?(\/(:?(:?pmix|nopmix|all),?)+)?[ =a-zA-Z0-9._-]*)/)
     try {
         jenkins_config_string = "" + matcher.find() ? matcher.group() : "not found"
         if (jenkins_config_string.split(" ").size() > 1) {
@@ -306,6 +306,9 @@ for (a in netmods) {
                                                     }
                                                     if ("${gpu}" == "ats") {
                                                         node_name = "jfcst-xe"
+                                                        build_mode = "per-commit-gpu"
+                                                    } else if ("${gpu}" == "pvc") {
+                                                        node_name = "jfcst-pvc"
                                                         build_mode = "per-commit-gpu"
                                                     }
                                                     if ("${jenkins_node}" != "") {
@@ -508,6 +511,19 @@ if [ "$gpu" = "ats" ]; then
     ze_dir=/usr
     ze_native="12.1.0"
     disable_psm2="yes"
+elif [ "$gpu" = "pvc" ]; then
+    if [ "${provider}" == "psm3" ]; then
+        OFI_DIR="/home/sys_csr1/software/libfabric/psm3-dynamic"
+        CONFIG_EXTRA="\$CONFIG_EXTRA --enable-psm3"
+    else
+        embedded_ofi="yes"
+    fi
+    xpmem="no"
+    # TODO: Switch back to system-installed neo once memid impl is fixed
+    neo_dir=/usr
+    ze_dir=/usr
+    ze_native="pvc"
+    disable_psm2="yes"
 elif [ "$gpu" = "nogpu" ]; then
     gpudirect="no"
     CONFIG_EXTRA="\$CONFIG_EXTRA --without-ze"
@@ -572,11 +588,19 @@ EOF
 
 chmod +x per-commit-test-job.sh
 if [ "${provider}" != "cxi" ]; then
-    prefix="salloc -J per-commit:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1 -t 360"
+    job_time="360"
+    prefix="salloc -J per-commit:${provider}:${compiler}:${am}:${direct}:${config}:${gpu}:${test}:${thread}:${vci}:${async}:${pmix} -N 1"
     if [ "${node_name}" == "jfcst-xe" ]; then
       #Use mpich queue on jfcst-xe which was specifically created with ats nodes compatible to build and test mpich
       prefix="\${prefix} -p mpich"
+    elif [ "${node_name}" == "jfcst-pvc" ]; then
+      prefix="\${prefix} -p clust-nodes"
+      job_time="240"
+    elif [ "${node_name}" == "jfsdp-pvc" ]; then
+      prefix="\${prefix} -p clust-nodes"
+      job_time="240"
     fi
+    prefix="\${prefix} -t \${job_time}"
 else
     prefix=""
 fi
