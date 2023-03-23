@@ -3094,6 +3094,9 @@ int MPL_gpu_fast_memcpy(void *src, MPL_pointer_attr_t * src_attr, void *dest,
     if (n == 1) {
         *(char *) d = *(char *) s;
     }
+#if defined(MPL_HAVE_MM256_STOREU_SI256)
+    _mm_sfence();
+#endif
     goto fn_exit;
 
   fallback:
