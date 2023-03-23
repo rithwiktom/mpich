@@ -2409,9 +2409,9 @@ static void onEnterMemFree(ze_mem_free_params_t * tracerParams, ze_result_t resu
                            void *traceUserData, void **tracerInstanceUserData)
 {
     if (ze_info.print_debug_info) {
-        printf("Memory being freed: %lx\n", (unsigned long int) *tracerParams->pptr);
+        printf("Tracing: Memory being freed: %lx\n", (unsigned long int) *tracerParams->pptr);
     }
-    MPL_ze_ipc_remove_cache_handle(tracerParams->pptr);
+    MPL_ze_ipc_remove_cache_handle(*tracerParams->pptr);
     *tracerInstanceUserData = NULL;
 }
 
