@@ -2409,9 +2409,9 @@ static void onEnterMemFree(ze_mem_free_params_t * tracerParams, ze_result_t resu
                            void *traceUserData, void **tracerInstanceUserData)
 {
     if (ze_info.print_debug_info) {
-        printf("Memory being freed: %lx\n", (unsigned long int) *tracerParams->pptr);
+        printf("Tracing: Memory being freed: %lx\n", (unsigned long int) *tracerParams->pptr);
     }
-    MPL_ze_ipc_remove_cache_handle(tracerParams->pptr);
+    MPL_ze_ipc_remove_cache_handle(*tracerParams->pptr);
     *tracerInstanceUserData = NULL;
 }
 
@@ -3094,6 +3094,9 @@ int MPL_gpu_fast_memcpy(void *src, MPL_pointer_attr_t * src_attr, void *dest,
     if (n == 1) {
         *(char *) d = *(char *) s;
     }
+#if defined(MPL_HAVE_MM256_STOREU_SI256)
+    _mm_sfence();
+#endif
     goto fn_exit;
 
   fallback:
