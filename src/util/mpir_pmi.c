@@ -198,9 +198,11 @@ int MPIR_pmi_init(void)
 
     for (int i = 0; i < size; i++) {
         pmix_proc.rank = i;
-        mpi_errno = PMIx_Get(&pmix_proc, PMIX_FABRIC_COORDINATES, NULL, 0, &val);
-        MPIR_ERR_CHKANDJUMP1(pmi_errno != PMIX_SUCCESS, mpi_errno, MPI_ERR_OTHER,
-                             "**pmix_get", "**pmix_get %d", pmi_errno);
+        pmi_errno = PMIx_Get(&pmix_proc, PMIX_FABRIC_COORDINATES, NULL, 0, &val);
+        if (pmi_errno != PMIX_SUCCESS) {
+            MPIR_Process.coords = NULL;
+            break;
+        }
         MPIR_Assert(val->data.coord->dims <= INT_MAX);
         MPIR_Process.coords_dims = (int) val->data.coord->dims;
 
