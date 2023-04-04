@@ -226,6 +226,7 @@ cvars:
         knomial_1 - knomial_1 tree type
         knomial_2 - knomial_2 tree type
         topology_aware - topology_aware tree type
+        topology_aware_k - topology_aware tree type with branching factor k
         topology_wave - topology_wave tree type
 
     - name        : MPIR_CVAR_BCAST_IS_NON_BLOCKING

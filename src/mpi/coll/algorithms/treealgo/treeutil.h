@@ -96,6 +96,12 @@ static const UT_icd tree_ut_hierarchy_icd =
 /* Generate kary tree information for rank 'rank' */
 int MPII_Treeutil_tree_kary_init(int rank, int nranks, int k, int root, MPIR_Treealgo_tree_t * ct);
 
+/* Create a special kary tree to build topology-aware tree. The first level of the kary tree has
+ * branching factor k0 and the rest levels of the kary tree has branching factor k1.
+ */
+int MPII_Treeutil_tree_kary_init_topo_aware(int rank, int nranks, int k0, int k1, int root,
+                                            MPIR_Treealgo_tree_t * ct);
+
 /* Generate knomial_1 tree information for rank 'rank' */
 int MPII_Treeutil_tree_knomial_1_init(int rank, int nranks, int k, int root,
                                       MPIR_Treealgo_tree_t * ct);
@@ -107,6 +113,9 @@ int MPII_Treeutil_tree_knomial_2_init(int rank, int nranks, int k, int root,
 /* Generate topology_aware tree information */
 int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
                                            MPIR_Treealgo_tree_t * ct);
+
+int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
+                                             MPIR_Treealgo_tree_t * ct);
 
 /* Generate topology_wave tree information */
 int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,

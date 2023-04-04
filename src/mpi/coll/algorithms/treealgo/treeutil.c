@@ -73,6 +73,67 @@ int MPII_Treeutil_tree_kary_init(int rank, int nranks, int k, int root, MPIR_Tre
     goto fn_exit;
 }
 
+/* Create a special kary tree to build topology-aware tree. The first level of the kary tree has
+ * branching factor k0 and the rest levels of the kary tree has branching factor k1.
+ * k0 needs to be less than k1.
+ */
+int MPII_Treeutil_tree_kary_init_topo_aware(int rank, int nranks, int k0, int k1, int root,
+                                            MPIR_Treealgo_tree_t * ct)
+{
+    /* fallback to MPII_Treeutil_tree_kary_init when nranks <= 2 */
+    if (nranks <= 2 || k0 >= k1) {
+        return MPII_Treeutil_tree_kary_init(rank, nranks, k1, root, ct);
+    }
+    int lrank, child;
+    int mpi_errno = MPI_SUCCESS;
+
+    ct->rank = rank;
+    ct->nranks = nranks;
+    ct->parent = -1;
+    utarray_new(ct->children, &ut_int_icd, MPL_MEM_COLL);
+    ct->num_children = 0;
+
+    MPIR_Assert(nranks >= 0);
+
+    if (nranks == 0)
+        goto fn_exit;
+
+    lrank = (rank + (nranks - root)) % nranks;
+
+    ct->parent = (lrank == 0) ? -1 : (((lrank + k1 - k0 - 1) / k1) + root) % nranks;
+
+    if (lrank == 0) {
+        for (child = 1; child <= k0; child++) {
+            int val = child;
+
+            if (val >= nranks)
+                break;
+
+            val = (val + root) % nranks;
+            mpi_errno = tree_add_child(ct, val);
+            MPIR_ERR_CHECK(mpi_errno);
+        }
+    } else {
+        for (child = 1; child <= k1; child++) {
+            int val = k0 + (lrank - 1) * k1 + child;
+
+            if (val >= nranks)
+                break;
+
+            val = (val + root) % nranks;
+            mpi_errno = tree_add_child(ct, val);
+            MPIR_ERR_CHECK(mpi_errno);
+        }
+
+    }
+
+  fn_exit:
+    return mpi_errno;
+
+  fn_fail:
+    goto fn_exit;
+}
+
 /* Some examples of knomial_1 tree */
 /*     4 ranks                8 ranks
  *       0                      0
@@ -458,6 +519,121 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     /* free memory */
     for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
         utarray_done(&hierarchy[dim]);
+
+  fn_exit:
+    return mpi_errno;
+
+  fn_fail:
+    goto fn_exit;
+
+  fn_fallback:
+    MPL_DBG_MSG_FMT(MPIR_DBG_COLL, VERBOSE,
+                    (MPL_DBG_FDEST, "due to falling out of the topology-aware initialization, "
+                     "it falls back on the kary tree building"));
+    mpi_errno = MPII_Treeutil_tree_kary_init(myrank, nranks, 1, root, ct);
+    MPIR_ERR_CHECK(mpi_errno);
+    goto fn_exit;
+}
+
+/* Implementation of 'Topology aware' algorithm with the branching factor k */
+int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
+                                             MPIR_Treealgo_params_t * params,
+                                             MPIR_Treealgo_tree_t * ct)
+{
+    /* fall back to MPII_Treeutil_tree_topology_aware_init if k is less or equal to 2 */
+    if (MPIR_CVAR_TOPOLOGY_AWARE_KVAL <= 2) {
+        return MPII_Treeutil_tree_topology_aware_init(comm, params, ct);
+    }
+    int mpi_errno = MPI_SUCCESS;
+    int nranks = params->nranks;
+    int root = params->root;
+    int myrank = params->rank;
+
+    UT_array hierarchy[MAX_HIERARCHY_DEPTH];
+    int dim = MPIR_Process.coords_dims;
+    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
+        tree_ut_hierarchy_init(&hierarchy[dim]);
+
+    if (0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
+        goto fn_fallback;
+
+    ct->rank = comm->rank;
+    ct->nranks = comm->local_size;
+    ct->parent = -1;
+    ct->num_children = 0;
+    utarray_new(ct->children, &ut_int_icd, MPL_MEM_COLL);
+
+    int *num_childrens = (int *) MPL_malloc(sizeof(int) * nranks, MPL_MEM_BUFFER);
+    MPIR_Assert(num_childrens != NULL);
+    for (int i = 0; i < nranks; i++) {
+        num_childrens[i] = 0;
+    }
+    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim) {
+        int cur_level_count = utarray_len(&hierarchy[dim]);
+        for (int level_idx = 0; level_idx < cur_level_count; ++level_idx) {
+            const struct hierarchy_t *level = tree_ut_hierarchy_eltptr(&hierarchy[dim], level_idx);
+            if (level->myrank_idx == -1)
+                continue;
+            MPIR_Assert(level->root_idx != -1);
+
+            MPIR_Treealgo_tree_t tmp_tree;
+            if (dim == 2) {
+                /* group level */
+                mpi_errno =
+                    MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks),
+                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 2, level->root_idx,
+                                                 &tmp_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+            } else if (dim == 1) {
+                /* switch level */
+                mpi_errno =
+                    MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_idx,
+                                                            utarray_len(&level->ranks),
+                                                            1,
+                                                            MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 1,
+                                                            level->root_idx, &tmp_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+            } else {
+                /* rank level */
+                MPIR_Errflag_t errflag = MPIR_ERR_NONE;
+                MPIR_Allgather_impl(&(ct->num_children), 1, MPI_INT, num_childrens, 1, MPI_INT,
+                                    comm, &errflag);
+                if (mpi_errno) {
+                    goto fn_fail;
+                }
+                int switch_leader = tree_ut_int_elt(&level->ranks, 0);
+                mpi_errno =
+                    MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_idx,
+                                                            utarray_len(&level->ranks),
+                                                            MPIR_CVAR_TOPOLOGY_AWARE_KVAL -
+                                                            num_childrens[switch_leader],
+                                                            MPIR_CVAR_TOPOLOGY_AWARE_KVAL,
+                                                            level->root_idx, &tmp_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+            }
+
+            int children_number = utarray_len(tmp_tree.children);
+            int *children = ut_int_array(tmp_tree.children);
+            for (int i = 0; i < children_number; ++i) {
+                int r = tree_ut_int_elt(&level->ranks, children[i]);
+                mpi_errno = tree_add_child(ct, r);
+                MPIR_ERR_CHECK(mpi_errno);
+            }
+
+            if (tmp_tree.parent != -1) {
+                MPIR_Assert(ct->parent == -1);
+                ct->parent = tree_ut_int_elt(&level->ranks, tmp_tree.parent);
+            }
+
+            MPIR_Treealgo_tree_free(&tmp_tree);
+        }
+    }
+
+    /* free memory */
+    for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
+        utarray_done(&hierarchy[dim]);
+
+    MPL_free(num_childrens);
 
   fn_exit:
     return mpi_errno;
