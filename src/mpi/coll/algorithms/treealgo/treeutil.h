@@ -19,8 +19,15 @@ struct hierarchy_t {
     int has_root;
     int root_idx;
     int myrank_idx;
+    int root_sorted_idx;
+    int myrank_sorted_idx;
+    /* the length of the ranks array */
+    int num_ranks;
     UT_array ranks;
+    /* stores the relative idx of each child on the lower level */
     UT_array child_idxs;
+    /* sort the children based on the num_rank, stores the index of the child_idxs */
+    UT_array sorted_idxs;
 };
 
 typedef struct {
@@ -54,8 +61,12 @@ static void tree_ut_hierarchy_init(void *elt)
     ((struct hierarchy_t *) elt)->has_root = 0;
     ((struct hierarchy_t *) elt)->root_idx = -1;
     ((struct hierarchy_t *) elt)->myrank_idx = -1;
+    ((struct hierarchy_t *) elt)->num_ranks = 0;
+    ((struct hierarchy_t *) elt)->root_sorted_idx = -1;
+    ((struct hierarchy_t *) elt)->myrank_sorted_idx = -1;
     tree_ut_int_init(&((struct hierarchy_t *) elt)->ranks);
     tree_ut_int_init(&((struct hierarchy_t *) elt)->child_idxs);
+    tree_ut_int_init(&((struct hierarchy_t *) elt)->sorted_idxs);
 }
 
 static void tree_ut_hierarchy_dtor(void *elt)

@@ -347,6 +347,130 @@ static inline void set_level_rank_indices(struct hierarchy_t *level, int r, int 
 
 /*Toplogy tree helpers*/
 
+/* Swap two item in an UT_array with their indexes */
+static void swap_idx(UT_array * array, int idx0, int idx1)
+{
+    int temp = tree_ut_int_elt(array, idx0);
+    ut_int_array(array)[idx0] = tree_ut_int_elt(array, idx1);
+    ut_int_array(array)[idx1] = temp;
+}
+
+/* Sort the array based on num_ranks */
+static void sort_with_num_ranks(UT_array * hierarchy, int dim, struct hierarchy_t *level,
+                                int start_idx)
+{
+    MPIR_Assert(dim >= 1);
+    for (int idx0 = start_idx; idx0 < utarray_len(&level->sorted_idxs); idx0++) {
+        for (int idx1 = idx0 + 1; idx1 < utarray_len(&level->sorted_idxs); idx1++) {
+            int sort_idx0 = tree_ut_int_elt(&level->sorted_idxs, idx0);
+            int child_idx0 = tree_ut_int_elt(&level->child_idxs, sort_idx0);
+            struct hierarchy_t *lower_level0 =
+                tree_ut_hierarchy_eltptr(&hierarchy[dim - 1], child_idx0);
+            int sort_idx1 = tree_ut_int_elt(&level->sorted_idxs, idx1);
+            int child_idx1 = tree_ut_int_elt(&level->child_idxs, sort_idx1);
+            struct hierarchy_t *lower_level1 =
+                tree_ut_hierarchy_eltptr(&hierarchy[dim - 1], child_idx1);
+            if (lower_level0->num_ranks < lower_level1->num_ranks) {
+                swap_idx(&level->sorted_idxs, idx0, idx1);
+            }
+        }
+        /* Set up myrank_sorted_idx */
+        if (tree_ut_int_elt(&level->sorted_idxs, idx0) == level->myrank_idx) {
+            level->myrank_sorted_idx = idx0;
+        }
+    }
+}
+
+/* Setup num_ranks and initial value for myrank_sorted_idx, root_sorted_idx, sorted_idx
+ * myrank_sorted_idx = myrank_idx, root_sorted_idx = root_idx, sorted_idx = [0, 1, 2, 3...]
+ */
+static void MPII_Treeutil_hierarchy_reorder_init(UT_array * hierarchy)
+{
+    /* To reach world level use 0 for element ptr */
+    struct hierarchy_t *wr_level = tree_ut_hierarchy_eltptr(&hierarchy[2], 0);
+    MPIR_Assert(wr_level != NULL);
+    wr_level->root_sorted_idx = wr_level->root_idx;
+    wr_level->myrank_sorted_idx = wr_level->myrank_idx;
+    /* Setup num_ranks and and init sorted_idxs */
+    for (int gr_idx = 0; gr_idx < utarray_len(&wr_level->child_idxs); gr_idx++) {
+        int gr_child_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
+        struct hierarchy_t *gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_child_idx);
+        MPIR_Assert(gr_level != NULL);
+        gr_level->root_sorted_idx = gr_level->root_idx;
+        gr_level->myrank_sorted_idx = gr_level->myrank_idx;
+        for (int sw_idx = 0; sw_idx < utarray_len(&gr_level->ranks); sw_idx++) {
+            int sw_child_idx = tree_ut_int_elt(&gr_level->child_idxs, sw_idx);
+            struct hierarchy_t *sw_level = tree_ut_hierarchy_eltptr(&hierarchy[0], sw_child_idx);
+            sw_level->num_ranks = utarray_len(&sw_level->ranks);
+            gr_level->num_ranks += sw_level->num_ranks;
+            wr_level->num_ranks += sw_level->num_ranks;
+            utarray_push_back_int(&gr_level->sorted_idxs, &sw_idx, MPL_MEM_COLL);
+        }
+        utarray_push_back_int(&wr_level->sorted_idxs, &gr_idx, MPL_MEM_COLL);
+    }
+}
+
+/* Reorder the wr_level and gr_level of the hierarchy */
+static void MPII_Treeutil_hierarchy_reorder(UT_array * hierarchy, int rank)
+{
+    struct hierarchy_t *wr_level = tree_ut_hierarchy_eltptr(&hierarchy[2], 0);
+    MPIR_Assert(wr_level != NULL);
+    /* Switch root to the begining of sorted_idxs */
+    if (wr_level->root_idx != 0) {
+        swap_idx(&wr_level->sorted_idxs, 0, wr_level->root_idx);
+    }
+    /* If the current rank is the root */
+    if (wr_level->myrank_idx == wr_level->root_idx) {
+        wr_level->myrank_sorted_idx = 0;
+    }
+    wr_level->root_sorted_idx = 0;
+    /* Sort the ranks after the root */
+    sort_with_num_ranks(hierarchy, 2, wr_level, 1);
+    for (int gr_idx = 0; gr_idx < utarray_len(&wr_level->child_idxs); gr_idx++) {
+        int gr_child_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
+        struct hierarchy_t *gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_child_idx);
+        MPIR_Assert(gr_level != NULL);
+        if (gr_level->root_idx != 0) {
+            swap_idx(&gr_level->sorted_idxs, 0, gr_level->root_idx);
+        }
+        if (gr_level->myrank_idx == gr_level->root_idx) {
+            gr_level->myrank_sorted_idx = 0;
+        }
+        int sort_start_idx = 0;
+        if (gr_level->has_root) {
+            sort_start_idx = 1;
+        }
+        gr_level->root_sorted_idx = 0;
+        sort_with_num_ranks(hierarchy, 1, gr_level, sort_start_idx);
+    }
+
+    /* Update myrank_idx and myrank_sorted_idx since the ranks array on the wr_level would be
+     * modified.
+     */
+    wr_level->myrank_idx = -1;
+    wr_level->myrank_sorted_idx = -1;
+    for (int gr_idx = 0; gr_idx < utarray_len(&wr_level->child_idxs); gr_idx++) {
+        int gr_child_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
+        struct hierarchy_t *gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_child_idx);
+        int sw_idx = tree_ut_int_elt(&gr_level->sorted_idxs, 0);
+        int sw_leader = tree_ut_int_elt(&gr_level->ranks, sw_idx);
+        /* Update the group leaders in the wr_level */
+        ut_int_array(&wr_level->ranks)[gr_idx] = sw_leader;
+        if (rank == sw_leader) {
+            wr_level->myrank_idx = gr_idx;
+            /* setup myrank_sorted_idx at wr_level */
+            for (int gr_sorted_idx = 0; gr_sorted_idx < utarray_len(&wr_level->sorted_idxs);
+                 gr_sorted_idx++) {
+                if (tree_ut_int_elt(&wr_level->sorted_idxs, gr_sorted_idx) == wr_level->myrank_idx) {
+                    wr_level->myrank_sorted_idx = gr_sorted_idx;
+                }
+            }
+        }
+        /* Update the root_idx in the gr_level */
+        gr_level->root_idx = sw_idx;
+    }
+}
+
 /* tree init function is for building hierarchy of MPIR_Process::coords_dims */
 static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
                                             UT_array * hierarchy)
@@ -371,6 +495,7 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
     for (int r = 0; r < params->nranks; ++r) {
         struct hierarchy_t *upper_level =
             tree_ut_hierarchy_back(&hierarchy[MPIR_Process.coords_dims]);
+        upper_level->has_root = 1;
         int level_idx = 0;
         int upper_level_root = params->root;
         int wrank = MPIDIU_rank_to_lpid(r, comm);
@@ -417,7 +542,20 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
         utarray_push_back_int(&upper_level->ranks, &r, MPL_MEM_COLL);
     }
 
+    MPII_Treeutil_hierarchy_reorder_init(hierarchy);
+    if (MPIR_CVAR_TOPO_REORDER_ENABLE)
+        MPII_Treeutil_hierarchy_reorder(hierarchy, params->rank);
+
   fn_exit:
+    /* Dump hierarchy for debuging */
+    if (0 < strlen(MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX)) {
+        char outfile_name[PATH_MAX];
+        sprintf(outfile_name, "%s%d", MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX, params->rank);
+        FILE *outfile = fopen(outfile_name, "w");
+        tree_topology_dump_hierarchy(hierarchy, params->rank, outfile);
+        fclose(outfile);
+    }
+
     if (fallback) {
         for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
             utarray_done(&hierarchy[dim]);
@@ -493,23 +631,46 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
             MPIR_Assert(level->root_idx != -1);
 
             MPIR_Treealgo_tree_t tmp_tree;
-            mpi_errno =
-                MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks),
-                                             MPIR_CVAR_TOPOLOGY_AWARE_KVAL, level->root_idx,
-                                             &tmp_tree);
-            MPIR_ERR_CHECK(mpi_errno);
+            if (dim >= 1) {
+                mpi_errno =
+                    MPII_Treeutil_tree_kary_init(level->myrank_sorted_idx,
+                                                 utarray_len(&level->sorted_idxs),
+                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL,
+                                                 level->root_sorted_idx, &tmp_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+            } else {
+                mpi_errno =
+                    MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks),
+                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL, level->root_idx,
+                                                 &tmp_tree);
+                MPIR_ERR_CHECK(mpi_errno);
+            }
 
             int children_number = utarray_len(tmp_tree.children);
             int *children = ut_int_array(tmp_tree.children);
             for (int i = 0; i < children_number; ++i) {
-                int r = tree_ut_int_elt(&level->ranks, children[i]);
+                int r = 0;
+                if (dim >= 1) {
+                    int sorted_idx = tree_ut_int_elt(&level->sorted_idxs, children[i]);
+                    r = tree_ut_int_elt(&level->ranks, sorted_idx);
+                } else {
+                    r = tree_ut_int_elt(&level->ranks, children[i]);
+                }
                 mpi_errno = tree_add_child(ct, r);
                 MPIR_ERR_CHECK(mpi_errno);
             }
 
             if (tmp_tree.parent != -1) {
                 MPIR_Assert(ct->parent == -1);
-                ct->parent = tree_ut_int_elt(&level->ranks, tmp_tree.parent);
+                int parent = 0;
+                if (dim >= 1) {
+                    int sorted_idx = tree_ut_int_elt(&level->sorted_idxs, tmp_tree.parent);
+                    parent = tree_ut_int_elt(&level->ranks, sorted_idx);
+                } else {
+                    parent = tree_ut_int_elt(&level->ranks, tmp_tree.parent);
+
+                }
+                ct->parent = parent;
             }
 
             MPIR_Treealgo_tree_free(&tmp_tree);
@@ -578,30 +739,32 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
 
             MPIR_Treealgo_tree_t tmp_tree;
             if (dim == 2) {
-                /* group level */
+                /* group level - build a tree on the sorted_idxs */
                 mpi_errno =
-                    MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks),
-                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 2, level->root_idx,
-                                                 &tmp_tree);
+                    MPII_Treeutil_tree_kary_init(level->myrank_sorted_idx,
+                                                 utarray_len(&level->sorted_idxs),
+                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 2,
+                                                 level->root_sorted_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             } else if (dim == 1) {
-                /* switch level */
+                /* switch level - build a tree on the sorted_idxs */
                 mpi_errno =
-                    MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_idx,
-                                                            utarray_len(&level->ranks),
+                    MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_sorted_idx,
+                                                            utarray_len(&level->sorted_idxs),
                                                             1,
                                                             MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 1,
-                                                            level->root_idx, &tmp_tree);
+                                                            level->root_sorted_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             } else {
-                /* rank level */
+                /* rank level - build a tree on the ranks */
+                /* Do an allgather to know the current num_children on each rank */
                 MPIR_Errflag_t errflag = MPIR_ERR_NONE;
                 MPIR_Allgather_impl(&(ct->num_children), 1, MPI_INT, num_childrens, 1, MPI_INT,
                                     comm, &errflag);
                 if (mpi_errno) {
                     goto fn_fail;
                 }
-                int switch_leader = tree_ut_int_elt(&level->ranks, 0);
+                int switch_leader = tree_ut_int_elt(&level->ranks, level->root_idx);
                 mpi_errno =
                     MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_idx,
                                                             utarray_len(&level->ranks),
@@ -615,14 +778,28 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
             int children_number = utarray_len(tmp_tree.children);
             int *children = ut_int_array(tmp_tree.children);
             for (int i = 0; i < children_number; ++i) {
-                int r = tree_ut_int_elt(&level->ranks, children[i]);
+                int r = 0;
+                if (dim >= 1) {
+                    int sorted_idx = tree_ut_int_elt(&level->sorted_idxs, children[i]);
+                    r = tree_ut_int_elt(&level->ranks, sorted_idx);
+                } else {
+                    r = tree_ut_int_elt(&level->ranks, children[i]);
+                }
                 mpi_errno = tree_add_child(ct, r);
                 MPIR_ERR_CHECK(mpi_errno);
             }
 
             if (tmp_tree.parent != -1) {
                 MPIR_Assert(ct->parent == -1);
-                ct->parent = tree_ut_int_elt(&level->ranks, tmp_tree.parent);
+                int parent = 0;
+                if (dim >= 1) {
+                    int sorted_idx = tree_ut_int_elt(&level->sorted_idxs, tmp_tree.parent);
+                    parent = tree_ut_int_elt(&level->ranks, sorted_idx);
+                } else {
+                    parent = tree_ut_int_elt(&level->ranks, tmp_tree.parent);
+
+                }
+                ct->parent = parent;
             }
 
             MPIR_Treealgo_tree_free(&tmp_tree);
@@ -771,8 +948,8 @@ static inline void take_children(const UT_array * hierarchy, int lead, UT_array 
     }
 }
 
-static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int root, int root_group_idx,
-                       int root_switch_idx, int *group_offset, int *switch_offset,
+static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int root_gr_sorted_idx,
+                       int root_sw_sorted_idx, int *group_offset, int *switch_offset,
                        heap_vector * minHeaps)
 {
     /* find_leader() finds a switch leader and its children, filling array of heaps
@@ -783,15 +960,21 @@ static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int root,
     /* To reach world level use 0 for element ptr */
     struct hierarchy_t *wr_level = tree_ut_hierarchy_eltptr(&hierarchy[2], 0);
     MPIR_Assert(wr_level != NULL);
-    for (int gr_offset = *group_offset; gr_offset < utarray_len(&wr_level->child_idxs); gr_offset++) {
-        int gr_idx = (root_group_idx + gr_offset) % utarray_len(&wr_level->child_idxs);
-        int gr_relative_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
-        struct hierarchy_t *gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_relative_idx);
+    for (int gr_sorted_offset = *group_offset;
+         gr_sorted_offset < utarray_len(&wr_level->sorted_idxs); gr_sorted_offset++) {
+        int gr_sorted_idx =
+            (root_gr_sorted_idx + gr_sorted_offset) % utarray_len(&wr_level->sorted_idxs);
+        int gr_idx = tree_ut_int_elt(&wr_level->sorted_idxs, gr_sorted_idx);
+        int gr_child_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
+        struct hierarchy_t *gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_child_idx);
         MPIR_Assert(gr_level != NULL);
-        for (int sw_offset = *switch_offset; sw_offset < utarray_len(&gr_level->ranks); sw_offset++) {
-            int sw_idx = (root_switch_idx + sw_offset) % utarray_len(&gr_level->ranks);
-            int sw_relative_idx = tree_ut_int_elt(&gr_level->child_idxs, sw_idx);
-            struct hierarchy_t *sw_level = tree_ut_hierarchy_eltptr(&hierarchy[0], sw_relative_idx);
+        for (int sw_sorted_offset = *switch_offset;
+             sw_sorted_offset < utarray_len(&gr_level->sorted_idxs); sw_sorted_offset++) {
+            int sw_sorted_idx =
+                (root_sw_sorted_idx + sw_sorted_offset) % utarray_len(&gr_level->sorted_idxs);
+            int sw_idx = tree_ut_int_elt(&gr_level->sorted_idxs, sw_sorted_idx);
+            int sw_child_idx = tree_ut_int_elt(&gr_level->child_idxs, sw_idx);
+            struct hierarchy_t *sw_level = tree_ut_hierarchy_eltptr(&hierarchy[0], sw_child_idx);
             if (!sw_level->has_root) {
                 int cur_rank = tree_ut_int_elt(&gr_level->ranks, sw_idx);
                 pair p;
@@ -804,18 +987,18 @@ static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int root,
                 MPL_free(heap);
 
                 /* Take children of the lead in the switch */
-                take_children(hierarchy, sw_relative_idx, unv_set);
+                take_children(hierarchy, sw_child_idx, unv_set);
 
                 /* When there is not any switch inside the current group,
                  * shift to the next group and start with the 1st switch */
-                if (utarray_len(&gr_level->ranks) == sw_offset) {
-                    *group_offset = *group_offset + 1;
+                if (utarray_len(&gr_level->sorted_idxs) == sw_sorted_offset) {
+                    *group_offset = gr_sorted_offset + 1;
                     *switch_offset = 0;
                 } else {
                     /* If there're more switches in the current group,
                      * shift to the next switch and keep the current group id */
-                    *group_offset = gr_offset;
-                    *switch_offset = sw_offset + 1;
+                    *group_offset = gr_sorted_offset;
+                    *switch_offset = sw_sorted_offset + 1;
                 }
                 return 0;
             }
@@ -851,7 +1034,7 @@ static inline void take_earliest_time(UT_array * unvisited_set, const heap_vecto
 }
 
 static int init_root_switch(const UT_array * hierarchy, heap_vector * minHeaps, UT_array * unv_set,
-                            const int root, int *root_group_idx, int *root_switch_idx)
+                            const int root, int *root_gr_sorted_idx, int *root_sw_sorted_idx)
 {
     /* init_root_switch() adds the root's switch in a heap vector (array of heaps).
      * Origionally, inserts ROOT in the first created heap, then looks for ROOT's
@@ -872,16 +1055,16 @@ static int init_root_switch(const UT_array * hierarchy, heap_vector * minHeaps, 
         if (break_now) {
             break;
         }
-        int gr_relative_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
-        gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_relative_idx);
+        int gr_child_idx = tree_ut_int_elt(&wr_level->child_idxs, gr_idx);
+        gr_level = tree_ut_hierarchy_eltptr(&hierarchy[1], gr_child_idx);
         MPIR_Assert(gr_level != NULL);
         if (gr_level->has_root) {
             for (int sw_idx = 0; sw_idx < utarray_len(&gr_level->child_idxs); sw_idx++) {
-                int sw_relative_idx = tree_ut_int_elt(&gr_level->child_idxs, sw_idx);
-                sw_level = tree_ut_hierarchy_eltptr(&hierarchy[0], sw_relative_idx);
+                int sw_child_idx = tree_ut_int_elt(&gr_level->child_idxs, sw_idx);
+                sw_level = tree_ut_hierarchy_eltptr(&hierarchy[0], sw_child_idx);
                 if (sw_level->has_root) {
-                    *root_group_idx = gr_idx;
-                    *root_switch_idx = sw_idx;
+                    *root_gr_sorted_idx = wr_level->root_sorted_idx;
+                    *root_sw_sorted_idx = gr_level->root_sorted_idx;
                     break_now = true;
                     break;
                 }
@@ -935,8 +1118,8 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     int nranks = params->nranks;
     int root = params->root;
     int overhead = MPIR_CVAR_NETWORK_TOPO_OVERHEAD;
-    int root_group_idx = 0;
-    int root_switch_idx = 0;
+    int root_gr_sorted_idx = 0;
+    int root_sw_sorted_idx = 0;
     int group_offset = 0;
     int switch_offset = 0;
     int size_comm = 0;
@@ -957,7 +1140,8 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     UT_icd intpair_icd = { sizeof(pair), NULL, NULL, NULL };
     utarray_new(unv_set, &intpair_icd, MPL_MEM_COLL);
 
-    if (init_root_switch(hierarchy, &minHeaps, unv_set, root, &root_group_idx, &root_switch_idx))
+    if (init_root_switch
+        (hierarchy, &minHeaps, unv_set, root, &root_gr_sorted_idx, &root_sw_sorted_idx))
         goto fn_fallback;
 
     ct->rank = rank;
@@ -1015,7 +1199,7 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
         if (utarray_len(unv_set) == 0) {
             /* Find switch leaders and keep updating coordinates of
              * group/switch idx'es for next search */
-            int ret = find_leader(hierarchy, unv_set, root, root_switch_idx, root_switch_idx,
+            int ret = find_leader(hierarchy, unv_set, root_gr_sorted_idx, root_sw_sorted_idx,
                                   &group_offset, &switch_offset, &minHeaps);
             if (ret == -1 && utarray_len(unv_set) == 0) {
                 /* If there is not any element to be added break the main while () */
@@ -1056,9 +1240,12 @@ static void tree_topology_dump_hierarchy(UT_array hierarchy[], int myrank, FILE 
             fprintf(outfile, "        {\"coord\": {\"id\": %d, \"parent_idx\": %d}, ",
                     cur_level->coord.id, cur_level->coord.parent_idx);
             fprintf(outfile,
-                    "\"relative_idx\": %d, \"has_root\": %d, \"root_idx\": %d, \"myrank_idx\": %d, \"ranks\": [",
-                    cur_level->relative_idx, cur_level->has_root,
-                    cur_level->root_idx, cur_level->myrank_idx);
+                    "\"relative_idx\": %d, \"has_root\": %d, \"root_idx\": %d, \"myrank_idx\": %d,"
+                    " \"num_ranks\": %d, \"root_sorted_idx\": %d, \"myrank_sorted_idx\": %d,"
+                    " \"ranks\": [",
+                    cur_level->relative_idx, cur_level->has_root, cur_level->root_idx,
+                    cur_level->myrank_idx, cur_level->num_ranks, cur_level->root_sorted_idx,
+                    cur_level->myrank_sorted_idx);
             for (int i = 0; i < utarray_len(&cur_level->ranks); ++i) {
                 if (i > 0)
                     fprintf(outfile, ", ");
@@ -1069,6 +1256,12 @@ static void tree_topology_dump_hierarchy(UT_array hierarchy[], int myrank, FILE 
                 if (i > 0)
                     fprintf(outfile, ", ");
                 fprintf(outfile, "%d", tree_ut_int_elt(&cur_level->child_idxs, i));
+            }
+            fprintf(outfile, "], \"sorted_idxs\": [");
+            for (int i = 0; i < utarray_len(&cur_level->sorted_idxs); ++i) {
+                if (i > 0)
+                    fprintf(outfile, ", ");
+                fprintf(outfile, "%d", tree_ut_int_elt(&cur_level->sorted_idxs, i));
             }
             fprintf(outfile, "]}");
         }

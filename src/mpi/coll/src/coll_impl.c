@@ -63,6 +63,26 @@ cvars:
       description : >-
         This cvar controls the branching factor in topology aware tree
 
+    - name        : MPIR_CVAR_TOPO_REORDER_ENABLE
+      category    : COLLECTIVE
+      type        : boolean
+      default     : true
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        This cvar controls if the leaders are reordered based on the number of ranks in each group.
+
+    - name        : MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX
+      category    : COLLECTIVE
+      type        : string
+      default     : ""
+      class       : none
+      verbosity   : MPI_T_VERBOSITY_USER_BASIC
+      scope       : MPI_T_SCOPE_ALL_EQ
+      description : >-
+        Defines the filename for dumping the hierarchy data structure.
+
     - name        : MPIR_CVAR_NETWORK_TOPO_OVERHEAD
       category    : COLLECTIVE
       type        : int
