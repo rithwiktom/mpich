@@ -485,6 +485,12 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
         goto fn_fail;
     }
 
+    /* Fallback if the coords are not ready */
+    if (MPIR_Process.coords_dims <= 0 || MPIR_Process.coords == NULL) {
+        fallback = 1;
+        goto fn_fail;
+    }
+
     /* One extra level 'world' is needed */
     MPIR_Assert(MPIR_Process.coords_dims < MAX_HIERARCHY_DEPTH);
 
