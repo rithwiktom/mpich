@@ -678,6 +678,10 @@ MPICH now supports GPU-to-GPU Interprocess Communication (IPC) with builtin data
 
 * `MPIR_CVAR_CH4_IPC_GPU_READ_WRITE_PROTOCOL`:  choose read/write/auto protocol for IPC. Default is read. Auto will prefer write protocol when remote device is visible, otherwise fallback to read.
 
+MPI_Get and MPI_Put also supports the IPC. For contiguous datatypes, an option is added to bypass Yaksa:
+
+* `MPIR_CVAR_CH4_GPU_RMA_ENGINE_TYPE`: select engine type to do the IPC copying, can be 0|1|2|auto|yaksa. Default is "auto" which will use main copy engine when two buffers are on the same root device, otherwise use link copy engine. "yaksa" is to fallback to using Yaksa
+
 MPICH supports fast memory copying using mmap mechanism (bypassing kernel launching), which is optimized for very small messages:
 
 * `MPIR_CVAR_CH4_IPC_GPU_P2P_THRESHOLD`: make sure this CVAR is set to 1 to enable IPC. Fast memory copy depends on IPC enabled.
