@@ -16,10 +16,18 @@ struct coord_t {
 struct hierarchy_t {
     struct coord_t coord;
     int relative_idx;
-    int child_idx;
-    int root_idx, myrank_idx;
     int has_root;
+    int root_idx;
+    int myrank_idx;
+    int root_sorted_idx;
+    int myrank_sorted_idx;
+    /* the length of the ranks array */
+    int num_ranks;
     UT_array ranks;
+    /* stores the relative idx of each child on the lower level */
+    UT_array child_idxs;
+    /* sort the children based on the num_rank, stores the index of the child_idxs */
+    UT_array sorted_idxs;
 };
 
 typedef struct {
@@ -49,17 +57,22 @@ static void tree_ut_hierarchy_init(void *elt)
 {
     ((struct hierarchy_t *) elt)->coord.id = -1;
     ((struct hierarchy_t *) elt)->coord.parent_idx = -1;
-    ((struct hierarchy_t *) elt)->child_idx = -1;
     ((struct hierarchy_t *) elt)->relative_idx = -1;
+    ((struct hierarchy_t *) elt)->has_root = 0;
     ((struct hierarchy_t *) elt)->root_idx = -1;
     ((struct hierarchy_t *) elt)->myrank_idx = -1;
-    ((struct hierarchy_t *) elt)->has_root = 0;
+    ((struct hierarchy_t *) elt)->num_ranks = 0;
+    ((struct hierarchy_t *) elt)->root_sorted_idx = -1;
+    ((struct hierarchy_t *) elt)->myrank_sorted_idx = -1;
     tree_ut_int_init(&((struct hierarchy_t *) elt)->ranks);
+    tree_ut_int_init(&((struct hierarchy_t *) elt)->child_idxs);
+    tree_ut_int_init(&((struct hierarchy_t *) elt)->sorted_idxs);
 }
 
 static void tree_ut_hierarchy_dtor(void *elt)
 {
     utarray_done(&((struct hierarchy_t *) elt)->ranks);
+    utarray_done(&((struct hierarchy_t *) elt)->child_idxs);
 }
 
 static const UT_icd tree_ut_hierarchy_icd =
@@ -94,6 +107,12 @@ static const UT_icd tree_ut_hierarchy_icd =
 /* Generate kary tree information for rank 'rank' */
 int MPII_Treeutil_tree_kary_init(int rank, int nranks, int k, int root, MPIR_Treealgo_tree_t * ct);
 
+/* Create a special kary tree to build topology-aware tree. The first level of the kary tree has
+ * branching factor k0 and the rest levels of the kary tree has branching factor k1.
+ */
+int MPII_Treeutil_tree_kary_init_topo_aware(int rank, int nranks, int k0, int k1, int root,
+                                            MPIR_Treealgo_tree_t * ct);
+
 /* Generate knomial_1 tree information for rank 'rank' */
 int MPII_Treeutil_tree_knomial_1_init(int rank, int nranks, int k, int root,
                                       MPIR_Treealgo_tree_t * ct);
@@ -105,6 +124,9 @@ int MPII_Treeutil_tree_knomial_2_init(int rank, int nranks, int k, int root,
 /* Generate topology_aware tree information */
 int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
                                            MPIR_Treealgo_tree_t * ct);
+
+int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
+                                             MPIR_Treealgo_tree_t * ct);
 
 /* Generate topology_wave tree information */
 int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm, MPIR_Treealgo_params_t * params,
