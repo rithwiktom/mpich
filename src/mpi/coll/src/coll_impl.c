@@ -53,26 +53,6 @@ cvars:
       description : >-
         Defines the location of tuning file.
 
-    - name        : MPIR_CVAR_TOPOLOGY_AWARE_KVAL
-      category    : COLLECTIVE
-      type        : int
-      default     : 1
-      class       : none
-      verbosity   : MPI_T_VERBOSITY_USER_BASIC
-      scope       : MPI_T_SCOPE_ALL_EQ
-      description : >-
-        This cvar controls the branching factor in topology aware tree
-
-    - name        : MPIR_CVAR_TOPO_REORDER_ENABLE
-      category    : COLLECTIVE
-      type        : boolean
-      default     : true
-      class       : none
-      verbosity   : MPI_T_VERBOSITY_USER_BASIC
-      scope       : MPI_T_SCOPE_ALL_EQ
-      description : >-
-        This cvar controls if the leaders are reordered based on the number of ranks in each group.
-
     - name        : MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX
       category    : COLLECTIVE
       type        : string
@@ -82,48 +62,6 @@ cvars:
       scope       : MPI_T_SCOPE_ALL_EQ
       description : >-
         Defines the filename for dumping the hierarchy data structure.
-
-    - name        : MPIR_CVAR_NETWORK_TOPO_OVERHEAD
-      category    : COLLECTIVE
-      type        : int
-      default     : 200
-      class       : none
-      verbosity   : MPI_T_VERBOSITY_USER_BASIC
-      scope       : MPI_T_SCOPE_ALL_EQ
-      description : >-
-        This cvar controls the size of the overhead.
-
-    - name        : MPIR_CVAR_NETWORK_TOPO_DIFF_GROUPS
-      category    : COLLECTIVE
-      type        : int
-      default     : 2800
-      class       : none
-      verbosity   : MPI_T_VERBOSITY_USER_BASIC
-      scope       : MPI_T_SCOPE_ALL_EQ
-      description : >-
-        This cvar controls the latency between different groups.
-
-    - name        : MPIR_CVAR_NETWORK_TOPO_DIFF_SWITCHES
-      category    : COLLECTIVE
-      type        : int
-      default     : 1900
-      class       : none
-      verbosity   : MPI_T_VERBOSITY_USER_BASIC
-      scope       : MPI_T_SCOPE_ALL_EQ
-      description : >-
-        This cvar controls the latency between different switches
-        in the same groups.
-
-    - name        : MPIR_CVAR_NETWORK_TOPO_SAME_SWITCHES
-      category    : COLLECTIVE
-      type        : int
-      default     : 1600
-      class       : none
-      verbosity   : MPI_T_VERBOSITY_USER_BASIC
-      scope       : MPI_T_SCOPE_ALL_EQ
-      description : >-
-        This cvar controls the latency between the same switches
-        in the same groups.
 
     - name        : MPIR_CVAR_COORDINATES_FILE
       category    : COLLECTIVE

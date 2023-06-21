@@ -74,7 +74,12 @@ int MPIR_TSP_Ireduce_sched_intra_tree(const void *sendbuf, void *recvbuf, MPI_Ai
         .nranks = size,
         .k = k,
         .tree_type = tree_type,
-        .root = tree_root
+        .root = tree_root,
+        .enable_reorder = MPIR_CVAR_IREDUCE_TOPO_REORDER_ENABLE,
+        .overhead = MPIR_CVAR_IREDUCE_TOPO_OVERHEAD,
+        .lat_diff_groups = MPIR_CVAR_IREDUCE_TOPO_DIFF_GROUPS,
+        .lat_diff_switches = MPIR_CVAR_IREDUCE_TOPO_DIFF_SWITCHES,
+        .lat_same_switches = MPIR_CVAR_IREDUCE_TOPO_SAME_SWITCHES
     };
     mpi_errno = MPIR_Treealgo_tree_create(comm, &tree_params, &my_tree);
     MPIR_ERR_CHECK(mpi_errno);

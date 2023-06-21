@@ -70,7 +70,12 @@ int MPIR_Allreduce_intra_tree(const void *sendbuf,
         .nranks = comm_size,
         .k = k,
         .tree_type = tree_type,
-        .root = root
+        .root = root,
+        .enable_reorder = MPIR_CVAR_ALLREDUCE_TOPO_REORDER_ENABLE,
+        .overhead = MPIR_CVAR_ALLREDUCE_TOPO_OVERHEAD,
+        .lat_diff_groups = MPIR_CVAR_ALLREDUCE_TOPO_DIFF_GROUPS,
+        .lat_diff_switches = MPIR_CVAR_ALLREDUCE_TOPO_DIFF_SWITCHES,
+        .lat_same_switches = MPIR_CVAR_ALLREDUCE_TOPO_SAME_SWITCHES
     };
     mpi_errno = MPIR_Treealgo_tree_create(comm_ptr, &tree_params, &my_tree);
     MPIR_ERR_CHECK(mpi_errno);

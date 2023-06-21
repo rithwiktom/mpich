@@ -549,7 +549,7 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
     }
 
     MPII_Treeutil_hierarchy_reorder_init(hierarchy);
-    if (MPIR_CVAR_TOPO_REORDER_ENABLE)
+    if (params->enable_reorder)
         MPII_Treeutil_hierarchy_reorder(hierarchy, params->rank);
 
   fn_exit:
@@ -618,7 +618,7 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
         tree_ut_hierarchy_init(&hierarchy[dim]);
 
-    if (0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
+    if (params->k <= 0 || 0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
         goto fn_fallback;
 
     ct->rank = comm->rank;
@@ -641,14 +641,12 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
                 mpi_errno =
                     MPII_Treeutil_tree_kary_init(level->myrank_sorted_idx,
                                                  utarray_len(&level->sorted_idxs),
-                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL,
-                                                 level->root_sorted_idx, &tmp_tree);
+                                                 params->k, level->root_sorted_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             } else {
                 mpi_errno =
                     MPII_Treeutil_tree_kary_init(level->myrank_idx, utarray_len(&level->ranks),
-                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL, level->root_idx,
-                                                 &tmp_tree);
+                                                 params->k, level->root_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             }
 
@@ -708,7 +706,7 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
                                              MPIR_Treealgo_tree_t * ct)
 {
     /* fall back to MPII_Treeutil_tree_topology_aware_init if k is less or equal to 2 */
-    if (MPIR_CVAR_TOPOLOGY_AWARE_KVAL <= 2) {
+    if (params->k <= 2) {
         return MPII_Treeutil_tree_topology_aware_init(comm, params, ct);
     }
     int mpi_errno = MPI_SUCCESS;
@@ -749,8 +747,7 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
                 mpi_errno =
                     MPII_Treeutil_tree_kary_init(level->myrank_sorted_idx,
                                                  utarray_len(&level->sorted_idxs),
-                                                 MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 2,
-                                                 level->root_sorted_idx, &tmp_tree);
+                                                 params->k - 2, level->root_sorted_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             } else if (dim == 1) {
                 /* switch level - build a tree on the sorted_idxs */
@@ -758,7 +755,7 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
                     MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_sorted_idx,
                                                             utarray_len(&level->sorted_idxs),
                                                             1,
-                                                            MPIR_CVAR_TOPOLOGY_AWARE_KVAL - 1,
+                                                            params->k - 1,
                                                             level->root_sorted_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             } else {
@@ -774,9 +771,8 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
                 mpi_errno =
                     MPII_Treeutil_tree_kary_init_topo_aware(level->myrank_idx,
                                                             utarray_len(&level->ranks),
-                                                            MPIR_CVAR_TOPOLOGY_AWARE_KVAL -
-                                                            num_childrens[switch_leader],
-                                                            MPIR_CVAR_TOPOLOGY_AWARE_KVAL,
+                                                            params->k -
+                                                            num_childrens[switch_leader], params->k,
                                                             level->root_idx, &tmp_tree);
                 MPIR_ERR_CHECK(mpi_errno);
             }
@@ -920,20 +916,21 @@ static void heap_vector_free(heap_vector * v)
     MPL_free(v->heap);
 }
 
-static int latency(int unv_rank, int v_rank)
+static int latency(int unv_rank, int v_rank, int lat_diff_groups, int lat_diff_switches,
+                   int lat_same_switches)
 {
     /* latency of but different groups */
     if (MPIR_Process.coords[unv_rank * MPIR_Process.coords_dims + 1] !=
         MPIR_Process.coords[v_rank * MPIR_Process.coords_dims + 1])
-        return MPIR_CVAR_NETWORK_TOPO_DIFF_GROUPS;
+        return lat_diff_groups;
 
     /* latency of the same groups, but different switch */
     if (MPIR_Process.coords[unv_rank * MPIR_Process.coords_dims + 0] !=
         MPIR_Process.coords[v_rank * MPIR_Process.coords_dims + 0])
-        return MPIR_CVAR_NETWORK_TOPO_DIFF_SWITCHES;
+        return lat_diff_switches;
 
     /* latency of the same switch */
-    return MPIR_CVAR_NETWORK_TOPO_SAME_SWITCHES;
+    return lat_same_switches;
 }
 
 static inline void take_children(const UT_array * hierarchy, int lead, UT_array * unv_set)
@@ -1017,15 +1014,18 @@ static int find_leader(const UT_array * hierarchy, UT_array * unv_set, int root_
 
 static inline void take_earliest_time(UT_array * unvisited_set, const heap_vector * minHeaps,
                                       int *glob_reach_time, const int overhead,
-                                      const int unvisited_node_idx, const int visited_sw_idx,
-                                      int *best_v_sw_idx, int *best_u_nd_idx)
+                                      const int lat_diff_groups, const int lat_diff_switches,
+                                      const int lat_same_switches, const int unvisited_node_idx,
+                                      const int visited_sw_idx, int *best_v_sw_idx,
+                                      int *best_u_nd_idx)
 {
     MPIR_Assert(unvisited_node_idx < utarray_len(unvisited_set));
     if (minHeaps->heap[visited_sw_idx].size == 0)
         return;
     int new_reach_time = minHeaps->heap[visited_sw_idx].elem->reach_time +
         latency(pair_elt(unvisited_set, unvisited_node_idx)->rank,
-                minHeaps->heap[visited_sw_idx].elem->rank) + 2 * overhead;
+                minHeaps->heap[visited_sw_idx].elem->rank, lat_diff_groups, lat_diff_switches,
+                lat_same_switches) + 2 * overhead;
     if (pair_elt(unvisited_set, unvisited_node_idx)->reach_time == -1 ||
         pair_elt(unvisited_set, unvisited_node_idx)->reach_time > new_reach_time) {
         pair_elt(unvisited_set, unvisited_node_idx)->reach_time = new_reach_time;
@@ -1123,7 +1123,7 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     int rank = params->rank;
     int nranks = params->nranks;
     int root = params->root;
-    int overhead = MPIR_CVAR_NETWORK_TOPO_OVERHEAD;
+    int overhead = params->overhead;
     int root_gr_sorted_idx = 0;
     int root_sw_sorted_idx = 0;
     int group_offset = 0;
@@ -1140,7 +1140,9 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
         tree_ut_hierarchy_init(&hierarchy[dim]);
 
-    if (0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
+    if (params->overhead <= 0 || params->lat_diff_groups <= 0 || params->lat_diff_switches <= 0 ||
+        params->lat_same_switches <= 0 ||
+        0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
         goto fn_fallback;
 
     UT_icd intpair_icd = { sizeof(pair), NULL, NULL, NULL };
@@ -1175,7 +1177,8 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
             /* For every visited switch */
             for (int j = 0; j < minHeaps.total; j++) {
                 take_earliest_time(unv_set, &minHeaps, &glob_reach_time, overhead,
-                                   i, j, &best_v_sw_idx, &best_u_nd_idx);
+                                   params->lat_diff_groups, params->lat_diff_switches,
+                                   params->lat_same_switches, i, j, &best_v_sw_idx, &best_u_nd_idx);
             }
         }
 
