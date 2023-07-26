@@ -485,8 +485,8 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
         goto fn_fail;
     }
 
-    /* Fallback if the coords are not ready */
-    if (MPIR_Process.coords_dims <= 0 || MPIR_Process.coords == NULL) {
+    /* Fallback if coords_dims is not 2 or the coords are not ready */
+    if (MPIR_Process.coords_dims != 2 || MPIR_Process.coords == NULL) {
         fallback = 1;
         goto fn_fail;
     }
