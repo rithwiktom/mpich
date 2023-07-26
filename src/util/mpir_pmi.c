@@ -224,7 +224,7 @@ int MPIR_pmi_init(void)
             char outfile_name[PATH_MAX];
             sprintf(outfile_name, "%s", MPIR_CVAR_TREE_DUMP_COORDINATES_FILE);
             FILE *outfile = fopen(outfile_name, "w");
-            for (int i = 0; i < nranks; i++) {
+            for (int i = 0; i < size; i++) {
                 fprintf(outfile, "%d:", i);
                 for (int j = 0; j < MPIR_Process.coords_dims; j++) {
                     fprintf(outfile, " %d", MPIR_Process.coords[i * MPIR_Process.coords_dims + j]);
