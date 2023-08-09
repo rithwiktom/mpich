@@ -78,7 +78,12 @@ int MPIR_Bcast_intra_tree(void *buffer,
             .nranks = comm_size,
             .k = branching_factor,
             .tree_type = tree_type,
-            .root = root
+            .root = root,
+            .enable_reorder = MPIR_CVAR_BCAST_TOPO_REORDER_ENABLE,
+            .overhead = MPIR_CVAR_BCAST_TOPO_OVERHEAD,
+            .lat_diff_groups = MPIR_CVAR_BCAST_TOPO_DIFF_GROUPS,
+            .lat_diff_switches = MPIR_CVAR_BCAST_TOPO_DIFF_SWITCHES,
+            .lat_same_switches = MPIR_CVAR_BCAST_TOPO_SAME_SWITCHES
         };
         my_tree.children = NULL;
         mpi_errno = MPIR_Treealgo_tree_create(comm_ptr, &tree_params, &my_tree);

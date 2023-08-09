@@ -23,6 +23,11 @@ typedef struct {
     int tree_type;
     int subtree_type;
     int root;
+    bool enable_reorder;
+    int overhead;
+    int lat_diff_groups;
+    int lat_diff_switches;
+    int lat_same_switches;
 } MPIR_Treealgo_params_t;
 
 #endif /* TREEALGO_TYPES_H_INCLUDED */

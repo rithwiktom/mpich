@@ -191,8 +191,9 @@ To use the same algorithm for both, blocking and non-blocking versions of the co
 | ALLREDUCE  | k_reduce_scatter_allgather   | MPIR_CVAR_ALLREDUCE_RECEXCH_KVAL=k | k >= 2, default k=2 |
 + ---------- + ---------------------------- + ---------------------------------- + ------------------- +
 | ALLREDUCE  | tree                         | MPIR_CVAR_ALLREDUCE_TREE_TYPE=kary/| k >= 2, default k=2 |
-|            |                              | knomial_1/knomial_2                | default tree type is|
-|            |                              | MPIR_CVAR_ALLREDUCE_TREE_KVAL=k,   | knomial_1           |
+|            |                              | knomial_1/knomial_2/topology_aware/| default tree type is|
+|            |                              | topology_aware_k/topology_wave     | knomial_1           |
+|            |                              | MPIR_CVAR_ALLREDUCE_TREE_KVAL=k,   |                     |
 |            |                              | MPIR_CVAR_ALLREDUCE_TREE_PIPELINE  |                     |
 |            |                              | _CHUNK_SIZE =4096,                 |                     |
 + ---------- + ---------------------------- + ---------------------------------- + ------------------- +
@@ -208,16 +209,25 @@ To use the same algorithm for both, blocking and non-blocking versions of the co
 | BCAST      | scatter_ring_allgather       | NONE                               |                     |
 + ---------- + ---------------------------- + ---------------------------------- + ------------------- +
 | BCAST      | tree                         | MPIR_CVAR_BCAST_TREE_TYPE=kary/    | k >= 2, default k=2 |
-|            |                              | knomial_1/knomial_2,               | default tree type is|
-|            |                              | MPIR_CVAR_BCAST_TREE_KVAL=k        | knomial_1           |
+|            |                              | knomial_1/knomial_2/topology_aware/| default tree type is|
+|            |                              | topology_aware_k/topology_wave,    | knomial_1           |
+|            |                              | MPIR_CVAR_BCAST_TREE_KVAL=k        |                     |
 + ---------- + ---------------------------- + ---------------------------------- + ------------------- +
-| BCAST      | pipelined_tree               | MPIR_CVAR_BCAST_TREE_TYPE=kary     | k >= 2, default k=2 |
-|            |                              | knomial_1/knomial_2,               | default tree type is|
-|            |                              | MPIR_CVAR_BCAST_TREE_KVAL=k        | knomial_1           |
+| BCAST      | pipelined_tree               | MPIR_CVAR_BCAST_TREE_TYPE=kary/    | k >= 2, default k=2 |
+|            |                              | knomial_1/knomial_2/topology_aware/| default tree type is|
+|            |                              | topology_aware_k/topology_wave,    | knomial_1           |
+|            |                              | MPIR_CVAR_BCAST_TREE_KVAL=k        |                     |
 + ---------- + ---------------------------- + ---------------------------------- + ------------------- +
 ```
 
 MPIR_CVAR_CH4_GPU_COLL_SWAP_BUFFER_SZ determines the size of the swap buffer used for GPU collective operations. Currently, it only supports MPI_Bcast and MPI_Allreduce. If the message size is smaller or equal to this swap buffer size, MPICH will transfer the data to the host and perform the collective operation there. If the message size exceeds this buffer size, MPICH will perform the collective operation directly on the GPU.
+
+The following CVARs are related to the topology-aware collective algirthms:
+* `MPIR_CVAR_<collname>_TOPO_REORDER_ENABLE`, where \<collname\> is BCAST or ALLREDUCE, controls if the leaders are reordered based on the number of ranks in each group.
+* `MPIR_CVAR_<collname>_TOPO_OVERHEAD`, where \<collname\> is BCAST or ALLREDUCE, controls the overhead used in the topology-wave algorithm.
+* `MPIR_CVAR_<collname>_TOPO_DIFF_GROUPS`, where \<collname\> is BCAST or ALLREDUCE, controls the latency between different groups used in the topology-wave algorithm.
+* `MPIR_CVAR_<collname>_TOPO_DIFF_SWITCHES`, where \<collname\> is BCAST or ALLREDUCE, controls the latency between different switches in the same group used in the topology-wave algorithm.
+* `MPIR_CVAR_<collname>_TOPO_SAME_SWITCHES`, where \<collname\> is BCAST or ALLREDUCE, controls the latency between the same switch used in the topology-wave algorithm.
 
 **2.4. Non Blocking collective algorithms**
 
@@ -229,6 +239,8 @@ Notice that the algorithms based on the linear scheduler have names that start w
 A blocking collective, such as BCAST can use non-blocking algorithms if the CVAR `MPIR_CVAR_BCAST_INTRA_ALGORITHM=nb`. This CVAR transforms a BCAST call into IBCAST followed by wait. In this case, the user can select any of the non-blocking algorithms for BCAST.
 
 To disable composition while using these algorithms, set `MPIR_CVAR_*collname*_DEVICE_COLLECTIVE=0>`.
+
+Please refer to Section 2.3 for the CVARs related to topology-aware Ireduce.
 
 **Table III: Algorithms available for each blocking collective operation**
 
@@ -409,12 +421,12 @@ To disable composition while using these algorithms, set `MPIR_CVAR_*collname*_D
 + --------------------- + ---------------------------- + ---------------------------------- + -----------------------+
 | IREDUCE               | gentran_tree                 | MPIR_CVAR_IREDUCE_TREE_KVAL, MPIR_ | k >= 2, default k=2    |
 |                       |                              | CVAR_IREDUCE_TREE_TYPE = kary/     | Pipeline chunksize:    |
-|                       |                              | knomial_1/knomial_2, MPIR_CVAR_    | Max chunk size (in     |
-|                       |                              | IREDUCE_TREE_PIPELINE_CHUNK_SIZE,  | bytes)  Default: 0B    |
-|                       |                              | MPIR_CVAR_IREDUCE_TREE_BUFFER_PER_ | Tree buffer per child: |
-|                       |                              | CHILD                              | If set to 1, algorithm |
-|                       |                              |                                    | will allocate dedicated|
-|                       |                              |                                    | buffer for every child |
+|                       |                              | knomial_1/knomial_2/topology_aware/| Max chunk size (in     |
+|                       |                              | topology_aware_k/topology_wave,    | bytes)  Default: 0B    |
+|                       |                              | MPIR_CVAR_IREDUCE_TREE_PIPELINE_   | Tree buffer per child: |
+|                       |                              | CHUNK_SIZE,                        | If set to 1, algorithm |
+|                       |                              | MPIR_CVAR_IREDUCE_TREE_BUFFER_PER_ | will allocate dedicated|
+|                       |                              | CHILD                              | buffer for every child |
 |                       |                              |                                    | it receives data from. |
 + --------------------- + ---------------------------- + ---------------------------------- + -----------------------+
 | IREDUCE_SCATTER       | sched_noncommutative         | NONE                               |                        |
