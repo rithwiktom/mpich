@@ -370,61 +370,13 @@
           "composition=MPIDI_Bcast_intra_composition_gamma": {}
         }
       },
-      "comm_avg_ppn<=24": {
+      "comm_avg_ppn=any": {
         "comm_hierarchy=parent": {
           "comm_size<=1536": {
             "avg_msg_size=any": {
               "composition=MPIDI_Bcast_intra_composition_alpha": {}
             }
-          },
-          "comm_size=any": {
-            "avg_msg_size<=32": {
-              "composition=MPIDI_Bcast_intra_composition_alpha": {}
-            },
-            "avg_msg_size<=64": {
-              "composition=MPIDI_Bcast_intra_composition_beta": {}
-            },
-            "avg_msg_size<=128": {
-              "composition=MPIDI_Bcast_intra_composition_alpha": {}
-            },
-            "avg_msg_size<=512": {
-              "composition=MPIDI_Bcast_intra_composition_beta": {}
-            },
-            "avg_msg_size<=1024": {
-              "composition=MPIDI_Bcast_intra_composition_alpha": {}
-            },
-            "avg_msg_size<=2048": {
-              "composition=MPIDI_Bcast_intra_composition_beta": {}
-            },
-            "avg_msg_size<=4096": {
-              "composition=MPIDI_Bcast_intra_composition_alpha": {}
-            },
-            "avg_msg_size<=32768": {
-              "composition=MPIDI_Bcast_intra_composition_beta": {}
-            },
-            "avg_msg_size<=131072": {
-              "composition=MPIDI_Bcast_intra_composition_alpha": {}
-            },
-            "avg_msg_size<=524288": {
-              "composition=MPIDI_Bcast_intra_composition_beta": {}
-            },
-            "avg_msg_size<=1048576": {
-              "composition=MPIDI_Bcast_intra_composition_gamma": {}
-            },
-            "avg_msg_size<=2097152": {
-              "composition=MPIDI_Bcast_intra_composition_alpha": {}
-            },
-            "avg_msg_size=any": {
-              "composition=MPIDI_Bcast_intra_composition_beta": {}
-            }
-          }
-        },
-        "comm_hierarchy=any": {
-          "composition=MPIDI_Bcast_intra_composition_gamma": {}
-        }
-      },
-      "comm_avg_ppn=any": {
-        "comm_hierarchy=parent": {
+	  },
           "comm_size<=12288": {
             "avg_msg_size<=524288": {
               "composition=MPIDI_Bcast_intra_composition_alpha": {}
@@ -489,18 +441,6 @@
           "comm_size=any": {
             "avg_msg_size=any": {
               "composition=MPIDI_Barrier_intra_composition_beta": {}
-            }
-          }
-        },
-        "comm_hierarchy=any": {
-          "composition=MPIDI_Barrier_intra_composition_beta": {}
-        }
-      },
-      "comm_avg_ppn<=24": {
-        "comm_hierarchy=parent": {
-          "comm_size=any": {
-            "avg_msg_size=any": {
-              "composition=MPIDI_Barrier_intra_composition_alpha": {}
             }
           }
         },
