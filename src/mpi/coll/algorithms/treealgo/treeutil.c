@@ -485,8 +485,8 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
         goto fn_fail;
     }
 
-    /* Fallback if coords_dims is not 2 or the coords are not ready */
-    if (MPIR_Process.coords_dims != 2 || MPIR_Process.coords == NULL) {
+    /* Fallback if coords_dims is not 3 or the coords are not ready */
+    if (MPIR_Process.coords_dims != 3 || MPIR_Process.coords == NULL) {
         fallback = 1;
         goto fn_fail;
     }
@@ -495,12 +495,12 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
     MPIR_Assert(MPIR_Process.coords_dims < MAX_HIERARCHY_DEPTH);
 
     /* Initialization for world level */
-    int dim = MPIR_Process.coords_dims;
+    int dim = MPIR_Process.coords_dims - 1;
     utarray_extend_back(&hierarchy[dim], MPL_MEM_COLL);
 
     for (int r = 0; r < params->nranks; ++r) {
         struct hierarchy_t *upper_level =
-            tree_ut_hierarchy_back(&hierarchy[MPIR_Process.coords_dims]);
+            tree_ut_hierarchy_back(&hierarchy[MPIR_Process.coords_dims - 1]);
         upper_level->has_root = 1;
         int level_idx = 0;
         int upper_level_root = params->root;
@@ -511,9 +511,9 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
         MPIR_Assert(upper_level != NULL);
         MPIR_Assert(0 <= wrank && wrank < MPIR_Process.size);
 
-        for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim) {
+        for (dim = MPIR_Process.coords_dims - 2; dim >= 0; --dim) {
             struct coord_t lvl_coord =
-                { MPIR_Process.coords[wrank * MPIR_Process.coords_dims + dim], level_idx };
+                { MPIR_Process.coords[wrank * MPIR_Process.coords_dims + dim + 1], level_idx };
 
             if (lvl_coord.id < 0)
                 goto fn_fail;
@@ -563,7 +563,7 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
     }
 
     if (fallback) {
-        for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
+        for (dim = 0; dim <= MPIR_Process.coords_dims - 1; ++dim)
             utarray_done(&hierarchy[dim]);
     }
     return mpi_errno;
@@ -614,8 +614,8 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     int myrank = params->rank;
 
     UT_array hierarchy[MAX_HIERARCHY_DEPTH];
-    int dim = MPIR_Process.coords_dims;
-    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
+    int dim = MPIR_Process.coords_dims - 1;
+    for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim)
         tree_ut_hierarchy_init(&hierarchy[dim]);
 
     if (params->k <= 0 || 0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
@@ -627,7 +627,7 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     ct->num_children = 0;
     utarray_new(ct->children, &ut_int_icd, MPL_MEM_COLL);
 
-    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim) {
+    for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim) {
         int cur_level_count = utarray_len(&hierarchy[dim]);
 
         for (int level_idx = 0; level_idx < cur_level_count; ++level_idx) {
@@ -682,7 +682,7 @@ int MPII_Treeutil_tree_topology_aware_init(MPIR_Comm * comm,
     }
 
     /* free memory */
-    for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
+    for (dim = 0; dim <= MPIR_Process.coords_dims - 1; ++dim)
         utarray_done(&hierarchy[dim]);
 
   fn_exit:
@@ -715,8 +715,8 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
     int myrank = params->rank;
 
     UT_array hierarchy[MAX_HIERARCHY_DEPTH];
-    int dim = MPIR_Process.coords_dims;
-    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
+    int dim = MPIR_Process.coords_dims - 1;
+    for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim)
         tree_ut_hierarchy_init(&hierarchy[dim]);
 
     if (0 != MPII_Treeutil_hierarchy_populate(comm, params, hierarchy))
@@ -733,7 +733,7 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
     for (int i = 0; i < nranks; i++) {
         num_childrens[i] = 0;
     }
-    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim) {
+    for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim) {
         int cur_level_count = utarray_len(&hierarchy[dim]);
         for (int level_idx = 0; level_idx < cur_level_count; ++level_idx) {
             const struct hierarchy_t *level = tree_ut_hierarchy_eltptr(&hierarchy[dim], level_idx);
@@ -809,7 +809,7 @@ int MPII_Treeutil_tree_topology_aware_k_init(MPIR_Comm * comm,
     }
 
     /* free memory */
-    for (dim = 0; dim <= MPIR_Process.coords_dims; ++dim)
+    for (dim = 0; dim <= MPIR_Process.coords_dims - 1; ++dim)
         utarray_done(&hierarchy[dim]);
 
     MPL_free(num_childrens);
@@ -920,13 +920,13 @@ static int latency(int unv_rank, int v_rank, int lat_diff_groups, int lat_diff_s
                    int lat_same_switches)
 {
     /* latency of but different groups */
-    if (MPIR_Process.coords[unv_rank * MPIR_Process.coords_dims + 1] !=
-        MPIR_Process.coords[v_rank * MPIR_Process.coords_dims + 1])
+    if (MPIR_Process.coords[unv_rank * MPIR_Process.coords_dims + 2] !=
+        MPIR_Process.coords[v_rank * MPIR_Process.coords_dims + 2])
         return lat_diff_groups;
 
     /* latency of the same groups, but different switch */
-    if (MPIR_Process.coords[unv_rank * MPIR_Process.coords_dims + 0] !=
-        MPIR_Process.coords[v_rank * MPIR_Process.coords_dims + 0])
+    if (MPIR_Process.coords[unv_rank * MPIR_Process.coords_dims + 1] !=
+        MPIR_Process.coords[v_rank * MPIR_Process.coords_dims + 1])
         return lat_diff_switches;
 
     /* latency of the same switch */
@@ -1136,8 +1136,8 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
     heap_vector_init(&minHeaps);
 
     /* To build hierarchy of ranks, swiches and groups */
-    int dim = MPIR_Process.coords_dims;
-    for (dim = MPIR_Process.coords_dims; dim >= 0; --dim)
+    int dim = MPIR_Process.coords_dims - 1;
+    for (dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim)
         tree_ut_hierarchy_init(&hierarchy[dim]);
 
     if (params->overhead <= 0 || params->lat_diff_groups <= 0 || params->lat_diff_switches <= 0 ||
@@ -1240,7 +1240,7 @@ int MPII_Treeutil_tree_topology_wave_init(MPIR_Comm * comm,
 static void tree_topology_dump_hierarchy(UT_array hierarchy[], int myrank, FILE * outfile)
 {
     fprintf(outfile, "{\"rank\": %d, \"hierarchy\": [\n", myrank);
-    for (int dim = MPIR_Process.coords_dims; dim >= 0; --dim) {
+    for (int dim = MPIR_Process.coords_dims - 1; dim >= 0; --dim) {
         fprintf(outfile, "    {\"dim\": %d, \"levels\": [\n", dim);
         for (int level_idx = 0; level_idx < utarray_len(&hierarchy[dim]); ++level_idx) {
             if (level_idx > 0)

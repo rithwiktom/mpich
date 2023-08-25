@@ -205,6 +205,7 @@ int MPIR_pmi_init(void)
         }
         MPIR_Assert(val->data.coord->dims <= INT_MAX);
         MPIR_Process.coords_dims = (int) val->data.coord->dims;
+        MPIR_Assert(MPIR_Process.coords_dims == 3);
 
         if (i == 0) {
             MPIR_Process.coords =
@@ -214,7 +215,9 @@ int MPIR_pmi_init(void)
 
         if (PMIX_COORD == val->type) {
             for (int n = 0; n < MPIR_Process.coords_dims; n++) {
-                MPIR_Process.coords[i * MPIR_Process.coords_dims + n] = val->data.coord->coord[n];
+                /* store the coords in this order: port_id, switch_id, group_id */
+                MPIR_Process.coords[i * MPIR_Process.coords_dims + n] =
+                    val->data.coord->coord[MPIR_Process.coords_dims - 1 - n];
             }
         }
     }
@@ -1606,7 +1609,7 @@ static int parse_coord_file(const char *filename)
             break;
     }
 
-    MPIR_Assert(MPIR_Process.coords_dims > 0);
+    MPIR_Assert(MPIR_Process.coords_dims == 3);
     rewind(coords_file);
 
     MPIR_Process.coords =
@@ -1624,9 +1627,11 @@ static int parse_coord_file(const char *filename)
             continue;
         }
         for (j = 0; j < MPIR_Process.coords_dims; ++j) {
+            /* store the coords in this order: port_id, switch_id, group_id */
             fields_scanned =
                 fscanf(coords_file, "%d:\n",
-                       &MPIR_Process.coords[rank * MPIR_Process.coords_dims + j]);
+                       &MPIR_Process.coords[rank * MPIR_Process.coords_dims +
+                                            MPIR_Process.coords_dims - 1 - j]);
             MPIR_ERR_CHKANDSTMT2(1 != fields_scanned, mpi_errno, MPI_ERR_FILE, goto fn_fail_read,
                                  "**read_file", "**read_file %s %s", filename, strerror(errno));
         }
