@@ -554,9 +554,9 @@ static int MPII_Treeutil_hierarchy_populate(MPIR_Comm * comm, MPIR_Treealgo_para
 
   fn_exit:
     /* Dump hierarchy for debuging */
-    if (0 < strlen(MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX)) {
+    if (0 < strlen(MPIR_CVAR_HIERARCHY_DUMP_FILE_PREFIX)) {
         char outfile_name[PATH_MAX];
-        sprintf(outfile_name, "%s%d", MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX, params->rank);
+        sprintf(outfile_name, "%s%d", MPIR_CVAR_HIERARCHY_DUMP_FILE_PREFIX, params->rank);
         FILE *outfile = fopen(outfile_name, "w");
         tree_topology_dump_hierarchy(hierarchy, params->rank, outfile);
         fclose(outfile);

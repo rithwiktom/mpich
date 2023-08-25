@@ -223,9 +223,9 @@ int MPIR_pmi_init(void)
     }
     /* rank 0 dumps coordinates for debugging */
     if (rank == 0) {
-        if (0 < strlen(MPIR_CVAR_TREE_DUMP_COORDINATES_FILE)) {
+        if (0 < strlen(MPIR_CVAR_COORDINATES_DUMP_FILE)) {
             char outfile_name[PATH_MAX];
-            sprintf(outfile_name, "%s", MPIR_CVAR_TREE_DUMP_COORDINATES_FILE);
+            sprintf(outfile_name, "%s", MPIR_CVAR_COORDINATES_DUMP_FILE);
             FILE *outfile = fopen(outfile_name, "w");
             for (int i = 0; i < size; i++) {
                 fprintf(outfile, "%d:", i);
