@@ -73,6 +73,7 @@ static void tree_ut_hierarchy_dtor(void *elt)
 {
     utarray_done(&((struct hierarchy_t *) elt)->ranks);
     utarray_done(&((struct hierarchy_t *) elt)->child_idxs);
+    utarray_done(&((struct hierarchy_t *) elt)->sorted_idxs);
 }
 
 static const UT_icd tree_ut_hierarchy_icd =
