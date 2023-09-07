@@ -53,7 +53,7 @@ cvars:
       description : >-
         Defines the location of tuning file.
 
-    - name        : MPIR_CVAR_TOPO_HIERARCHY_DUMP_FILE_PREFIX
+    - name        : MPIR_CVAR_HIERARCHY_DUMP_FILE_PREFIX
       category    : COLLECTIVE
       type        : string
       default     : ""
@@ -94,7 +94,7 @@ cvars:
         Defines the prefix for the set of filenames receive the collective dump of the generated tree in JSON format.
         If not set, the tree will not be dumped.
 
-    - name        : MPIR_CVAR_TREE_DUMP_COORDINATES_FILE
+    - name        : MPIR_CVAR_COORDINATES_DUMP_FILE
       category    : COLLECTIVE
       type        : string
       default     : ""
