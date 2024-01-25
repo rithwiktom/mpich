@@ -8,19 +8,22 @@
         "avg_msg_size<=128": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=10": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=8192": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=32768": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=262144": {
@@ -28,8 +31,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -43,19 +46,22 @@
         "avg_msg_size<=8192": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=32768": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=4": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=65536": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=3": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=131072": {
@@ -72,31 +78,36 @@
         "avg_msg_size<=64": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=2": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=16384": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=4": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=32768": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=3": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=65536": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=4": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=131072": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=2": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -110,31 +121,36 @@
         "avg_msg_size<=8192": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=16384": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=32768": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=3": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=65536": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=4": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=131072": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=2": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=524288": {
@@ -145,8 +161,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -155,7 +171,8 @@
             "is_non_blocking=1": {},
             "k=2": {},
             "recv_pre_post=0": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         }
       },
@@ -166,31 +183,36 @@
         "avg_msg_size<=32": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=11": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=64": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=10": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=2048": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=11": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=4096": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=10": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=16384": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=11": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=65536": {
@@ -198,8 +220,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=131072": {
@@ -207,8 +229,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=1048576": {
@@ -216,8 +238,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -231,37 +253,43 @@
         "avg_msg_size<=4": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=15": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=16": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=16": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=32": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=2048": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=16": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=4096": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=15": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=8192": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=15": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=65536": {
@@ -269,8 +297,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=131072": {
@@ -278,8 +306,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=262144": {
@@ -287,8 +315,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=2097152": {
@@ -296,8 +324,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -305,8 +333,8 @@
             "chunk_size=65536": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         }
       },
@@ -314,19 +342,22 @@
         "avg_msg_size<=0": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=2": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=2048": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=8": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=4096": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=10": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=8192": {
@@ -334,8 +365,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=65536": {
@@ -343,8 +374,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=131072": {
@@ -352,8 +383,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=262144": {
@@ -361,8 +392,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=2097152": {
@@ -370,8 +401,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -379,49 +410,55 @@
             "chunk_size=65536": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         }
       },
-      "comm_size=any": {
+      "comm_size<=1024": {
         "avg_msg_size<=0": {
           "algorithm=MPIR_Bcast_intra_binomial": {}
         },
         "avg_msg_size<=128": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=11": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=256": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=11": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=512": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=10": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=1024": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=16": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=2048": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=16": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=4096": {
           "algorithm=MPIR_Bcast_intra_tree": {
             "k=11": {},
-            "tree_type=knomial_1": {}
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
           }
         },
         "avg_msg_size<=8192": {
@@ -429,8 +466,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=knomial_2": {}
+            "tree_type=knomial_2": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=131072": {
@@ -438,8 +475,8 @@
             "chunk_size=4096": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=524288": {
@@ -447,8 +484,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=3": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size<=2097152": {
@@ -456,8 +493,8 @@
             "chunk_size=32768": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
         },
         "avg_msg_size=any": {
@@ -465,9 +502,88 @@
             "chunk_size=65536": {},
             "is_non_blocking=1": {},
             "k=2": {},
-            "recv_pre_post=1": {},
-            "tree_type=kary": {}
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
           }
+        }
+      },
+      "comm_size=any": {
+        "avg_msg_size<=0": {
+          "algorithm=MPIR_Bcast_intra_binomial": {}
+        },
+        "avg_msg_size<=1": {
+          "algorithm=MPIR_Bcast_intra_tree": {
+            "k=12": {},
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
+          }
+        },
+        "avg_msg_size<=64": {
+          "algorithm=MPIR_Bcast_intra_tree": {
+            "k=8": {},
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
+          }
+        },
+        "avg_msg_size<=1024": {
+          "algorithm=MPIR_Bcast_intra_tree": {
+            "k=13": {},
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
+          }
+        },
+        "avg_msg_size<=2048": {
+          "algorithm=MPIR_Bcast_intra_tree": {
+            "k=8": {},
+            "tree_type=knomial_2": {},
+            "is_non_blocking=1": {}
+          }
+        },
+        "avg_msg_size<=4096": {
+          "algorithm=MPIR_Bcast_intra_tree": {
+            "k=13": {},
+            "tree_type=knomial_1": {},
+            "is_non_blocking=1": {}
+          }
+        },
+        "avg_msg_size<=8192": {
+          "algorithm=MPIR_Bcast_intra_pipelined_tree": {
+            "chunk_size=4096": {},
+            "is_non_blocking=1": {},
+            "k=3": {},
+            "tree_type=knomial_1": {},
+            "recv_pre_posted=1": {}
+          }
+        },
+        "avg_msg_size<=131072": {
+          "algorithm=MPIR_Bcast_intra_pipelined_tree": {
+            "chunk_size=4096": {},
+            "is_non_blocking=1": {},
+            "k=3": {},
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
+          }
+        },
+        "avg_msg_size<=524288": {
+          "algorithm=MPIR_Bcast_intra_pipelined_tree": {
+            "chunk_size=32768": {},
+            "is_non_blocking=1": {},
+            "k=3": {},
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
+          }
+        },
+        "avg_msg_size<=2097152": {
+          "algorithm=MPIR_Bcast_intra_pipelined_tree": {
+            "chunk_size=32768": {},
+            "is_non_blocking=1": {},
+            "k=2": {},
+            "tree_type=kary": {},
+            "recv_pre_posted=1": {}
+          }
+        },
+        "avg_msg_size=any": {
+          "algorithm=MPIR_Bcast_intra_scatter_recursive_doubling_allgather": {}
         }
       }
     },
@@ -515,10 +631,17 @@
           }
         }
       },
-      "comm_size=any": {
+      "comm_size<=1024": {
         "avg_msg_size=any": {
           "algorithm=MPIR_Barrier_intra_k_dissemination": {
             "k=6": {}
+          }
+        }
+      },
+      "comm_size=any": {
+        "avg_msg_size=any": {
+          "algorithm=MPIR_Barrier_intra_k_dissemination": {
+            "k=13": {}
           }
         }
       }
@@ -1147,7 +1270,7 @@
           }
         }
       },
-      "comm_size=any": {
+      "comm_size<=1024": {
         "avg_msg_size<=0": {
           "algorithm=MPIR_Allreduce_intra_tree": {
             "buffer_per_child=0": {},
@@ -1226,6 +1349,107 @@
           "is_commutative=yes": {
             "algorithm=MPIR_Allreduce_intra_k_reduce_scatter_allgather": {
               "k=4": {},
+              "single_phase_recv=1": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size=any": {
+          "is_op_built_in=yes": {
+            "algorithm=MPIR_Allreduce_intra_reduce_scatter_allgather": {}
+          },
+          "is_op_built_in=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        }
+      },
+      "comm_size=any": {
+        "avg_msg_size<=0": {
+          "algorithm=MPIR_Allreduce_intra_tree": {
+            "buffer_per_child=0": {},
+            "chunk_size=4096": {},
+            "k=2": {},
+            "tree_type=kary": {}
+          }
+        },
+        "avg_msg_size<=4": {
+          "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+        },
+        "avg_msg_size<=32": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_recexch": {
+              "k=8": {},
+              "single_phase_recv=0": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size<=64": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_recexch": {
+              "k=4": {},
+              "single_phase_recv=0": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size<=128": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_recexch": {
+              "k=8": {},
+              "single_phase_recv=0": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size<=2048": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_recexch": {
+              "k=13": {},
+              "single_phase_recv=0": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size<=4096": {
+          "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+        },
+        "avg_msg_size<=16384": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_recexch": {
+              "k=13": {},
+              "single_phase_recv=0": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size<=131072": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_k_reduce_scatter_allgather": {
+              "k=2": {},
+              "single_phase_recv=0": {}
+            }
+          },
+          "is_commutative=no": {
+            "algorithm=MPIR_Allreduce_intra_recursive_doubling": {}
+          }
+        },
+        "avg_msg_size<=262144": {
+          "is_commutative=yes": {
+            "algorithm=MPIR_Allreduce_intra_k_reduce_scatter_allgather": {
+              "k=3": {},
               "single_phase_recv=1": {}
             }
           },
